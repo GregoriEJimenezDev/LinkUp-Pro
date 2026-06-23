@@ -6,4 +6,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\LinkUpPro.Core.Application\LinkUpPro.Core.Application.csproj" />
+    <ProjectReference Include="..\LinkUpPro.Core.Domain\LinkUpPro.Core.Domain.csproj" />
+    <ProjectReference Include="..\LinkUpPro.Infrastructure.Identity\LinkUpPro.Infrastructure.Identity.csproj" />
+    <ProjectReference Include="..\LinkUpPro.Infrastructure.Persistence\LinkUpPro.Infrastructure.Persistence.csproj" />
+    <ProjectReference Include="..\LinkUpPro.Infrastructure.Shared\LinkUpPro.Infrastructure.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

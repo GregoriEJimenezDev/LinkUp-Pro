@@ -1,0 +1,45 @@
+﻿using LinkUpPro.Core.Domain.Entities;
+using LinkUpPro.Core.Domain.Interfaces;
+using LinkUpPro.Infrastructure.Persistence.Context;
+using LinkUpPro.Infrastructure.Persistence.Repositories.Generic;
+using Microsoft.EntityFrameworkCore;
+
+namespace LinkUpPro.Infrastructure.Persistence.Repositories
+{
+    public class PostRepository(LinkUpProDbContext context) : GenericRepository<Post>(context), IPostRepository
+    {
+        public async Task<IEnumerable<Post>> GetByFriendsAsync(IEnumerable<string> friendIds) 
+        {
+            var idlist = friendIds.ToList();
+            if(idlist.Any()) return [];
+
+            var allpost= await _context.Posts
+                .OrderByDescending(p => p.CreatedAt)
+                .Include(p => p.Comments).ThenInclude(c => c.Replies)
+                .Include(p => p.Reactions)
+                .AsNoTracking()
+                .ToListAsync();
+            return allpost.Where(p => idlist.Contains(p.UserId!));
+        }
+
+        public async Task<IEnumerable<Post>> GetByUserIdAsync(string userId) =>
+            await _context.Posts
+                .Where(p => p.UserId == userId)
+                .OrderByDescending(p => p.CreatedAt)
+                .Include(p => p.Comments)
+                    .ThenInclude(c => c.Replies)
+                .Include(p => p.Reactions)
+                .AsNoTracking()
+                .ToListAsync();
+
+
+        public async Task<IEnumerable<Post>> GetAllPostWithDetailsAsync() =>
+            await _context.Posts
+                .OrderByDescending(p => p.CreatedAt)
+                .Include(p => p.Comments)
+                    .ThenInclude(c => c.Replies)
+                .Include(p => p.Reactions)
+                .AsNoTracking()
+                .ToListAsync();
+    }
+}
