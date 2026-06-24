@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Domain.Entities;
+using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Interfaces.IGeneric;
 
 namespace LinkUpPro.Core.Domain.Interfaces
@@ -9,6 +9,7 @@ namespace LinkUpPro.Core.Domain.Interfaces
         Task<IEnumerable<BattleshipGame>> GetFinishedByUserIdAsync(string userId);
         Task<BattleshipGame> GetWithDetailsAsync(int gameId);
         Task<bool> HasActiveGameWithFriendAsync(string userId, string friendId);
-
+        Task<IEnumerable<BattleshipGame>> GetAllActiveAsync();
+        Task<IEnumerable<BattleshipGame>> GetByPlayerAsync(string userId);
     }
 }

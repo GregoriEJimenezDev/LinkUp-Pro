@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using LinkUpPro.Infrastructure.Persistence.Repositories.Generic;
 using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Interfaces;
@@ -37,5 +37,20 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
             await _context.BattleshipGames.AsNoTracking()
                 .AnyAsync(g => g.Status != GameStatus.Finished && ((g.FirstPlayerId == userId && g.SecondPlayerId == friendId) || 
                 (g.FirstPlayerId == friendId && g.SecondPlayerId == userId)));
+
+        public async Task<IEnumerable<BattleshipGame>> GetAllActiveAsync() =>
+            await _context.BattleshipGames
+                .Where(g => g.Status != GameStatus.Finished)
+                .Include(g => g.Ships).ThenInclude(s => s.Cells)
+                .Include(g => g.Attacks)
+                .AsNoTracking()
+                .ToListAsync();
+
+        public async Task<IEnumerable<BattleshipGame>> GetByPlayerAsync(string userId) =>
+            await _context.BattleshipGames
+                .Where(g => g.FirstPlayerId == userId || g.SecondPlayerId == userId)
+                .OrderByDescending(g => g.StartedAt)
+                .AsNoTracking()
+                .ToListAsync();
     }
 }

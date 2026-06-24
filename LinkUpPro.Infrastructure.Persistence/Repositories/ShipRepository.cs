@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using LinkUpPro.Infrastructure.Persistence.Repositories.Generic;
 using LinkUpPro.Infrastructure.Persistence.Context;
 using LinkUpPro.Core.Domain.Entities;
@@ -26,10 +26,12 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
 
         public async Task<bool> PlayerFinishedPlacingAsync(int gameId, string playerId)
         {
-            //There are 5 boats in total: sizes 2, 3, 3, 4, 5
             var count = await _context.Ships
                 .CountAsync(s => s.GameId == gameId && s.PlayerId == playerId);
             return count == 5;
         }
+
+        public async Task<int> CountByGameAndPlayerAsync(int gameId, string playerId) =>
+            await _context.Ships.CountAsync(s => s.GameId == gameId && s.PlayerId == playerId);
     }
 }

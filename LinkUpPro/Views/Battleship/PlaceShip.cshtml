@@ -1,0 +1,81 @@
+@model SelectCellViewModel
+@{
+    ViewData["Title"] = $"Place {Model.ShipType}";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/battleship.css" asp-append-version="true" />
+}
+
+<div class="container mt-4">
+    <h1 class="display-6 mb-2">Place @Model.ShipType (Size @Model.ShipSize)</h1>
+    <p class="text-muted">Click a cell to place the ship, then choose a direction.</p>
+
+    @if (TempData["Error"] is string errorMsg)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @errorMsg
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <form id="placeShipForm" asp-action="PlaceShip" method="post">
+        <input type="hidden" name="gameId" value="@Model.GameId" />
+        <input type="hidden" name="shipType" value="@Model.ShipType" />
+        <input type="hidden" name="row" id="selectedRow" />
+        <input type="hidden" name="col" id="selectedCol" />
+        <input type="hidden" name="direction" id="selectedDirection" value="Right" />
+
+        <div class="row">
+            <div class="col-md-auto">
+                <div class="board" id="placementBoard">
+                    <div class="board-header">
+                        @for (int c = 1; c <= 12; c++)
+                        {
+                            <div class="cell-label">@c</div>
+                        }
+                    </div>
+                    @for (int r = 1; r <= 12; r++)
+                    {
+                        <div class="board-row">
+                            <div class="cell-label">@r</div>
+                            @for (int c = 1; c <= 12; c++)
+                            {
+                                var isOccupied = Model.OccupiedCells.Contains((r, c));
+                                <div class="cell @(isOccupied ? "occupied" : "")"
+                                     data-row="@r" data-col="@c"
+                                     data-occupied="@(isOccupied ? "true" : "false")">
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Direction</h5>
+                        <div class="btn-group-vertical w-100" role="group">
+                            <button type="button" class="btn btn-outline-primary direction-btn active" data-direction="Right">Right →</button>
+                            <button type="button" class="btn btn-outline-primary direction-btn" data-direction="Down">Down ↓</button>
+                            <button type="button" class="btn btn-outline-primary direction-btn" data-direction="Left">Left ←</button>
+                            <button type="button" class="btn btn-outline-primary direction-btn" data-direction="Up">Up ↑</button>
+                        </div>
+                        <hr />
+                        <p class="text-muted small mb-1">Selected: <span id="selectedCellDisplay">None</span></p>
+                        <button type="submit" class="btn btn-primary w-100 mt-2" id="placeBtn" disabled>Place Ship</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="mt-3">
+        <a asp-action="SelectShip" asp-route-gameId="@Model.GameId" class="btn btn-outline-secondary">Back</a>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/battleship.js" asp-append-version="true"></script>
+}

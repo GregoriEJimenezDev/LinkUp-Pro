@@ -1,8 +1,11 @@
-﻿using LinkUpPro.Core.Domain.Interfaces;
+using LinkUpPro.Core.Application.Interfaces.Services;
+using LinkUpPro.Core.Domain.DomainServices;
+using LinkUpPro.Core.Domain.Interfaces;
 using LinkUpPro.Core.Domain.Interfaces.IGeneric;
 using LinkUpPro.Infrastructure.Persistence.Context;
 using LinkUpPro.Infrastructure.Persistence.Repositories;
 using LinkUpPro.Infrastructure.Persistence.Repositories.Generic;
+using LinkUpPro.Infrastructure.Persistence.UnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,6 +58,9 @@ namespace LinkUpPro.Infrastructure.Persistence.IoC
             services.AddScoped<IBattleshipGameRepository, BattleshipGameRepository>();
             services.AddScoped<IShipRepository, ShipRepository>();
             services.AddScoped<IAttackRepository, AttackRepository>();
+            services.AddScoped<IUnitOfWork, EFUnitOfWork>();
+            services.AddScoped<IShipPlacementDomainService, ShipPlacementDomainService>();
+            services.AddScoped<IAttackDomainService, AttackDomainService>();
             #endregion
         }
         #endregion

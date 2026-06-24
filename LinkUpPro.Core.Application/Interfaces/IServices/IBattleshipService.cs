@@ -1,4 +1,5 @@
-﻿using LinkUpPro.Core.Application.Interfaces.Services;
+using LinkUpPro.Core.Application.DTOs.Battleship;
+using LinkUpPro.Core.Application.Interfaces.Services;
 using LinkUpPro.Core.Application.ViewModel.Game;
 using LinkUpPro.Core.Application.ViewModel.Select;
 using LinkUpPro.Core.Domain.Enum;
@@ -17,5 +18,6 @@ namespace LinkUpPro.Core.Application.Interfaces.IServices
         Task<ServiceResult> SurrenderAsync(int gameId, string playerId);
         Task<GameResultViewModel> GetResultAsync(int gameId, string playerId);
         Task CheckTimeoutsAsync();
+        Task<GameStatsDto> GetStatsAsync(string userId);
     }
 }

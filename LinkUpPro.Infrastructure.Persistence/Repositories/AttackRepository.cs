@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using LinkUpPro.Infrastructure.Persistence.Repositories.Generic;
 using LinkUpPro.Infrastructure.Persistence.Context;
 using LinkUpPro.Core.Domain.Entities;
@@ -16,5 +16,10 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
             && a.AttackerId == attackerId
             && a.Row == row
             && a.Column == col);
+
+        public async Task<IEnumerable<Attack>> GetByAttackerAsync(string attackerId) =>
+            await _context.Attacks.Where(a => a.AttackerId == attackerId)
+                .AsNoTracking()
+                .ToListAsync();
     }
 }

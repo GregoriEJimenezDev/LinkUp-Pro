@@ -4,6 +4,7 @@
     {
         PlacingShips = 0,
         InProgress = 1,
-        Finished = 2
+        Finished = 2,
+        Abandoned = 3
     }
 }

@@ -1,0 +1,133 @@
+@model BattleshipIndexViewModel
+@{
+    ViewData["Title"] = "Battleship";
+    var stats = ViewBag.Stats as GameStatsDto;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6">Battleship</h1>
+        <a asp-action="Create" class="btn btn-primary btn-lg">+ New Game</a>
+    </div>
+
+    @if (TempData["Error"] is string errorMsg)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @errorMsg
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (stats != null)
+    {
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center border-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Games</h5>
+                        <p class="display-6">@stats.TotalGames</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-success">
+                    <div class="card-body">
+                        <h5 class="card-title">Won</h5>
+                        <p class="display-6 text-success">@stats.WonGames</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-danger">
+                    <div class="card-body">
+                        <h5 class="card-title">Lost</h5>
+                        <p class="display-6 text-danger">@stats.LostGames</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-info">
+                    <div class="card-body">
+                        <h5 class="card-title">Accuracy</h5>
+                        <p class="display-6 text-info">@stats.Accuracy%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <ul class="nav nav-tabs mb-3" id="battleshipTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="active-tab" data-bs-toggle="tab" data-bs-target="#active" type="button" role="tab">Active (@Model.ActiveGames.Count)</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="finished-tab" data-bs-toggle="tab" data-bs-target="#finished" type="button" role="tab">Finished (@Model.FinishedGames.Count)</button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="active" role="tabpanel">
+            @if (!Model.ActiveGames.Any())
+            {
+                <div class="text-center py-5">
+                    <p class="text-muted fs-5">No active games. <a asp-action="Create">Start a new game!</a></p>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var game in Model.ActiveGames)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">@game.Player1Username vs @game.Player2Username</h5>
+                                    <p class="card-text">
+                                        <span class="badge bg-warning">@game.Status</span>
+                                        <span class="ms-2">@game.HoursElapsed hrs</span>
+                                    </p>
+                                    <a asp-action="SelectShip" asp-route-gameId="@game.Id" class="btn btn-outline-primary btn-sm">Play</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="tab-pane fade" id="finished" role="tabpanel">
+            @if (!Model.FinishedGames.Any())
+            {
+                <div class="text-center py-5">
+                    <p class="text-muted fs-5">No finished games yet.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Players</th>
+                                <th>Winner</th>
+                                <th>Duration</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var game in Model.FinishedGames)
+                            {
+                                <tr>
+                                    <td>@game.Player1Username vs @game.Player2Username</td>
+                                    <td><span class="badge bg-success">@game.WinnerUsername</span></td>
+                                    <td>@game.HoursElapsed hrs</td>
+                                    <td><a asp-action="Result" asp-route-gameId="@game.Id" class="btn btn-outline-info btn-sm">View</a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

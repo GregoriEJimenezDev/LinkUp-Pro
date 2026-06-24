@@ -1,0 +1,30 @@
+using LinkUpPro.Core.Application.Interfaces.Services;
+using LinkUpPro.Core.Domain.Exceptions;
+using LinkUpPro.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
+
+namespace LinkUpPro.Infrastructure.Persistence.UnitOfWork
+{
+    public class EFUnitOfWork : IUnitOfWork
+    {
+        private readonly LinkUpProDbContext _context;
+
+        public EFUnitOfWork(LinkUpProDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                return await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                throw new ConcurrencyException(
+                    "The game was modified by another player. Please retry your action.", ex);
+            }
+        }
+    }
+}

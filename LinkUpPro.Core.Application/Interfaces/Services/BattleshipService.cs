@@ -1,121 +1,103 @@
-﻿using LinkUpPro.Core.Application.DTOs.Battleship;
+using AutoMapper;
+using LinkUpPro.Core.Application.DTOs.Battleship;
 using LinkUpPro.Core.Application.Interfaces.IServices;
+using LinkUpPro.Core.Application.Interfaces.Services;
 using LinkUpPro.Core.Application.ViewModel.Game;
 using LinkUpPro.Core.Application.ViewModel.Select;
+using LinkUpPro.Core.Domain.DomainServices;
 using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Enum;
+using LinkUpPro.Core.Domain.Exceptions;
 using LinkUpPro.Core.Domain.Interfaces;
+using LinkUpPro.Core.Application.Interfaces.Services;
 
 namespace LinkUpPro.Core.Application.Interfaces.Services
 {
-    public class BattleshipService(IBattleshipGameRepository gameRepository, IShipRepository shipRepository, 
-        IAttackRepository attackRepository, IFriendshipRepository friendshipRepository, IUserService userService) : IBattleshipService
+    public class BattleshipService : IBattleshipService
     {
-        private readonly IBattleshipGameRepository _gameRepository = gameRepository;
-        private readonly IShipRepository _shipRepository = shipRepository;
-        private readonly IAttackRepository _attackRepository = attackRepository;
-        private readonly IFriendshipRepository _friendshipRepository = friendshipRepository;
-        private readonly IUserService _userService = userService;
-        #region dictionaries
-        private static readonly Dictionary<ShipType, int> ShipSizes = new()
+        private readonly IBattleshipGameRepository _gameRepo;
+        private readonly IShipRepository _shipRepo;
+        private readonly IAttackRepository _attackRepo;
+        private readonly IUserService _userService;
+        private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IShipPlacementDomainService _placementService;
+        private readonly IAttackDomainService _attackDomainService;
+
+        public BattleshipService(
+            IBattleshipGameRepository gameRepo,
+            IShipRepository shipRepo,
+            IAttackRepository attackRepo,
+            IUserService userService,
+            IMapper mapper,
+            IUnitOfWork unitOfWork,
+            IShipPlacementDomainService placementService,
+            IAttackDomainService attackDomainService)
         {
-            { ShipType.size2, 2 },
-            { ShipType.size3A,3 },
-            { ShipType.size3B,3 },
-            { ShipType.size4, 4 },
-            { ShipType.size5, 5 }
-        };
-        #endregion
-
-        public async Task<ServiceResult> AttackAsync(int gameId, string attackerId, int row, int col)
-        {
-            var game = await _gameRepository.GetWithDetailsAsync(gameId);
-            if (game.Status == GameStatus.PlacingShips)
-            {
-                var opponent = game.FirstPlayerId == attackerId ? game.SecondPlayerId : game.FirstPlayerId;
-                var opponentInfo = await _userService.GetUserBasicInfoAsync(opponent);
-
-                return ServiceResult.Failure($"El juego todavía está en la fase de colocación de barcos. Por favor, " +
-                    $"espera a que {opponentInfo.Username} termine de colocar los suyos.");
-            }
-
-            if (game.Status != GameStatus.InProgress) return ServiceResult.Failure("El juego ya ha terminado o no se encuentra en progreso.");
-
-            if (game.CurrentTurnPlayerId != attackerId) return ServiceResult.Failure("No es tu turno.");
-
-            var alreadyAttacked = await _attackRepository.CellAlreadyAttackedAsync(gameId, attackerId, row, col);
-
-            if (alreadyAttacked) return ServiceResult.Failure("Ya has atacado esta casilla. Por favor, elige una diferente.");
-
-            var opponentId = game.FirstPlayerId == attackerId ? game.SecondPlayerId : game.FirstPlayerId;
-
-            var opponentShips = await _shipRepository.GetWithCellsByGameAndPlayerAsync(gameId, opponentId);
-
-            Ship? hitShip = null;
-            ShipCell? hitCell = null;
-
-            foreach (var ship in opponentShips)
-            {
-                var cell = ship.Cells.FirstOrDefault(c => c.Row == row && c.Column == col);
-                if (cell != null)
-                {
-                    hitShip = ship;
-                    hitCell = cell;
-                    break;
-                }
-            }
-            bool isHit = hitCell != null;
-            if (isHit)
-            {
-                hitCell!.WasAttacked = true;
-                await _shipRepository.UpdateAsync(hitShip!);
-
-                if (hitShip!.Cells.All(c => c.WasAttacked))
-                {
-                    hitShip.IsSunk = true;
-                    await _shipRepository.UpdateAsync(hitShip);
-                }
-                var updatedShips = await _shipRepository.GetWithCellsByGameAndPlayerAsync(gameId, opponentId);
-                if (updatedShips.All(s => s.IsSunk))
-                {
-                    await _attackRepository.AddAsync(new Attack
-                    {
-                        GameId = gameId,
-                        AttackerId = attackerId,
-                        Row = row,
-                        Column = col,
-                        IsHit = true,
-                        AttackedAt = DateTime.UtcNow
-                    });
-
-                    game.Status = GameStatus.Finished;
-                    game.WinnerId = attackerId;
-                    game.FinishedAt = DateTime.UtcNow;
-                    await _gameRepository.UpdateAsync(game);
-
-                    return ServiceResult.Success();
-                }
-            }
-            await _attackRepository.AddAsync(new Attack
-            {
-                GameId = gameId,
-                AttackerId = attackerId,
-                Row = row,
-                Column = col,
-                IsHit = isHit,
-                AttackedAt = DateTime.UtcNow
-            });
-
-            game.CurrentTurnPlayerId = opponentId;
-            game.LastAttackedAt = DateTime.UtcNow;
-            await _gameRepository.UpdateAsync(game);
-
-            return ServiceResult.Success();
+            _gameRepo = gameRepo;
+            _shipRepo = shipRepo;
+            _attackRepo = attackRepo;
+            _userService = userService;
+            _mapper = mapper;
+            _unitOfWork = unitOfWork;
+            _placementService = placementService;
+            _attackDomainService = attackDomainService;
         }
+
+        public async Task<BattleshipIndexViewModel> GetIndexAsync(string userId)
+        {
+            var activeGames = await _gameRepo.GetActiveByUserIdAsync(userId);
+            var finishedGames = await _gameRepo.GetFinishedByUserIdAsync(userId);
+
+            var activeDtos = await MapGamesAsync(activeGames);
+            var finishedDtos = await MapGamesAsync(finishedGames);
+
+            var finishedList = finishedGames.ToList();
+            var total = finishedList.Count;
+            var won = finishedList.Count(g => g.WinnerId == userId);
+
+            return new BattleshipIndexViewModel
+            {
+                ActiveGames = activeDtos.ToList(),
+                FinishedGames = finishedDtos.ToList(),
+                TotalGames = total,
+                WonGames = won,
+                LostGames = total - won
+            };
+        }
+
+        public async Task<GameStatsDto> GetStatsAsync(string userId)
+        {
+            var allGames = await _gameRepo.GetByPlayerAsync(userId);
+            var finishedGames = allGames.Where(g => g.Status == GameStatus.Finished).ToList();
+            var totalFinished = finishedGames.Count;
+            var won = finishedGames.Count(g => g.WinnerId == userId);
+
+            var allAttacks = await _attackRepo.GetByAttackerAsync(userId);
+            var totalAttacks = allAttacks.Count();
+            var totalHits = allAttacks.Count(a => a.IsHit);
+
+            return new GameStatsDto
+            {
+                TotalGames = allGames.Count(),
+                WonGames = won,
+                LostGames = totalFinished - won,
+                WinRatio = totalFinished > 0 ? Math.Round((double)won / totalFinished * 100, 2) : 0,
+                TotalAttacks = totalAttacks,
+                TotalHits = totalHits,
+                Accuracy = totalAttacks > 0 ? Math.Round((double)totalHits / totalAttacks * 100, 2) : 0
+            };
+        }
+
         public async Task<ServiceResult<int>> CreateGameAsync(string player1Id, string player2Id)
         {
-            var hasActive = await _gameRepository.HasActiveGameWithFriendAsync(player1Id, player2Id);
-            if (hasActive) return ServiceResult<int>.Failure("Ya tienes una partida activa con este amigo.");
+            if (player1Id == player2Id)
+                return ServiceResult<int>.Failure("Cannot create a game with yourself.");
+
+            var hasActive = await _gameRepo.HasActiveGameWithFriendAsync(player1Id, player2Id);
+            if (hasActive)
+                return ServiceResult<int>.Failure("You already have an active game with this player.");
+
             var game = new BattleshipGame
             {
                 FirstPlayerId = player1Id,
@@ -124,338 +106,265 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 Status = GameStatus.PlacingShips,
                 StartedAt = DateTime.UtcNow
             };
-            await _gameRepository.AddAsync(game);
+
+            await _gameRepo.AddAsync(game);
+            await _unitOfWork.SaveChangesAsync();
+
             return ServiceResult<int>.Success(game.Id);
         }
-        public async Task<AttackBoardViewModel> GetAttackBoardAsync(int gameId, string playerId)
+
+        public async Task<SelectShipViewModel> GetPendingShipsAsync(int gameId, string playerId)
         {
-            var game = await _gameRepository.GetWithDetailsAsync(gameId);
-            if (game == null || game.Status == GameStatus.Finished) return null!;
+            var game = await _gameRepo.GetWithDetailsAsync(gameId);
+            var playerShips = game.Ships.Where(s => s.PlayerId == playerId).ToList();
 
-            await CheckSingleGameTimeoutAsync(game);
+            var allShipTypes = new[] { ShipType.size2, ShipType.size3A, ShipType.size3B, ShipType.size4, ShipType.size5 };
+            var placedTypes = playerShips.Select(s => s.ShipType).ToHashSet();
+            var pendingTypes = allShipTypes.Where(t => !placedTypes.Contains(t)).ToList();
 
-            if (game.Status == GameStatus.PlacingShips) 
-            {
-                var placedShips = (await _shipRepository.GetByGameAndPlayerAsync(gameId, playerId)).Count();
-                if (placedShips < ShipSizes.Count)
-                    return null!;
-            }
-
-            var opponentId = game.FirstPlayerId == playerId ? game.SecondPlayerId : game.FirstPlayerId;
-            var opponentInfo = await _userService.GetUserBasicInfoAsync(opponentId);
-            var currentInfoTurn = await _userService.GetUserBasicInfoAsync(game.CurrentTurnPlayerId!);
-
-            var myAttacks = game.Attacks
-                .Where(a => a.AttackerId == playerId)
-                .Select(a => new AttackDto
-                {
-                    Row = a.Row,
-                    Column = a.Column,
-                    IsHit = a.IsHit,
-                    AttackerId = a.AttackerId!,
-                    AttackedAt = a.AttackedAt
-                }).ToList();
-            return new AttackBoardViewModel
+            return new SelectShipViewModel
             {
                 GameId = gameId,
-                OpponentUsername = opponentInfo.Username,
-                CurrentTurnUsername = currentInfoTurn.Username,
-                MyAttacks = myAttacks,
-                IsMyTurn = game.CurrentTurnPlayerId == playerId
+                PendingShips = pendingTypes.Select(t => new ShipDto
+                {
+                    ShipType = t,
+                    Size = Ship.ShipSizes[t]
+                }).ToList(),
+                PlacedShips = playerShips.Select(s => _mapper.Map<ShipDto>(s)).ToList()
             };
         }
+
         public async Task<SelectCellViewModel> GetBoardForPlacementAsync(int gameId, string playerId, string shipType)
         {
-            var ship = await _shipRepository.GetWithCellsByGameAndPlayerAsync(gameId, playerId);
-            var occupied = ship
-                .SelectMany(s => s.Cells)
-                .Select(c => (c.Row, c.Column))
-                .ToList();
-            var type = Enum.Parse<ShipType>(shipType);
+            if (!Enum.TryParse<ShipType>(shipType, out var st))
+                throw new ArgumentException("Invalid ship type.");
+
+            var existingShips = await _shipRepo.GetByGameAndPlayerAsync(gameId, playerId);
+            var occupiedCells = existingShips.SelectMany(s => s.Cells)
+                .Select(c => (c.Row, c.Column)).ToList();
 
             return new SelectCellViewModel
             {
                 GameId = gameId,
                 ShipType = shipType,
-                ShipSize = ShipSizes[type],
-                OccupiedCells = occupied
+                ShipSize = Ship.ShipSizes[st],
+                OccupiedCells = occupiedCells
             };
         }
-        public async Task<BattleshipIndexViewModel> GetIndexAsync(string userId)
-        {
-            await CheckTimeoutsAsync(userId);
 
-            var active = await _gameRepository.GetActiveByUserIdAsync(userId);
-            var finished = await _gameRepository.GetFinishedByUserIdAsync(userId);
-
-            var activeDtos = new List<GameDto>();
-            foreach (var g in active)
-            {
-                var dto = await MapGameDto(g, userId);
-                activeDtos.Add(dto);
-            }
-
-            var finishedDtos = new List<GameDto>();
-            foreach (var g in finished)
-            {
-                var dto = await MapGameDto(g, userId);
-                finishedDtos.Add(dto);
-            }
-
-            return new BattleshipIndexViewModel
-            {
-                ActiveGames = activeDtos,
-                FinishedGames = finishedDtos,
-                TotalGames = finishedDtos.Count,
-                WonGames = finishedDtos.Count(g => g.WinnerId == userId),
-                LostGames = finishedDtos.Count(g => g.WinnerId != userId)
-            };
-        }
-        public async Task<SelectShipViewModel> GetPendingShipsAsync(int gameId, string playerId)
-        {
-            var placedShipsEntities = await _shipRepository.GetWithCellsByGameAndPlayerAsync(gameId, playerId);
-            var placedDtos = placedShipsEntities.Select(s => new ShipDto
-            {
-                Id = s.Id,
-                ShipType = s.ShipType,
-                Size = s.Size,
-                IsSunk = s.IsSunk,
-                PlayerId = s.PlayerId!,
-                Cells = [.. s.Cells.Select(c => new CellDto
-                {
-                    Row = c.Row,
-                    Column = c.Column,
-                    WasAttacked = c.WasAttacked
-                })]
-            }).ToList();
-
-            var placedTypes = placedDtos.Select(s => s.ShipType).ToHashSet();
-
-            var pending = ShipSizes.Where(s => !placedTypes.Contains(s.Key))
-                .Select(s => new ShipDto
-                {
-                    ShipType = s.Key,
-                    Size = s.Value,
-                    PlayerId = playerId
-                }).ToList();
-            return new SelectShipViewModel
-            {
-                GameId = gameId,
-                PendingShips = pending,
-                PlacedShips = placedDtos
-            };
-        }
-        public async Task<GameResultViewModel> GetResultAsync(int gameId, string playerId)
-        {
-            var game = await _gameRepository.GetWithDetailsAsync(gameId);
-            var opponentId = game.FirstPlayerId == playerId ? game.SecondPlayerId : game.FirstPlayerId;
-            var opponentInfo = await _userService.GetUserBasicInfoAsync(opponentId);
-            var myAttacks = game.Attacks
-                .Where(a => a.AttackerId == playerId)
-                .Select(a => new AttackDto
-                {
-                    Row = a.Row,
-                    Column = a.Column,
-                    IsHit = a.IsHit,
-                    AttackerId = a.AttackerId!,
-                    AttackedAt = a.AttackedAt
-                }).ToList();
-            var opponentAttacks = game.Attacks
-               .Where(a => a.AttackerId == opponentId)
-               .Select(a => new AttackDto
-               {
-                   Row = a.Row,
-                   Column = a.Column,
-                   IsHit = a.IsHit,
-                   AttackerId = a.AttackerId!,
-                   AttackedAt = a.AttackedAt
-               }).ToList();
-
-            var myShips = game.Ships
-                .Where(s => s.PlayerId == playerId)
-                .Select(s => new ShipDto
-                {
-                    Id = s.Id,
-                    ShipType = s.ShipType,
-                    Size = s.Size,
-                    IsSunk = s.IsSunk,
-                    PlayerId = s.PlayerId!,
-                    Cells = s.Cells.Select(c => new CellDto
-                    {
-                        Row = c.Row,
-                        Column = c.Column,
-                        WasAttacked = c.WasAttacked
-                    }).ToList()
-                }).ToList();
-            return new GameResultViewModel
-            {
-                GameId = gameId,
-                OpponentUsername = opponentInfo.Username,
-                IWon = game.WinnerId == playerId,
-                StartedAt = game.StartedAt,
-                FinishedAt = game.FinishedAt,
-                MyAttacks = myAttacks,
-                OpponentAttacks = opponentAttacks,
-                MyShips = myShips
-            };
-        }
         public async Task<ServiceResult> PlaceShipAsync(int gameId, string playerId, string shipType, int row, int col, ShipDirection direction)
         {
-            var type = Enum.Parse<ShipType>(shipType);
-            var size = ShipSizes[type];
-            var cells = CalculateCells(row, col, size, direction);
+            if (!Enum.TryParse<ShipType>(shipType, out var st))
+                return ServiceResult.Failure("Invalid ship type.");
 
-            if (cells.Any(c => c.Row < 0 || c.Row > 11 || c.Col < 0 || c.Col > 11))
-                return ServiceResult.Failure("La ubicación del barco está fuera de los límites del tablero. " +
-                "Debes cambiar o modificar la fila o la dirección seleccionada.");
+            var game = await _gameRepo.GetByIdAsync(gameId);
 
-            var existingShips = await _shipRepository.GetWithCellsByGameAndPlayerAsync(gameId, playerId);
-            var occupied = existingShips
-                .SelectMany(s => s.Cells)
-                .Select(c => (c.Row, c.Column))
-                .ToList();
+            if (game.Status != GameStatus.PlacingShips)
+                return ServiceResult.Failure("The game is not in placement phase.");
 
-            if (!IsValidPlacement(cells, occupied))
-            {
-                if (cells.Any(c => c.Row < 0 || c.Row > 11 || c.Col < 0 || c.Col > 11))
-                    return ServiceResult.Failure("La ubicación del barco está fuera de los límites. " +
-                        "Por favor, cambia la casilla de inicio o la dirección para que quepa dentro de la cuadrícula de 12x12.");
+            var existingShips = await _shipRepo.GetByGameAndPlayerAsync(gameId, playerId);
 
-                return ServiceResult.Failure("El barco se superpone con un barco ya existente. " +
-                    "Por favor, elige una ubicación o dirección diferente.");
-            }
+            var cells = _placementService.CalculateCells(st, row, col, direction);
+            if (cells == null)
+                return ServiceResult.Failure("Ship is out of bounds. The board is 12x12.");
+
+            var existingShipTypes = existingShips.Select(s => s.ShipType).ToHashSet();
+            if (existingShipTypes.Contains(st))
+                return ServiceResult.Failure("This ship type has already been placed.");
+
+            var occupied = existingShips.SelectMany(s => s.Cells)
+                .Select(c => (c.Row, c.Column)).ToHashSet();
+
+            if (_placementService.Overlaps(cells, occupied))
+                return ServiceResult.Failure("Cells are already occupied by another ship.");
 
             var ship = new Ship
             {
+                ShipType = st,
+                Size = Ship.ShipSizes[st],
                 GameId = gameId,
                 PlayerId = playerId,
-                ShipType = type,
-                Size = size,
-                IsSunk = false,
-                Cells = [.. cells.Select(c => new ShipCell
-                {
-                    Row = c.Row,
-                    Column = c.Col,
-                    WasAttacked = false
-                })]
+                Cells = cells.Select(c => new ShipCell { Row = c.Row, Column = c.Column }).ToList()
             };
-            await _shipRepository.AddAsync(ship);
 
-            var game = await _gameRepository.GetByIdAsync(gameId);
-            var player1Done = await _shipRepository.PlayerFinishedPlacingAsync(gameId, game.FirstPlayerId);
-            var player2Done = await _shipRepository.PlayerFinishedPlacingAsync(gameId, game.SecondPlayerId);
+            await _shipRepo.AddAsync(ship);
 
-            if (player1Done && player2Done)
+            var myCount = existingShips.Count() + 1;
+            var otherPlayerId = game.FirstPlayerId == playerId ? game.SecondPlayerId : game.FirstPlayerId;
+            var otherCount = await _shipRepo.CountByGameAndPlayerAsync(gameId, otherPlayerId);
+
+            if (myCount >= 5 && otherCount >= 5)
+                game.StartGame();
+
+            await _unitOfWork.SaveChangesAsync();
+            return ServiceResult.Success();
+        }
+
+        public async Task<AttackBoardViewModel> GetAttackBoardAsync(int gameId, string playerId)
+        {
+            var game = await _gameRepo.GetWithDetailsAsync(gameId);
+            var myAttacks = await _attackRepo.GetByGameAndAttackerAsync(gameId, playerId);
+
+            var opponentId = game.FirstPlayerId == playerId ? game.SecondPlayerId : game.FirstPlayerId;
+            var opponent = await _userService.GetUserBasicInfoAsync(opponentId);
+
+            return new AttackBoardViewModel
             {
-                game.Status = GameStatus.InProgress;
-                game.LastAttackedAt = DateTime.UtcNow;
-                await _gameRepository.UpdateAsync(game);
+                GameId = gameId,
+                IsMyTurn = game.CurrentTurnPlayerId == playerId,
+                OpponentUsername = opponent.Username,
+                CurrentTurnUsername = opponent.Username,
+                MyAttacks = myAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList()
+            };
+        }
+
+        public async Task<ServiceResult> AttackAsync(int gameId, string attackerId, int row, int col)
+        {
+            var game = await _gameRepo.GetByIdAsync(gameId);
+
+            var turnValidation = _attackDomainService.ValidateTurn(game, attackerId);
+            if (!turnValidation.Succeeded)
+                return ServiceResult.Failure(turnValidation.ErrorMessage);
+
+            var existingAttacks = await _attackRepo.GetByGameAndAttackerAsync(gameId, attackerId);
+            if (_attackDomainService.IsDuplicateAttack(existingAttacks, row, col))
+                return ServiceResult.Failure("You already attacked this cell.");
+
+            var opponentId = game.FirstPlayerId == attackerId ? game.SecondPlayerId : game.FirstPlayerId;
+            var opponentShips = (await _shipRepo.GetWithCellsByGameAndPlayerAsync(gameId, opponentId)).ToList();
+
+            var impact = _attackDomainService.EvaluateImpact(opponentShips, row, col);
+
+            var attack = new Attack
+            {
+                GameId = gameId,
+                AttackerId = attackerId,
+                Row = row,
+                Column = col,
+                IsHit = impact.IsHit,
+                AttackedAt = DateTime.UtcNow
+            };
+
+            await _attackRepo.AddAsync(attack);
+
+            if (impact.IsHit && impact.HitCell != null)
+                impact.HitCell.WasAttacked = true;
+
+            if (impact.IsHit && impact.HitShip != null)
+                impact.HitShip.IsSunk = _attackDomainService.CheckIfSunk(impact.HitShip);
+
+            var isVictory = _attackDomainService.CheckVictory(opponentShips);
+
+            if (isVictory)
+            {
+                game.WinnerId = attackerId;
+                game.FinishedAt = DateTime.UtcNow;
+                game.Status = GameStatus.Finished;
+            }
+            else
+            {
+                game.SwitchTurn();
+            }
+
+            game.LastAttackedAt = DateTime.UtcNow;
+
+            try
+            {
+                await _unitOfWork.SaveChangesAsync();
+            }
+            catch (ConcurrencyException)
+            {
+                return ServiceResult.Failure("The game was modified by another player. Please retry your attack.");
             }
 
             return ServiceResult.Success();
         }
+
         public async Task<ServiceResult> SurrenderAsync(int gameId, string playerId)
         {
-            var game = await _gameRepository.GetByIdAsync(gameId);
-            if (game == null)
-                return ServiceResult.Failure("Partida no encontrada.");
-            if (game.FirstPlayerId != playerId && game.SecondPlayerId != playerId)
-                return ServiceResult.Failure("No eres un jugador en esta partida.");
+            var game = await _gameRepo.GetByIdAsync(gameId);
 
-            game.Status = GameStatus.Finished;
-            game.WinnerId = game.FirstPlayerId == playerId ? game.SecondPlayerId : game.FirstPlayerId;
-            game.FinishedAt = DateTime.UtcNow;
+            if (game.Status == GameStatus.Finished)
+                return ServiceResult.Failure("The game is already finished.");
 
-            await _gameRepository.UpdateAsync(game);
+            game.SetSurrender(playerId);
+
+            await _gameRepo.UpdateAsync(game);
+            await _unitOfWork.SaveChangesAsync();
+
             return ServiceResult.Success();
         }
-        
-        #region private helpers
-        private async Task CheckTimeoutsAsync(string userId) 
-        {
-            var activeGames = await _gameRepository.GetActiveByUserIdAsync(userId);
-            foreach (var game in activeGames.Where(g => g.Status == GameStatus.InProgress))
-                await CheckSingleGameTimeoutAsync(game);
-        }
-        private async Task CheckSingleGameTimeoutAsync(BattleshipGame game)
-        {
-            if (game.Status != GameStatus.InProgress) return;
-            if (!game.LastAttackedAt.HasValue) return;
 
-            var hours = (DateTime.UtcNow - game.LastAttackedAt.Value).TotalHours;
-            if (hours > 48)
-            {
-                game.Status = GameStatus.Finished;
-                game.WinnerId = game.CurrentTurnPlayerId == game.FirstPlayerId
-                    ? game.SecondPlayerId
-                    : game.FirstPlayerId;
-                game.FinishedAt = DateTime.UtcNow;
-                await _gameRepository.UpdateAsync(game);
-            }
-        }
-        private static List<(int Row, int Col)> CalculateCells( int startRow, int startCol, int size, ShipDirection direction)
+        public async Task<GameResultViewModel> GetResultAsync(int gameId, string playerId)
         {
-            var cells = new List<(int, int)>();
-            for (int i = 0; i < size; i++)
-            {
-                cells.Add(direction switch
-                {
-                    ShipDirection.Up => (startRow - i, startCol),
-                    ShipDirection.Down => (startRow + i, startCol),
-                    ShipDirection.Left => (startRow, startCol - i),
-                    ShipDirection.Right => (startRow, startCol + i),
-                    _ => throw new ArgumentException("Dirección inválida")
-                });
-            }
-            return cells;
-        }
-        private async Task<GameDto> MapGameDto(BattleshipGame game, string userId)
-        {
-            var opponentId = game.FirstPlayerId == userId
-                ? game.SecondPlayerId
-                : game.FirstPlayerId;
+            var game = await _gameRepo.GetWithDetailsAsync(gameId);
 
-            var opponentInfo = await _userService.GetUserBasicInfoAsync(opponentId);
-            var player1Info = await _userService.GetUserBasicInfoAsync(game.FirstPlayerId);
-            var player2Info = await _userService.GetUserBasicInfoAsync(game.SecondPlayerId);
+            var opponentId = game.FirstPlayerId == playerId ? game.SecondPlayerId : game.FirstPlayerId;
+            var opponent = await _userService.GetUserBasicInfoAsync(opponentId);
 
-            string? winnerUsername = null;
-            if (game.WinnerId != null)
-            {
-                var winnerInfo = await _userService.GetUserBasicInfoAsync(game.WinnerId);
-                winnerUsername = game.WinnerId == userId ? "I" : winnerInfo.Username;
-            }
+            var myAttacks = game.Attacks.Where(a => a.AttackerId == playerId).ToList();
+            var oppAttacks = game.Attacks.Where(a => a.AttackerId == opponentId).ToList();
+            var myShips = game.Ships.Where(s => s.PlayerId == playerId).ToList();
 
-            return new GameDto
+            return new GameResultViewModel
             {
-                Id = game.Id,
-                Player1Id = game.FirstPlayerId,
-                Player1Username = player1Info.Username,
-                Player2Id = game.SecondPlayerId,
-                Player2Username = player2Info.Username,
-                CurrentTurnPlayerId = game.CurrentTurnPlayerId,
-                Status = game.Status,
+                GameId = gameId,
+                OpponentUsername = opponent.Username,
+                IWon = game.WinnerId == playerId,
                 StartedAt = game.StartedAt,
                 FinishedAt = game.FinishedAt,
-                WinnerId = game.WinnerId,
-                WinnerUsername = winnerUsername,
-                HoursElapsed = game.StartedAt != default ? (DateTime.UtcNow - game.StartedAt).TotalHours : 0
+                MyAttacks = myAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList(),
+                OpponentAttacks = oppAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList(),
+                MyShips = myShips.Select(s => _mapper.Map<ShipDto>(s)).ToList()
             };
         }
-        private static bool IsValidPlacement(List<(int Row, int Col)> cells, List<(int Row, int Col)> occupiedCells)
-        {
-            if (cells.Any(c => c.Row < 0 || c.Row > 11 || c.Col < 0 || c.Col > 11))
-                return false;
-            if (cells.Any(c => occupiedCells.Contains(c)))
-                return false;
 
-            return true;
-        }
-        public Task CheckTimeoutsAsync()
+        public async Task CheckTimeoutsAsync()
         {
-            return Task.CompletedTask;
+            var activeGames = await _gameRepo.GetAllActiveAsync();
+
+            foreach (var game in activeGames)
+            {
+                if (!game.LastAttackedAt.HasValue)
+                    continue;
+
+                if ((DateTime.UtcNow - game.LastAttackedAt.Value).TotalHours >= 48)
+                {
+                    game.Status = GameStatus.Abandoned;
+                    game.WinnerId = game.CurrentTurnPlayerId == game.FirstPlayerId
+                        ? game.SecondPlayerId
+                        : game.FirstPlayerId;
+                    game.FinishedAt = DateTime.UtcNow;
+                    await _gameRepo.UpdateAsync(game);
+                }
+            }
+
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        #endregion
+        private async Task<IEnumerable<GameDto>> MapGamesAsync(IEnumerable<BattleshipGame> games)
+        {
+            var dtos = new List<GameDto>();
+            foreach (var game in games)
+            {
+                var dto = _mapper.Map<GameDto>(game);
+
+                var p1 = await _userService.GetUserBasicInfoAsync(game.FirstPlayerId);
+                var p2 = await _userService.GetUserBasicInfoAsync(game.SecondPlayerId);
+
+                dto.Player1Username = p1.Username;
+                dto.Player2Username = p2.Username;
+
+                if (!string.IsNullOrEmpty(game.WinnerId))
+                {
+                    var winner = await _userService.GetUserBasicInfoAsync(game.WinnerId);
+                    dto.WinnerUsername = winner.Username;
+                }
+
+                dto.HoursElapsed = Math.Round((DateTime.UtcNow - game.StartedAt).TotalHours, 1);
+                dtos.Add(dto);
+            }
+            return dtos;
+        }
     }
 }

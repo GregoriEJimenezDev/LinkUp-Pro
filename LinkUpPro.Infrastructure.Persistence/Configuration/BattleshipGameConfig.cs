@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Domain.Entities;
+using LinkUpPro.Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,6 +15,9 @@ namespace LinkUpPro.Infrastructure.Persistence.Configuration
 
             #region properties
             builder.Property(g => g.Status).HasConversion<string>();
+            builder.Property(g => g.ConcurrencyStamp)
+                .IsRowVersion()
+                .IsConcurrencyToken();
             #endregion
 
             #region conexions

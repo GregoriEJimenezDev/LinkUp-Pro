@@ -1,4 +1,4 @@
-﻿namespace LinkUpPro.Core.Domain.Entities
+namespace LinkUpPro.Core.Domain.Entities
 {
     public class Attack
     {
@@ -12,5 +12,8 @@
         public BattleshipGame? Game { get; set; }
 
         public string? AttackerId { get; set; }
+
+        public bool IsSamePosition(int row, int col) =>
+            Row == row && Column == col;
     }
 }

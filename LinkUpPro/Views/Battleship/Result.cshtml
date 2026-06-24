@@ -1,0 +1,74 @@
+@model GameResultViewModel
+@{
+    ViewData["Title"] = Model.IWon ? "Victory!" : "Defeat";
+}
+
+<div class="container mt-4 text-center">
+    <div class="mb-4">
+        @if (Model.IWon)
+        {
+            <h1 class="display-4 text-success">Victory!</h1>
+            <p class="fs-4">You defeated @Model.OpponentUsername!</p>
+        }
+        else
+        {
+            <h1 class="display-4 text-danger">Defeat</h1>
+            <p class="fs-4">@Model.OpponentUsername defeated you.</p>
+        }
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Your Attacks</h5>
+                </div>
+                <div class="card-body">
+                    <p>Total: @Model.MyAttacks.Count | Hits: @Model.MyAttacks.Count(a => a.IsHit) | Accuracy: @(Model.MyAttacks.Count > 0 ? Math.Round((double)Model.MyAttacks.Count(a => a.IsHit) / Model.MyAttacks.Count * 100, 1) : 0)%</p>
+                    <div class="board-sm mx-auto">
+                        @for (int r = 1; r <= 5; r++)
+                        {
+                            <div class="board-row">
+                                @for (int c = 1; c <= 5; c++)
+                                {
+                                    <div class="cell-sm"></div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Your Ships</h5>
+                </div>
+                <div class="card-body">
+                    <p>Total: @Model.MyShips.Count | Sunk: @Model.MyShips.Count(s => s.IsSunk)</p>
+                    <div class="list-group">
+                        @foreach (var ship in Model.MyShips)
+                        {
+                            <div class="list-group-item d-flex justify-content-between">
+                                <span>@ship.ShipType (@ship.Size)</span>
+                                <span class="badge @(ship.IsSunk ? "bg-danger" : "bg-success")">
+                                    @(ship.IsSunk ? "Sunk" : "Afloat")
+                                </span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <p class="text-muted">Started: @Model.StartedAt.ToString("g") | Ended: @Model.FinishedAt?.ToString("g")</p>
+    </div>
+
+    <div>
+        <a asp-action="Index" class="btn btn-primary">Back to Dashboard</a>
+        <a asp-action="Create" class="btn btn-outline-primary ms-2">Play Again</a>
+    </div>
+</div>
