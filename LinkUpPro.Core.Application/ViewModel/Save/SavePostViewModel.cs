@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Domain.Enum;
+using LinkUpPro.Core.Domain.Enum;
 using System.ComponentModel.DataAnnotations;
 
 namespace LinkUpPro.Core.Application.ViewModel.Save
@@ -12,5 +12,9 @@ namespace LinkUpPro.Core.Application.ViewModel.Save
         public MediaType MediaType { get; set; }
         public byte[]? ImageFile { get; set; }
         public string? VideoUrl { get; set; }
+        
+        [Required(ErrorMessage = "Debes seleccionar la privacidad de la publicación.")]
+        public PostPrivacy Privacy { get; set; } = PostPrivacy.FriendsOnly;
+        public bool AllowComments { get; set; } = true;
     }
 }

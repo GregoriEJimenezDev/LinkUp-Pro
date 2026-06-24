@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Application.DTOs.Comment;
+using LinkUpPro.Core.Application.DTOs.Comment;
 using LinkUpPro.Core.Application.DTOs.User;
 using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Application.ViewModel.Post;
@@ -19,9 +19,20 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
 
         public async Task<ServiceResult> CreateAsync(SavePostViewModel vm, string userId)
         {
-            if (vm.MediaType == MediaType.Image && (vm.ImageFile == null || vm.ImageFile.Length == 0))
+            if (string.IsNullOrWhiteSpace(vm.Content))
+                return ServiceResult.Failure("El contenido de la publicación no puede estar vacío.");
+
+            bool hasImage = vm.ImageFile != null && vm.ImageFile.Length > 0;
+            bool hasVideo = !string.IsNullOrWhiteSpace(vm.VideoUrl);
+
+            if (hasImage && hasVideo)
+                return ServiceResult.Failure("Solo puedes adjuntar una imagen o un video de YouTube, no ambos.");
+            if (!hasImage && !hasVideo)
+                return ServiceResult.Failure("Debes proporcionar exactamente un contenido multimedia (Imagen o Video de YouTube).");
+
+            if (vm.MediaType == MediaType.Image && !hasImage)
                 return ServiceResult.Failure("Debes proporcionar un archivo de imagen para las publicaciones de tipo imagen.");
-            if (vm.MediaType == MediaType.Video && string.IsNullOrEmpty(vm.VideoUrl))
+            if (vm.MediaType == MediaType.Video && !hasVideo)
                 return ServiceResult.Failure("Debes proporcionar una URL de video para las publicaciones de tipo video.");
 
             string? mediaUrl = null;
@@ -43,6 +54,8 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 Content = vm.Content,
                 MediaType = vm.MediaType,
                 MediaUrl = mediaUrl,
+                Privacy = vm.Privacy,
+                AllowComments = vm.AllowComments,
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -67,14 +80,19 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             var friendships = await _friendshipRepository.GetFriendsByUserIdAsync(userId);
             var friendIds = friendships.Select(f => f.FirstUserId == userId ? f.SecondUserId : f.FirstUserId)
                 .Where(id => id != null).ToList();
-            if (friendIds.Count == 0) return [];
 
             var allposts = await _postRepository.GetAllPostWithDetailsAsync();
-            var Friendpost = allposts.Where(p => friendIds.Contains(p.UserId)).OrderByDescending(p => p.CreatedAt).ToList();
+            
+            // Feed Principal: Tus posts + Posts Públicos + Posts "Solo Amigos" (validando que la amistad esté Activa)
+            var feedPosts = allposts.Where(p => 
+                p.UserId == userId || 
+                p.Privacy == PostPrivacy.Public || 
+                (p.Privacy == PostPrivacy.FriendsOnly && friendIds.Contains(p.UserId))
+            ).OrderByDescending(p => p.CreatedAt).ToList();
 
             var result = new List<PostViewModel>();
 
-            foreach (var post in Friendpost)
+            foreach (var post in feedPosts)
             {
                 var authorInfo = await _userService.GetUserBasicInfoAsync(post.UserId!);
                 var vm = await MapSinglePost(post, userId, authorInfo);
@@ -94,6 +112,8 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 Id = post.Id,
                 Content = post.Content,
                 MediaType = post.MediaType,
+                Privacy = post.Privacy,
+                AllowComments = post.AllowComments,
                 VideoUrl = post.MediaType == MediaType.Video ? post.MediaUrl : null
             };
         }
@@ -111,6 +131,23 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
 
             if (post == null) return ServiceResult.Failure("Publicación no encontrada.");
             if (post.UserId != userId) return ServiceResult.Failure("No estás autorizado para editar esta publicación.");
+
+            if (string.IsNullOrWhiteSpace(vm.Content))
+                return ServiceResult.Failure("El contenido de la publicación no puede estar vacío.");
+
+            bool hasImage = vm.ImageFile != null && vm.ImageFile.Length > 0;
+            bool hasVideo = !string.IsNullOrWhiteSpace(vm.VideoUrl);
+            
+            // Si el post actual ya tiene imagen, y no suben una nueva, consideramos que sigue teniendo imagen.
+            // Si el post actual tiene video, y no mandan URL, se quita. 
+            // Para simplificar, forzamos a que si cambian de tipo, envíen el nuevo archivo/url.
+            // Si mantienen el tipo y no envían nada (en caso de imagen), conserva la anterior.
+            bool isKeepingExistingImage = (vm.MediaType == MediaType.Image && post.MediaType == MediaType.Image && !hasImage && !string.IsNullOrEmpty(post.MediaUrl));
+            
+            if (hasImage && hasVideo)
+                return ServiceResult.Failure("Solo puedes adjuntar una imagen o un video de YouTube, no ambos.");
+            if (!hasImage && !hasVideo && !isKeepingExistingImage)
+                return ServiceResult.Failure("Debes proporcionar exactamente un contenido multimedia (Imagen o Video de YouTube).");
 
             if (vm.MediaType == MediaType.Image)
             {
@@ -138,6 +175,8 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
 
             post.Content = vm.Content;
             post.MediaType = vm.MediaType;
+            post.Privacy = vm.Privacy;
+            post.AllowComments = vm.AllowComments;
             post.UpdatedAt = DateTime.UtcNow;
 
             await _postRepository.UpdateAsync(post);
@@ -178,6 +217,8 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 MediaType = post.MediaType,
                 MediaUrl = post.MediaUrl,
                 CreatedAt = post.CreatedAt,
+                Privacy = post.Privacy,
+                AllowComments = post.AllowComments,
                 UserId = post.UserId!,
                 Username = authorInfo.Username,
                 UserProfilePicture = authorInfo.ProfilePictureUrl,

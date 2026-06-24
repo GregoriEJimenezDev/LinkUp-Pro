@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Application.DTOs.Friend;
+using LinkUpPro.Core.Application.DTOs.Friend;
 using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Domain.Interfaces;
 
@@ -14,6 +14,15 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             var friendships = await _friendshipRepository.GetFriendsByUserIdAsync(userId);
             return friendships.Select(f => f.FirstUserId == userId ? f.SecondUserId : f.FirstUserId).ToList()!;
         }
+
+        public async Task<int> GetMutualFriendsCountAsync(string currentUserId, string targetUserId)
+        {
+            var currentUserFriends = await GetFriendIdsAsync(currentUserId);
+            var targetUserFriends = await GetFriendIdsAsync(targetUserId);
+
+            return currentUserFriends.Intersect(targetUserFriends).Count();
+        }
+
         public async Task<List<FriendDto>> GetFriendsAsync(string userId)
         {
 

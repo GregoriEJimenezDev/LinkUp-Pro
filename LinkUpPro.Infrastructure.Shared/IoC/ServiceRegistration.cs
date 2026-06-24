@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Application.AutoMapper;
+using LinkUpPro.Core.Application.AutoMapper;
 using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Infrastructure.Shared.EmailServices;
 using Microsoft.Extensions.Configuration;
@@ -8,7 +8,7 @@ namespace LinkUpPro.Infrastructure.Shared.IoC
 {
     public static class ServiceRegistration
     {
-        public static void AddApplicationLayer(this IServiceCollection services, IConfiguration config)
+        public static void AddSharedInfrastructure(this IServiceCollection services, IConfiguration config)
         {
             GeneralConfiguration(services,config);
         }

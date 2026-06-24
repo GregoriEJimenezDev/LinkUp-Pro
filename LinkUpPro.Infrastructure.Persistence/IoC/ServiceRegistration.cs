@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Domain.Interfaces;
+using LinkUpPro.Core.Domain.Interfaces;
 using LinkUpPro.Core.Domain.Interfaces.IGeneric;
 using LinkUpPro.Infrastructure.Persistence.Context;
 using LinkUpPro.Infrastructure.Persistence.Repositories;
@@ -55,6 +55,7 @@ namespace LinkUpPro.Infrastructure.Persistence.IoC
             services.AddScoped<IBattleshipGameRepository, BattleshipGameRepository>();
             services.AddScoped<IShipRepository, ShipRepository>();
             services.AddScoped<IAttackRepository, AttackRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
             #endregion
         }
         #endregion

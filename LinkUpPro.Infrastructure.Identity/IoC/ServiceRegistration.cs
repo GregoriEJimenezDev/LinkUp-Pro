@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Application.Interfaces.IServices;
+using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Infrastructure.Identity.Context;
 using LinkUpPro.Infrastructure.Identity.Entities;
 using LinkUpPro.Infrastructure.Identity.Services;
@@ -39,6 +39,7 @@ namespace LinkUpPro.Infrastructure.Identity.IoC
                 opts.Password.RequireLowercase = true;
                 opts.User.RequireUniqueEmail = true;
             })
+            .AddEntityFrameworkStores<IdentityProContext>()
             .AddSignInManager<SignInManager<ApplicationUser>>()
             .AddDefaultTokenProviders();
             #endregion
