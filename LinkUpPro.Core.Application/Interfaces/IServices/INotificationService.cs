@@ -1,5 +1,5 @@
 using LinkUpPro.Core.Application.DTOs.Notification;
-using LinkUpPro.Core.Application.Interfaces.Services; // Ensure ServiceResult is here
+using LinkUpPro.Core.Application.Interfaces.Services;
 
 namespace LinkUpPro.Core.Application.Interfaces.IServices
 {

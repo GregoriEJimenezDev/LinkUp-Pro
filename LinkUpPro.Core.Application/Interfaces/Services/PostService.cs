@@ -82,8 +82,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 .Where(id => id != null).ToList();
 
             var allposts = await _postRepository.GetAllPostWithDetailsAsync();
-            
-            // Feed Principal: Tus posts + Posts Públicos + Posts "Solo Amigos" (validando que la amistad esté Activa)
+
             var feedPosts = allposts.Where(p => 
                 p.UserId == userId || 
                 p.Privacy == PostPrivacy.Public || 
@@ -137,11 +136,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
 
             bool hasImage = vm.ImageFile != null && vm.ImageFile.Length > 0;
             bool hasVideo = !string.IsNullOrWhiteSpace(vm.VideoUrl);
-            
-            // Si el post actual ya tiene imagen, y no suben una nueva, consideramos que sigue teniendo imagen.
-            // Si el post actual tiene video, y no mandan URL, se quita. 
-            // Para simplificar, forzamos a que si cambian de tipo, envíen el nuevo archivo/url.
-            // Si mantienen el tipo y no envían nada (en caso de imagen), conserva la anterior.
+
             bool isKeepingExistingImage = (vm.MediaType == MediaType.Image && post.MediaType == MediaType.Image && !hasImage && !string.IsNullOrEmpty(post.MediaUrl));
             
             if (hasImage && hasVideo)
