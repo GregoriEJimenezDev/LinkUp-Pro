@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Application.AutoMapper;
+using LinkUpPro.Core.Application.AutoMapper;
 using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Application.Interfaces.Services;
 using Microsoft.Extensions.Configuration;
@@ -24,6 +24,7 @@ namespace LinkUpPro.Core.Application.IoC
             services.AddScoped<IFriendRequestService, FriendRequestService>();
             services.AddScoped<IFriendshipService, FriendshipService>();
             services.AddScoped<IBattleshipService, BattleshipService>();
+            services.AddScoped<INotificationService, NotificationService>();
             #endregion
         }
         #endregion

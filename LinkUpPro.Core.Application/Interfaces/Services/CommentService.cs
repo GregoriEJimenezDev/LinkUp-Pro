@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Application.Interfaces.IServices;
+using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Application.ViewModel.Save;
 using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Interfaces;
@@ -32,7 +32,9 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             if (comment.UserId != userId)
                 return ServiceResult.Failure("No estás autorizado para eliminar este comentario.");
 
-            await _commentRepo.DeleteAsync(comment);
+            comment.Content = "Este comentario fue eliminado";
+            await _commentRepo.UpdateAsync(comment);
+            
             return ServiceResult.Success();
         }
         public async Task<ServiceResult> UpdateAsync(SaveCommentViewModel vm, string userId)
