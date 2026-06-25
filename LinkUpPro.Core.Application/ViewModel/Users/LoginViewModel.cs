@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace LinkUpPro.Core.Application.ViewModel.Users
 {
@@ -9,5 +9,8 @@ namespace LinkUpPro.Core.Application.ViewModel.Users
         [Required(ErrorMessage = "Contraseña es requerida.")]
         [DataType(DataType.Password)]
         public string? Password { get; set; }
+
+        [Display(Name = "Mantener sesión")]
+        public bool RememberMe { get; set; }
     }
 }

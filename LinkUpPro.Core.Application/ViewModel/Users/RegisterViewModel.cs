@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
+using LinkUpPro.Core.Application.Validation;
 
 namespace LinkUpPro.Core.Application.ViewModel.Users
 {
@@ -36,7 +37,10 @@ namespace LinkUpPro.Core.Application.ViewModel.Users
         public string PhoneNumber { get; set; } = string.Empty;
 
         [Display(Name = "Foto de perfil")]
+        [MaxFileSize(2 * 1024 * 1024)]
         public byte[]? ProfilePicture { get; set; }
+
+        public string? ProfilePictureFileName { get; set; }
 
         [Required(ErrorMessage = "El nombre de usuario es obligatorio.")]
         [Display(Name = "Nombre de usuario")]

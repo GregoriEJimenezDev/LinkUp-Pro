@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Application.DTOs.User;
+using LinkUpPro.Core.Application.DTOs.User;
 using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Application.Interfaces.Services;
 using LinkUpPro.Core.Application.ViewModel.Users;
@@ -110,7 +110,14 @@ namespace LinkUpPro.Infrastructure.Identity.Services
             if (user == null || !user.IsActive)
                 return ServiceResult.Failure("Nombre de usuario inválido o cuenta no activada.");
 
-            var result = await _signInManager.PasswordSignInAsync(user, vm.Password!, isPersistent: false, lockoutOnFailure: false);
+            if (await _userManager.IsLockedOutAsync(user))
+                return ServiceResult.Failure("Tu cuenta está bloqueada temporalmente. Intenta de nuevo en 15 minutos.");
+
+            var result = await _signInManager.PasswordSignInAsync(user, vm.Password!, isPersistent: vm.RememberMe, lockoutOnFailure: true);
+
+            if (result.IsLockedOut)
+                return ServiceResult.Failure("Tu cuenta ha sido bloqueada por múltiples intentos fallidos. Intenta de nuevo en 15 minutos.");
+
             if (!result.Succeeded)
                 return ServiceResult.Failure("Contraseña incorrecta.");
 
@@ -138,12 +145,16 @@ namespace LinkUpPro.Infrastructure.Identity.Services
                 IsActive = false
             };
 
-            // UBICACIÓN DE LA LÍNEA: Aquí limpiamos los guiones y espacios antes de guardar
             user.Phone = Regex.Replace(vm.PhoneNumber, @"[^\d]", "");
 
             if (vm.ProfilePicture != null && vm.ProfilePicture.Length > 0)
             {
-                string extension = ".jpg";
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                var extension = Path.GetExtension(vm.ProfilePictureFileName ?? "").ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(extension))
+                    return ServiceResult.Failure("Solo se permiten imágenes .jpg y .png.");
+
                 var fileName = $"{Guid.NewGuid()}{extension}";
                 var path = Path.Combine("wwwroot", "uploads", "profiles", fileName);
 
@@ -212,7 +223,12 @@ namespace LinkUpPro.Infrastructure.Identity.Services
 
             if (vm.ProfilePicture != null && vm.ProfilePicture.Length > 0)
             {
-                string extension = ".jpg";
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                var extension = Path.GetExtension(vm.ProfilePictureFileName ?? "").ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(extension))
+                    return ServiceResult.Failure("Solo se permiten imágenes .jpg y .png.");
+
                 var fileName = $"{Guid.NewGuid()}{extension}";
                 var path = Path.Combine("wwwroot", "uploads", "profiles", fileName);
 

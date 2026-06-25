@@ -26,6 +26,16 @@ namespace LinkUpPro.Infrastructure.Identity.IoC
             {
                 options.LoginPath = "/Account/Login";
                 options.AccessDeniedPath = "/Account/AccessDenied";
+                options.SlidingExpiration = true;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                options.Events.OnSigningIn = context =>
+                {
+                    if (context.Properties.IsPersistent)
+                    {
+                        context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7);
+                    }
+                    return Task.CompletedTask;
+                };
             });
             #endregion
 
@@ -38,6 +48,10 @@ namespace LinkUpPro.Infrastructure.Identity.IoC
                 opts.Password.RequireUppercase = true;
                 opts.Password.RequireLowercase = true;
                 opts.User.RequireUniqueEmail = true;
+
+                opts.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                opts.Lockout.MaxFailedAccessAttempts = 5;
+                opts.Lockout.AllowedForNewUsers = true;
             })
             .AddEntityFrameworkStores<IdentityProContext>()
             .AddSignInManager<SignInManager<ApplicationUser>>()

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
+using LinkUpPro.Core.Application.Validation;
 
 namespace LinkUpPro.Core.Application.ViewModel.Users
 {
@@ -11,7 +12,9 @@ namespace LinkUpPro.Core.Application.ViewModel.Users
         [Required(ErrorMessage = "El número de teléfono es obligatorio.")]
         [RegularExpression(@"^(809|829|849)[\s-]?\d{3}[\s-]?\d{4}$", ErrorMessage = "Formato inválido. Usa (ejemplos): 809-000-0000 o 8290000000")]
         public string Phone { get; set; } = string.Empty;
+        [MaxFileSize(2 * 1024 * 1024)]
         public byte[]? ProfilePicture { get; set; }
+        public string? ProfilePictureFileName { get; set; }
         public string? CurrentProfilePicture { get; set; }
         [DataType(DataType.Password)]
         public string? Password { get; set; }
