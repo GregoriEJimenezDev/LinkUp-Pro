@@ -6,18 +6,18 @@ using LinkUpPro.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
 builder.Services.AddControllersWithViews();
 
-// Register all layers
 builder.Services.AddApplicationLayer(builder.Configuration);
 builder.Services.AddPersistenceInfrastructure(builder.Configuration);
 builder.Services.AddIdentityInfrastructure(builder.Configuration);
 builder.Services.AddSharedInfrastructure(builder.Configuration);
 
-// Background service for abandoned games
 builder.Services.AddHostedService<BattleshipBackgroundService>();
 
 var app = builder.Build();
+
 
 if (!app.Environment.IsDevelopment())
 {
