@@ -1,8 +1,158 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@using LinkUpPro.Core.Application.ViewModel.Post
+@using LinkUpPro.Core.Domain.Enum
+@model HomeViewModel
+
+@{
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="flex flex-col gap-4">
+    <!-- Create Post Component -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="mb-4 rounded-md bg-destructive/15 p-4 text-sm text-destructive border border-destructive/20">
+            @TempData["Error"]
+        </div>
+    }
+    @if (TempData["Success"] != null)
+    {
+        <div class="mb-4 rounded-md bg-emerald-500/15 p-4 text-sm text-emerald-500 border border-emerald-500/20">
+            @TempData["Success"]
+        </div>
+    }
+    <div class="rounded-2xl border bg-card text-card-foreground shadow-sm p-4">
+        <form asp-controller="Post" asp-action="Create" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="MediaType" value="0" />
+            <div class="flex items-start gap-3">
+                <div class="relative flex size-11 shrink-0 overflow-hidden rounded-full">
+                    <img class="aspect-square h-full w-full" src="@User.Identity?.Name" alt="User" onerror="this.src='/placeholder.svg'" />
+                </div>
+                <textarea name="Content" placeholder="¿Qué estás pensando?" class="flex min-h-[60px] w-full rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0" required></textarea>
+            </div>
+
+            <div class="my-3 h-[1px] w-full shrink-0 bg-border"></div>
+
+            <div class="flex flex-wrap items-center gap-2">
+                <input type="file" id="ImageFile" name="File" accept="image/*" class="hidden" onchange="document.getElementById('MediaType').value = '0';" />
+                <input type="text" id="VideoUrl" name="VideoUrl" placeholder="URL de YouTube" class="hidden h-9 px-3 text-sm rounded-md border border-input" oninput="document.getElementById('MediaType').value = '1';" />
+                
+                <button type="button" onclick="document.getElementById('ImageFile').click(); document.getElementById('VideoUrl').classList.add('hidden');" class="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-3 gap-2 rounded-full text-muted-foreground text-sm">
+                    <i data-lucide="image" class="size-4 text-success"></i>
+                    Foto
+                </button>
+                <button type="button" onclick="document.getElementById('VideoUrl').classList.toggle('hidden'); document.getElementById('ImageFile').value = '';" class="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-3 gap-2 rounded-full text-muted-foreground text-sm">
+                    <i data-lucide="play-circle" class="size-4 text-destructive"></i>
+                    Video
+                </button>
+
+                <div class="ml-auto flex items-center gap-2">
+                    <select name="Privacy" class="flex h-10 w-full items-center justify-between rounded-full border border-input bg-card px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
+                        <option value="1" class="bg-card text-card-foreground">Público</option>
+                        <option value="2" class="bg-card text-card-foreground">Solo amigos</option>
+                        <option value="3" class="bg-card text-card-foreground">Solo yo</option>
+                    </select>
+
+                    <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-full text-sm">
+                        Publicar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Feed Search (Frontend simulated, but we could add a form) -->
+    <div class="relative">
+        <i data-lucide="search" class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"></i>
+        <input type="text" placeholder="Buscar publicaciones, personas o temas..." class="flex h-10 w-full border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 rounded-full bg-card pl-9" />
+    </div>
+
+    <!-- Posts Feed -->
+    <div class="mt-4 flex flex-col gap-4">
+        @if (Model?.Posts != null && Model.Posts.Any())
+        {
+            foreach (var post in Model.Posts)
+            {
+                <div class="rounded-2xl border bg-card text-card-foreground shadow-sm">
+                    <div class="p-6 pb-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="relative flex size-10 shrink-0 overflow-hidden rounded-full">
+                                    <img class="aspect-square h-full w-full object-cover" src="@post.UserProfilePicture" alt="@post.Username" onerror="this.src='/placeholder.svg'" />
+                                </div>
+                                <div class="flex flex-col">
+                                    <p class="text-sm font-semibold leading-none">@post.Username</p>
+                                    <div class="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <span>@post.CreatedAt.ToString("g")</span>
+                                        <span>•</span>
+                                        @if (post.Privacy == PostPrivacy.Public)
+                                        {
+                                            <i data-lucide="globe" class="size-3"></i>
+                                        }
+                                        else if (post.Privacy == PostPrivacy.FriendsOnly)
+                                        {
+                                            <i data-lucide="users" class="size-3"></i>
+                                        }
+                                        else
+                                        {
+                                            <i data-lucide="lock" class="size-3"></i>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 text-sm whitespace-pre-wrap">@post.Content</div>
+
+                        @if (post.MediaType == MediaType.Image && !string.IsNullOrEmpty(post.MediaUrl))
+                        {
+                            <div class="mt-3 overflow-hidden rounded-xl">
+                                <img src="@post.MediaUrl" alt="Post content" class="w-full object-cover max-h-[500px]" />
+                            </div>
+                        }
+                        else if (post.MediaType == MediaType.Video && !string.IsNullOrEmpty(post.MediaUrl))
+                        {
+                            <!-- YouTube or native video rendering -->
+                            <div class="mt-3 overflow-hidden rounded-xl">
+                                <iframe src="@post.MediaUrl" class="w-full aspect-video" frameborder="0" allowfullscreen></iframe>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="flex items-center px-6 py-2 text-sm text-muted-foreground">
+                        <div class="flex items-center gap-1.5">
+                            <div class="flex items-center justify-center rounded-full bg-primary p-1">
+                                <i data-lucide="thumbs-up" class="size-3 text-primary-foreground fill-current"></i>
+                            </div>
+                            <span class="font-medium">@post.LikesCount</span>
+                        </div>
+                        <div class="ml-auto flex items-center gap-3">
+                            <span>@post.Comments.Count comentarios</span>
+                        </div>
+                    </div>
+
+                    <div class="my-0 h-[1px] w-full shrink-0 bg-border mx-4"></div>
+
+                    <div class="flex items-center justify-between gap-1 p-2">
+                        <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 py-2 flex-1 gap-2 text-muted-foreground @(post.CurrentUserReaction == true ? "text-primary" : "")">
+                            <i data-lucide="thumbs-up" class="size-4 @(post.CurrentUserReaction == true ? "fill-current" : "")"></i>
+                            Me gusta
+                        </button>
+                        <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 py-2 flex-1 gap-2 text-muted-foreground">
+                            <i data-lucide="message-circle" class="size-4"></i>
+                            Comentar
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
+                <p class="font-medium">No encontramos publicaciones</p>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Cuando haya contenido disponible, aparecerá aquí.
+                </p>
+            </div>
+        }
+    </div>
 </div>

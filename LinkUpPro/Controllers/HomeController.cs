@@ -1,20 +1,52 @@
+using LinkUpPro.Core.Application.Interfaces.IServices;
+using LinkUpPro.Core.Application.ViewModel.Post;
+using LinkUpPro.Core.Domain.Enum;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 
 namespace LinkUpPro.Controllers
 {
-    public class HomeController(ILogger<HomeController> logger) : Controller
+    [Authorize]
+    public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger = logger;
+        private readonly IPostService _postService;
+        private readonly IUserService _userService;
 
-        public IActionResult Index()
+        public HomeController(IPostService postService, IUserService userService)
         {
-            return View();
+            _postService = postService;
+            _userService = userService;
         }
 
-        public IActionResult Privacy()
+        public async Task<IActionResult> Index(string? search, int? mediaType)
         {
-            return View();
+            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var posts = await _postService.GetByFriendsAsync(userId);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                posts = posts
+                    .Where(p => p.Content.Contains(search, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            MediaType? filterMediaType = null;
+            if (mediaType.HasValue && System.Enum.IsDefined(typeof(MediaType), mediaType.Value))
+            {
+                filterMediaType = (MediaType)mediaType.Value;
+                posts = posts.Where(p => p.MediaType == filterMediaType.Value).ToList();
+            }
+
+            ViewBag.CurrentUserId = userId;
+
+            var vm = new HomeViewModel
+            {
+                Posts = posts,
+                SearchQuery = search,
+                FilterMediaType = filterMediaType
+            };
+
+            return View(vm);
         }
     }
 }

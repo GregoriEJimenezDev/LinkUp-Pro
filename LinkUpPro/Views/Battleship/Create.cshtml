@@ -1,52 +1,71 @@
-@model IEnumerable<FriendDto>
+@using LinkUpPro.Core.Application.DTOs.Friend
+@model List<FriendDto>
+
 @{
-    ViewData["Title"] = "New Battle";
+    ViewData["Title"] = "Nueva partida";
 }
 
-<div class="container mt-4">
-    <h1 class="display-6 mb-4">New Battle</h1>
+<div class="flex flex-col gap-6 w-full max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div class="flex items-center gap-4">
+        <a href="/Battleship/Index" class="inline-flex items-center justify-center rounded-full bg-secondary h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors">
+            <i data-lucide="arrow-left" class="size-5"></i>
+        </a>
+        <div class="flex flex-col">
+            <h1 class="text-2xl font-bold tracking-tight text-foreground">Nueva Partida</h1>
+            <p class="text-sm text-muted-foreground">Selecciona a un amigo para enviarle un desafío</p>
+        </div>
+    </div>
 
-    @if (!Model.Any())
+    @if (TempData["Error"] != null)
     {
-        <div class="text-center py-5">
-            <p class="text-muted fs-5">You have no friends yet. Add friends to play Battleship!</p>
-            <a asp-controller="Friend" asp-action="Index" class="btn btn-primary">Find Friends</a>
+        <div class="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            @TempData["Error"]
         </div>
     }
-    else
-    {
-        <div class="row">
-            @foreach (var friend in Model)
-            {
-                <div class="col-md-4 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body text-center">
-                            <div class="mb-3">
-                                @if (!string.IsNullOrEmpty(friend.ProfilePicture))
-                                {
-                                    <img src="@friend.ProfilePicture" alt="@friend.Username" class="rounded-circle" width="80" height="80" style="object-fit:cover" />
-                                }
-                                else
-                                {
-                                    <div class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center text-white" style="width:80px;height:80px;font-size:2rem">
-                                        @friend.Username[0]
-                                    </div>
-                                }
+
+    <div class="rounded-2xl border bg-card p-6 shadow-sm">
+        @if (Model != null && Model.Any())
+        {
+            <form asp-action="Create" method="post" class="flex flex-col gap-4">
+                <div class="space-y-4">
+                    @foreach (var friend in Model)
+                    {
+                        <label class="flex cursor-pointer items-center justify-between rounded-xl border bg-card p-4 transition-all hover:bg-accent/50 [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5">
+                            <div class="flex items-center gap-4">
+                                <div class="relative flex size-12 shrink-0 overflow-hidden rounded-full border border-border">
+                                    <img class="aspect-square h-full w-full object-cover" src="@friend.ProfilePicture" alt="@friend.Username" onerror="this.src='/placeholder.svg'" />
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-semibold">@friend.FullName</span>
+                                    <span class="text-xs text-muted-foreground">@@@friend.Username</span>
+                                </div>
                             </div>
-                            <h5 class="card-title">@friend.FullName</h5>
-                            <p class="text-muted">@@@friend.Username</p>
-                            <form asp-action="Create" method="post">
-                                <input type="hidden" name="friendId" value="@friend.UserId" />
-                                <button type="submit" class="btn btn-primary w-100">Challenge!</button>
-                            </form>
-                        </div>
-                    </div>
+                            
+                            <div class="flex items-center justify-center">
+                                <input type="radio" name="friendId" value="@friend.UserId" class="size-4 border-primary text-primary focus:ring-primary" required />
+                            </div>
+                        </label>
+                    }
                 </div>
-            }
-        </div>
-    }
 
-    <div class="mt-3">
-        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+                <div class="mt-4 flex justify-end">
+                    <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 rounded-full shadow-sm gap-2 w-full md:w-auto">
+                        <i data-lucide="crosshair" class="size-4"></i>
+                        Desafiar a jugar
+                    </button>
+                </div>
+            </form>
+        }
+        else
+        {
+            <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+                <i data-lucide="users" class="mb-3 size-8 opacity-20"></i>
+                <p class="font-medium text-foreground">No tienes amigos agregados</p>
+                <p class="mt-1 max-w-sm">Para jugar Battleship, necesitas agregar amigos a tu lista primero.</p>
+                <a href="/Friendship/Index" class="mt-4 rounded-full bg-secondary px-4 py-2 text-xs font-medium text-foreground hover:bg-secondary/80">
+                    Ir a Amigos
+                </a>
+            </div>
+        }
     </div>
 </div>

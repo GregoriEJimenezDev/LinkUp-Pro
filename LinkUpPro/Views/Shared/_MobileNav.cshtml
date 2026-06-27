@@ -1,0 +1,43 @@
+@{
+    var currentUrl = ViewContext.HttpContext.Request.Path.ToString().ToLower();
+}
+<nav class="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur md:hidden">
+    <div class="relative mx-auto grid h-16 max-w-md grid-cols-5 items-center px-2">
+        
+        <a href="/" class="relative flex flex-col items-center gap-0.5 py-1 text-[11px] font-medium transition-colors @(currentUrl == "/" || currentUrl == "/home" ? "text-primary" : "text-muted-foreground")">
+            <span class="relative">
+                <i data-lucide="home" class="size-5"></i>
+            </span>
+            <span class="truncate">Inicio</span>
+        </a>
+        
+        <a href="/Friendship/Index" class="relative flex flex-col items-center gap-0.5 py-1 text-[11px] font-medium transition-colors @(currentUrl.StartsWith("/friendship") ? "text-primary" : "text-muted-foreground")">
+            <span class="relative">
+                <i data-lucide="users" class="size-5"></i>
+            </span>
+            <span class="truncate">Amigos</span>
+        </a>
+
+        <div class="flex items-center justify-center">
+            <a href="/Battleship/Index" aria-label="Battleship" class="flex size-14 -translate-y-4 items-center justify-center rounded-full border-4 border-card bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95 @(currentUrl.StartsWith("/battleship") ? "ring-2 ring-primary ring-offset-2 ring-offset-card" : "")">
+                <i data-lucide="ship" class="size-6"></i>
+            </a>
+        </div>
+
+        <a href="/Notification/Index" class="relative flex flex-col items-center gap-0.5 py-1 text-[11px] font-medium transition-colors @(currentUrl.StartsWith("/notification") ? "text-primary" : "text-muted-foreground")">
+            <span class="relative">
+                <i data-lucide="bell" class="size-5"></i>
+                @* <span class="absolute -right-1.5 -top-1 flex size-3.5 items-center justify-center rounded-full bg-destructive text-[8px] font-bold text-destructive-foreground">3</span> *@
+            </span>
+            <span class="truncate">Notificaciones</span>
+        </a>
+        
+        <a href="/User/Profile" class="relative flex flex-col items-center gap-0.5 py-1 text-[11px] font-medium transition-colors @(currentUrl.StartsWith("/user/profile") ? "text-primary" : "text-muted-foreground")">
+            <span class="relative">
+                <i data-lucide="user" class="size-6"></i>
+            </span>
+            <span>Perfil</span>
+        </a>
+
+    </div>
+</nav>

@@ -17,6 +17,8 @@ namespace LinkUpPro.Core.Application.ViewModel.Users
         public string? ProfilePictureFileName { get; set; }
         public string? CurrentProfilePicture { get; set; }
         [DataType(DataType.Password)]
+        public string? CurrentPassword { get; set; }
+        [DataType(DataType.Password)]
         public string? Password { get; set; }
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "La contraseña y la confirmación de la contraseña no coinciden.")]

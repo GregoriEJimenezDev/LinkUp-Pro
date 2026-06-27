@@ -1,0 +1,123 @@
+@model LinkUpPro.Core.Application.ViewModel.Friend.FriendRequestIndexViewModel
+
+@{
+    ViewData["Title"] = "Solicitudes de Amistad";
+}
+
+<div class="flex flex-col gap-6 w-full max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div class="flex items-center justify-between">
+        <div class="flex flex-col">
+            <h1 class="text-2xl font-bold tracking-tight text-foreground">Solicitudes de Amistad</h1>
+            <p class="text-sm text-muted-foreground">Gestiona quién puede conectar contigo</p>
+        </div>
+        <a href="/FriendRequest/Add" class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-full shadow-sm gap-2">
+            <i data-lucide="user-plus" class="size-4"></i>
+            Buscar amigos
+        </a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="grid gap-6 md:grid-cols-2">
+        
+        <!-- Recibidas -->
+        <div class="flex flex-col gap-4">
+            <h2 class="text-lg font-semibold flex items-center gap-2">
+                <i data-lucide="inbox" class="size-5 text-primary"></i>
+                Recibidas
+                <span class="rounded-full bg-primary/20 text-primary px-2 py-0.5 text-xs font-medium ml-auto">@Model.Received.Count</span>
+            </h2>
+
+            <div class="flex flex-col gap-3">
+                @if (Model.Received != null && Model.Received.Any())
+                {
+                    foreach (var request in Model.Received)
+                    {
+                        <div class="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm transition-all hover:border-primary/50">
+                            <div class="flex items-center gap-3">
+                                <div class="relative flex size-12 shrink-0 overflow-hidden rounded-full border border-border">
+                                    <img class="aspect-square h-full w-full object-cover" src="@request.SenderProfilePicture" alt="@request.SenderUsername" onerror="this.src='/placeholder.svg'" />
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-semibold">@request.SenderUsername</span>
+                                    <span class="text-xs text-muted-foreground">@@@request.SenderUsername</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-2 mt-2">
+                                <form asp-action="Accept" method="post" class="flex-1">
+                                    <input type="hidden" name="id" value="@request.Id" />
+                                    <button type="submit" class="w-full inline-flex items-center justify-center rounded-md bg-success/10 text-success hover:bg-success hover:text-success-foreground h-9 text-xs font-medium transition-colors">
+                                        Aceptar
+                                    </button>
+                                </form>
+                                <form asp-action="Reject" method="post" class="flex-1">
+                                    <input type="hidden" name="id" value="@request.Id" />
+                                    <button type="submit" class="w-full inline-flex items-center justify-center rounded-md bg-secondary text-secondary-foreground hover:bg-destructive hover:text-destructive-foreground h-9 text-xs font-medium transition-colors">
+                                        Rechazar
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground bg-card/50">
+                        <i data-lucide="mail-open" class="mb-2 size-6 opacity-20"></i>
+                        No tienes solicitudes nuevas
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Enviadas -->
+        <div class="flex flex-col gap-4">
+            <h2 class="text-lg font-semibold flex items-center gap-2">
+                <i data-lucide="send" class="size-5 text-muted-foreground"></i>
+                Enviadas
+                <span class="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium ml-auto">@Model.Sent.Count</span>
+            </h2>
+
+            <div class="flex flex-col gap-3">
+                @if (Model.Sent != null && Model.Sent.Any())
+                {
+                    foreach (var request in Model.Sent)
+                    {
+                        <div class="flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm">
+                            <div class="flex items-center gap-3 opacity-70">
+                                <div class="relative flex size-10 shrink-0 overflow-hidden rounded-full border border-border">
+                                    <img class="aspect-square h-full w-full object-cover grayscale" src="/placeholder.svg" alt="@request.ReceiverUsername" onerror="this.src='/placeholder.svg'" />
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-semibold">@request.ReceiverUsername</span>
+                                    <span class="text-xs text-muted-foreground">Esperando respuesta...</span>
+                                </div>
+                            </div>
+                            
+                            <form asp-action="Delete" method="post">
+                                <input type="hidden" name="id" value="@request.Id" />
+                                <button type="submit" class="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors" title="Cancelar solicitud">
+                                    <i data-lucide="x" class="size-4"></i>
+                                </button>
+                            </form>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground bg-card/50">
+                        <i data-lucide="clock" class="mb-2 size-6 opacity-20"></i>
+                        No hay solicitudes pendientes
+                    </div>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>

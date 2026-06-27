@@ -1,0 +1,96 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using LinkUpPro.Core.Application.Interfaces.IServices;
+using System.Security.Claims;
+
+namespace LinkUpPro.Controllers
+{
+    [Authorize]
+    public class FriendRequestController : Controller
+    {
+        private readonly IFriendRequestService _friendRequestService;
+        private readonly IUserService _userService;
+
+        public FriendRequestController(
+            IFriendRequestService friendRequestService,
+            IUserService userService)
+        {
+            _friendRequestService = friendRequestService;
+            _userService = userService;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var vm = await _friendRequestService.GetRequestsAsync(userId);
+            return View(vm);
+        }
+
+        public async Task<IActionResult> Add(string? search)
+        {
+            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var vm = await _friendRequestService.GetAvailableUsersAsync(userId, search);
+            return View(vm);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Send(string receiverId)
+        {
+            var senderId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var result = await _friendRequestService.SendAsync(senderId, receiverId);
+
+            if (!result.Succeeded)
+            {
+                TempData["Error"] = result.ErrorMessage;
+            }
+            else
+            {
+                TempData["Success"] = "Solicitud enviada correctamente.";
+            }
+
+            return RedirectToAction(nameof(Add));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Accept(int id)
+        {
+            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var result = await _friendRequestService.AcceptAsync(id, userId);
+
+            if (!result.Succeeded)
+            {
+                TempData["Error"] = result.ErrorMessage;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Reject(int id)
+        {
+            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var result = await _friendRequestService.RejectAsync(id, userId);
+
+            if (!result.Succeeded)
+            {
+                TempData["Error"] = result.ErrorMessage;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var result = await _friendRequestService.DeleteAsync(id, userId);
+
+            if (!result.Succeeded)
+            {
+                TempData["Error"] = result.ErrorMessage;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+    }
+}

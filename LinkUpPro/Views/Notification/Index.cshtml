@@ -1,0 +1,79 @@
+@model List<LinkUpPro.Core.Application.DTOs.Notification.NotificationDto>
+
+@{
+    ViewData["Title"] = "Notificaciones";
+}
+
+<div class="flex flex-col gap-6 w-full max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div class="flex items-center justify-between">
+        <div class="flex flex-col">
+            <h1 class="text-2xl font-bold tracking-tight text-foreground">Notificaciones</h1>
+            <p class="text-sm text-muted-foreground">Mantente al tanto de la actividad en tu cuenta</p>
+        </div>
+        @if (Model != null && Model.Count(n => !n.IsRead) > 0)
+        {
+            <span class="rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold">
+                @Model.Count(n => !n.IsRead) nuevas
+            </span>
+        }
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="flex flex-col gap-3">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var notification in Model.OrderByDescending(n => n.CreatedAt))
+            {
+                <div class="flex items-start justify-between rounded-2xl border @(notification.IsRead ? "bg-card" : "bg-primary/5 border-primary/30") p-5 shadow-sm transition-all hover:shadow-md group">
+                    <div class="flex gap-4">
+                        <div class="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full @(notification.IsRead ? "bg-secondary text-muted-foreground" : "bg-primary text-primary-foreground")">
+                            <i data-lucide="bell" class="size-5"></i>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="font-semibold text-foreground @(notification.IsRead ? "opacity-90" : "")">
+                                @notification.Title
+                            </span>
+                            <span class="text-sm text-muted-foreground mt-1">@notification.Message</span>
+                            <span class="text-xs text-muted-foreground/70 mt-2 font-medium">@notification.CreatedAt.ToString("g")</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        @if (!string.IsNullOrEmpty(notification.Url))
+                        {
+                            <a href="@notification.Url" class="inline-flex size-8 items-center justify-center rounded-full bg-secondary text-muted-foreground hover:bg-secondary/80 transition-colors" title="Ver detalles">
+                                <i data-lucide="external-link" class="size-4"></i>
+                            </a>
+                        }
+                        
+                        @if (!notification.IsRead)
+                        {
+                            <form asp-action="MarkAsRead" method="post">
+                                <input type="hidden" name="id" value="@notification.Id" />
+                                <button type="submit" class="inline-flex size-8 items-center justify-center rounded-full text-primary hover:bg-primary/10 transition-colors" title="Marcar como leída">
+                                    <i data-lucide="check" class="size-5"></i>
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="flex flex-col items-center justify-center rounded-3xl border border-dashed bg-card/50 p-12 text-center text-muted-foreground">
+                <div class="flex size-16 items-center justify-center rounded-full bg-secondary mb-4">
+                    <i data-lucide="bell-off" class="size-8 opacity-40"></i>
+                </div>
+                <p class="font-medium text-lg text-foreground mb-1">Todo está tranquilo por aquí</p>
+                <p class="text-sm">No tienes notificaciones en este momento.</p>
+            </div>
+        }
+    </div>
+</div>

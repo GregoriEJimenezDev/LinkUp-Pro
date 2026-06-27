@@ -129,5 +129,10 @@ namespace LinkUpPro.Controllers
             var vm = await _battleshipService.GetResultAsync(gameId, userId);
             return View(vm);
         }
+
+        public IActionResult Leaderboard()
+        {
+            return View();
+        }
     }
 }

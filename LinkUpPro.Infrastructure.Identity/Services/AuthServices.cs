@@ -14,12 +14,13 @@ using System.Text.RegularExpressions;
 namespace LinkUpPro.Infrastructure.Identity.Services
 {
     public class AuthServices(UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager, IEmailService emailService, IHttpContextAccessor httpContextAccessor) : IUserService
+        SignInManager<ApplicationUser> signInManager, IEmailService emailService, IHttpContextAccessor httpContextAccessor, IFileStorageService fileStorageService) : IUserService
     {
         private readonly UserManager<ApplicationUser> _userManager = userManager;
         private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
         private readonly IEmailService _emailService = emailService;
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+        private readonly IFileStorageService _fileStorageService = fileStorageService;
 
         private string GetBaseUrl()
         {
@@ -75,7 +76,7 @@ namespace LinkUpPro.Infrastructure.Identity.Services
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
             var baseUrl = GetBaseUrl();
-            var resetLink = $"{baseUrl}/Account/ResetPassword?token={encodedToken}&userId={user.Id}";
+            var resetLink = $"{baseUrl}/Auth/ResetPassword?token={encodedToken}&userId={user.Id}";
 
             await _emailService.SendEmailAsync(new EmailRequest
             {
@@ -95,9 +96,14 @@ namespace LinkUpPro.Infrastructure.Identity.Services
         public async Task<EditProfileViewModel> GetProfileAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) 
+            {
+                return new EditProfileViewModel(); // Devuelve vacío si no existe (ej. DB en memoria reiniciada)
+            }
+            
             return new EditProfileViewModel
             {
-                FirstName = user!.FirstName,
+                FirstName = user.FirstName,
                 LastName = user.LastName,
                 Phone = user.Phone,
                 CurrentProfilePicture = user.ProfilePicturePath
@@ -149,19 +155,19 @@ namespace LinkUpPro.Infrastructure.Identity.Services
 
             if (vm.ProfilePicture != null && vm.ProfilePicture.Length > 0)
             {
-                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                if (vm.ProfilePicture.Length > 5 * 1024 * 1024)
+                    return ServiceResult.Failure("La imagen de perfil no puede superar los 5 MB.");
+
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
                 var extension = Path.GetExtension(vm.ProfilePictureFileName ?? "").ToLowerInvariant();
 
                 if (!allowedExtensions.Contains(extension))
-                    return ServiceResult.Failure("Solo se permiten imágenes .jpg y .png.");
+                    return ServiceResult.Failure("Solo se permiten imágenes .jpg, .png y .webp.");
 
                 var fileName = $"{Guid.NewGuid()}{extension}";
-                var path = Path.Combine("wwwroot", "uploads", "profiles", fileName);
-
-                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-                await File.WriteAllBytesAsync(path, vm.ProfilePicture);
-
-                user.ProfilePicturePath = $"/uploads/profiles/{fileName}";
+                var contentType = extension == ".png" ? "image/png" : (extension == ".webp" ? "image/webp" : "image/jpeg");
+                
+                user.ProfilePicturePath = await _fileStorageService.UploadFileAsync(vm.ProfilePicture, fileName, "profiles", contentType);
             }
 
             var result = await _userManager.CreateAsync(user, vm.Password);
@@ -171,7 +177,7 @@ namespace LinkUpPro.Infrastructure.Identity.Services
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
             var baseUrl = GetBaseUrl();
-            var activationLink = $"{baseUrl}/Account/ActivateAccount?token={encodedToken}&userId={user.Id}";
+            var activationLink = $"{baseUrl}/Auth/ActivateAccount?token={encodedToken}&userId={user.Id}";
 
             await _emailService.SendEmailAsync(new EmailRequest
             {
@@ -223,19 +229,19 @@ namespace LinkUpPro.Infrastructure.Identity.Services
 
             if (vm.ProfilePicture != null && vm.ProfilePicture.Length > 0)
             {
-                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                if (vm.ProfilePicture.Length > 5 * 1024 * 1024)
+                    return ServiceResult.Failure("La imagen de perfil no puede superar los 5 MB.");
+
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
                 var extension = Path.GetExtension(vm.ProfilePictureFileName ?? "").ToLowerInvariant();
 
                 if (!allowedExtensions.Contains(extension))
-                    return ServiceResult.Failure("Solo se permiten imágenes .jpg y .png.");
+                    return ServiceResult.Failure("Solo se permiten imágenes .jpg, .png y .webp.");
 
                 var fileName = $"{Guid.NewGuid()}{extension}";
-                var path = Path.Combine("wwwroot", "uploads", "profiles", fileName);
-
-                Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-                await File.WriteAllBytesAsync(path, vm.ProfilePicture);
-
-                user.ProfilePicturePath = $"/uploads/profiles/{fileName}";
+                var contentType = extension == ".png" ? "image/png" : (extension == ".webp" ? "image/webp" : "image/jpeg");
+                
+                user.ProfilePicturePath = await _fileStorageService.UploadFileAsync(vm.ProfilePicture, fileName, "profiles", contentType);
             }
 
             if (!string.IsNullOrEmpty(vm.Password))

@@ -7,7 +7,7 @@ using LinkUpPro.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 
 builder.Services.AddApplicationLayer(builder.Configuration);
 builder.Services.AddPersistenceInfrastructure(builder.Configuration);
@@ -31,6 +31,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseStaticFiles(); // Necesario para servir archivos subidos dinámicamente en .NET 9
 app.MapStaticAssets();
 
 app.MapControllerRoute(

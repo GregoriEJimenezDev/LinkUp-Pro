@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - LinkUp Pro</title>
+    <link rel="stylesheet" href="~/css/app.min.css" asp-append-version="true" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-background text-foreground antialiased min-h-screen">
+    <div class="relative min-h-screen grid lg:grid-cols-2">
+      <!-- Theme Toggle at top right -->
+      <div class="absolute right-4 top-4 z-50">
+        <button id="theme-toggle" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9 bg-background/50 backdrop-blur border border-border">
+            <i data-lucide="moon" class="size-4 hidden dark:block"></i>
+            <i data-lucide="sun" class="size-4 block dark:hidden"></i>
+        </button>
+      </div>
+
+      <!-- Left Column - Visual/Brand -->
+      <div class="hidden lg:flex flex-col justify-center relative overflow-hidden bg-zinc-900">
+        <!-- Background Image with Overlay -->
+        <div 
+          class="absolute inset-0 z-0 bg-cover bg-center" 
+          style="background-image: url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2938&auto=format&fit=crop');"
+        ></div>
+        <div class="absolute inset-0 z-10 bg-gradient-to-br from-primary/90 via-primary/80 to-purple-900/90 mix-blend-multiply"></div>
+        
+        <!-- Content -->
+        <div class="relative z-20 flex flex-col justify-center h-full px-12 xl:px-20 text-white animate-in fade-in slide-in-from-left-8 duration-700">
+          <div class="mb-8 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium backdrop-blur-md w-fit">
+            <i data-lucide="sparkles" class="size-4 text-yellow-300"></i>
+            <span>Únete a la fiesta</span>
+          </div>
+
+          <h1 class="text-5xl xl:text-6xl font-bold tracking-tight text-balance leading-tight">
+            Crea momentos <br /> inolvidables
+          </h1>
+          
+          <p class="mt-6 max-w-md text-lg leading-relaxed text-white/80 font-medium">
+            LinkUp es el lugar donde las conexiones digitales se transforman en aventuras reales. Conecta, juega y vive.
+          </p>
+          
+          <!-- Glass Cards -->
+          <div class="mt-12 grid grid-cols-2 gap-4 max-w-md">
+            <div class="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-md transition-colors hover:bg-white/20">
+              <i data-lucide="users" class="size-6 text-white"></i>
+              <strong class="font-semibold tracking-wide">Comunidad Viva</strong>
+            </div>
+            <div class="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-md transition-colors hover:bg-white/20">
+              <i data-lucide="gamepad-2" class="size-6 text-yellow-300"></i>
+              <strong class="font-semibold tracking-wide">Desafíos Épicos</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column - Forms -->
+      <main class="flex items-center justify-center p-6 sm:p-12 min-h-screen bg-background">
+        <div class="w-full max-w-[400px]">
+          @RenderBody()
+        </div>
+      </main>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        // Check local storage or system preference
+        if (localStorage.getItem('theme') === 'light' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+            html.classList.remove('dark');
+        } else {
+            html.classList.add('dark');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -10,12 +10,13 @@ using LinkUpPro.Core.Domain.Interfaces;
 namespace LinkUpPro.Core.Application.Interfaces.Services
 {
     public class PostService(IPostRepository postRepository, IReactionRepository reactionRepository,
-        IFriendshipRepository friendshipRepository, IUserService userService) : IPostService
+        IFriendshipRepository friendshipRepository, IUserService userService, IFileStorageService fileStorageService) : IPostService
     {
         private readonly IPostRepository _postRepository = postRepository;
         private readonly IReactionRepository _reactionRepository = reactionRepository;
         private readonly IFriendshipRepository _friendshipRepository = friendshipRepository;
         private readonly IUserService _userService = userService;
+        private readonly IFileStorageService _fileStorageService = fileStorageService;
 
         public async Task<ServiceResult> CreateAsync(SavePostViewModel vm, string userId)
         {
@@ -27,18 +28,13 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
 
             if (hasImage && hasVideo)
                 return ServiceResult.Failure("Solo puedes adjuntar una imagen o un video de YouTube, no ambos.");
-            if (!hasImage && !hasVideo)
-                return ServiceResult.Failure("Debes proporcionar exactamente un contenido multimedia (Imagen o Video de YouTube).");
-
-            if (vm.MediaType == MediaType.Image && !hasImage)
-                return ServiceResult.Failure("Debes proporcionar un archivo de imagen para las publicaciones de tipo imagen.");
-            if (vm.MediaType == MediaType.Video && !hasVideo)
-                return ServiceResult.Failure("Debes proporcionar una URL de video para las publicaciones de tipo video.");
 
             string? mediaUrl = null;
 
-            if (vm.MediaType == MediaType.Image && vm.ImageFile != null)
+            if (vm.MediaType == MediaType.Image && hasImage)
             {
+                if (vm.ImageFile.Length > 5 * 1024 * 1024)
+                    return ServiceResult.Failure("La imagen de la publicación no puede superar los 5 MB.");
                 string extension = ".jpg";
                 mediaUrl = await SaveImageAsync(vm.ImageFile, extension);
             }
@@ -148,6 +144,8 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             {
                 if (vm.ImageFile != null && vm.ImageFile.Length > 0)
                 {
+                    if (vm.ImageFile.Length > 5 * 1024 * 1024)
+                        return ServiceResult.Failure("La imagen de la publicación no puede superar los 5 MB.");
                     string extension = ".jpg";
                     post.MediaUrl = await SaveImageAsync(vm.ImageFile, extension);
                 }
@@ -267,14 +265,11 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             };
         }
 
-        private static async Task<string> SaveImageAsync(byte[] fileContent, string extension)
+        private async Task<string> SaveImageAsync(byte[] fileContent, string extension)
         {
             var fileName = $"{Guid.NewGuid()}{extension}";
-            var path = Path.Combine("wwwroot", "uploads", "posts", fileName);
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-            await File.WriteAllBytesAsync(path, fileContent);
-
-            return $"/uploads/posts/{fileName}";
+            var contentType = extension == ".png" ? "image/png" : (extension == ".webp" ? "image/webp" : "image/jpeg");
+            return await _fileStorageService.UploadFileAsync(fileContent, fileName, "posts", contentType);
         }
 
         private static string? ExtractYouTubeEmbedUrl(string url)

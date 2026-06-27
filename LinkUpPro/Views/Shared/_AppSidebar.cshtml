@@ -1,0 +1,77 @@
+@{
+    var currentUrl = ViewContext.HttpContext.Request.Path.ToString().ToLower();
+}
+<aside class="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-sidebar px-4 py-5 md:flex xl:w-72">
+    <a href="/" class="mb-6 flex items-center px-2">
+        <span class="text-lg font-bold tracking-tight">
+            LinkUp <span class="text-primary">Pro</span>
+        </span>
+    </a>
+
+    <nav class="flex flex-1 flex-col gap-1">
+        <a href="/" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors @(currentUrl == "/" || currentUrl == "/home" ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground")">
+            <i data-lucide="home" class="size-5 shrink-0"></i>
+            <span class="flex-1 truncate">Inicio</span>
+        </a>
+        <a href="/Friendship/Index" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors @(currentUrl.StartsWith("/friendship") ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground")">
+            <i data-lucide="users" class="size-5 shrink-0"></i>
+            <span class="flex-1 truncate">Amigos</span>
+        </a>
+        <a href="/FriendRequest/Index" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors @(currentUrl.StartsWith("/friendrequest") ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground")">
+            <i data-lucide="user-plus" class="size-5 shrink-0"></i>
+            <span class="flex-1 truncate">Solicitudes</span>
+            @* <span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-medium text-destructive-foreground">3</span> *@
+        </a>
+        <a href="/Notification/Index" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors @(currentUrl.StartsWith("/notification") ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground")">
+            <i data-lucide="bell" class="size-5 shrink-0"></i>
+            <span class="flex-1 truncate">Notificaciones</span>
+        </a>
+        <a href="/Battleship/Index" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors @(currentUrl.StartsWith("/battleship") ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground")">
+            <i data-lucide="ship" class="size-5 shrink-0"></i>
+            <span class="flex-1 truncate">Battleship</span>
+        </a>
+
+        <a href="/User/Profile" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors @(currentUrl.StartsWith("/user/profile") ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground")">
+            <i data-lucide="user" class="size-5 shrink-0"></i>
+            <span class="flex-1 truncate">Perfil</span>
+        </a>
+
+    </nav>
+
+    <form asp-controller="Auth" asp-action="Logout" method="post" class="mb-2">
+        <button type="submit" class="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground">
+            <i data-lucide="log-out" class="size-5 shrink-0"></i>
+            <span>Cerrar sesión</span>
+        </button>
+    </form>
+
+    <div class="mt-4 flex items-center gap-3 rounded-2xl border border-border bg-card p-2.5">
+        <div class="relative flex size-10 shrink-0 overflow-hidden rounded-full">
+            <img class="aspect-square h-full w-full object-cover" src="/placeholder.svg" alt="Avatar" />
+        </div>
+        <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-semibold">@User.Identity?.Name</p>
+            <p class="truncate text-xs text-muted-foreground">
+                @@@(User.Identity?.Name)
+            </p>
+        </div>
+        <button type="button" onclick="toggleTheme()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 w-9">
+            <i data-lucide="sun" class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"></i>
+            <i data-lucide="moon" class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"></i>
+            <span class="sr-only">Toggle theme</span>
+        </button>
+    </div>
+</aside>
+
+<script>
+    function toggleTheme() {
+        const root = document.documentElement;
+        if (root.classList.contains('dark')) {
+            root.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        } else {
+            root.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        }
+    }
+</script>

@@ -1,0 +1,268 @@
+@model LinkUpPro.Core.Application.ViewModel.Users.EditProfileViewModel
+
+@{
+    ViewData["Title"] = "Configuración de Perfil";
+}
+
+<div class="flex flex-col gap-6 w-full max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div class="flex flex-col gap-1">
+        <h1 class="text-2xl font-bold tracking-tight text-foreground">Configuración de Perfil</h1>
+        <p class="text-sm text-muted-foreground">Administra tu información personal y opciones de seguridad.</p>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">
+            @TempData["Success"]
+        </div>
+    }
+
+    <form asp-action="Profile" method="post" enctype="multipart/form-data" class="flex flex-col gap-8">
+        <div asp-validation-summary="All" class="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"></div>
+
+        <!-- Información de Cuenta (Solo lectura) -->
+        <div class="rounded-2xl border bg-card shadow-sm overflow-hidden">
+            <div class="border-b bg-muted/30 px-6 py-4">
+                <h2 class="text-lg font-semibold flex items-center gap-2">
+                    <i data-lucide="at-sign" class="size-5 text-primary"></i>
+                    Información de Cuenta
+                </h2>
+                <p class="text-xs text-muted-foreground mt-1">Estos datos no se pueden modificar.</p>
+            </div>
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <label class="text-sm font-medium leading-none text-muted-foreground">Nombre de usuario</label>
+                    <div class="flex h-10 w-full items-center rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground cursor-not-allowed">
+                        <i data-lucide="user" class="size-4 mr-2 opacity-50"></i>
+                        @ViewBag.Username
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-medium leading-none text-muted-foreground">Correo electrónico</label>
+                    <div class="flex h-10 w-full items-center rounded-md border border-input bg-muted/50 px-3 py-2 text-sm text-muted-foreground cursor-not-allowed">
+                        <i data-lucide="mail" class="size-4 mr-2 opacity-50"></i>
+                        @ViewBag.Email
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información Pública -->
+        <div class="rounded-2xl border bg-card shadow-sm overflow-hidden">
+            <div class="border-b bg-muted/30 px-6 py-4">
+                <h2 class="text-lg font-semibold flex items-center gap-2">
+                    <i data-lucide="user" class="size-5 text-primary"></i>
+                    Información Pública
+                </h2>
+                <p class="text-xs text-muted-foreground mt-1">Estos datos son visibles para tus amigos.</p>
+            </div>
+
+            <div class="p-6 flex flex-col md:flex-row gap-8">
+                <!-- Foto de Perfil -->
+                <div class="flex flex-col items-center gap-4">
+                    <div class="relative group flex size-32 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-background bg-secondary shadow-md ring-2 ring-primary/20">
+                        <img id="previewImage" class="aspect-square h-full w-full object-cover" src="@(Model.CurrentProfilePicture ?? "/placeholder.svg")" alt="Foto de perfil" />
+
+                        <label for="File" class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                            <i data-lucide="camera" class="size-7 text-white"></i>
+                            <span class="text-[10px] font-medium text-white/80">Cambiar</span>
+                        </label>
+                    </div>
+                    <input type="file" id="File" name="File" accept="image/*" class="hidden" onchange="previewFile()" />
+                    <label for="File" class="text-xs font-medium text-primary hover:underline cursor-pointer">
+                        Cambiar foto
+                    </label>
+                </div>
+
+                <!-- Datos personales -->
+                <div class="flex flex-col gap-4 flex-1">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <label asp-for="FirstName" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Nombre</label>
+                            <input asp-for="FirstName" class="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+                            <span asp-validation-for="FirstName" class="text-xs text-destructive"></span>
+                        </div>
+                        <div class="space-y-2">
+                            <label asp-for="LastName" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Apellido</label>
+                            <input asp-for="LastName" class="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+                            <span asp-validation-for="LastName" class="text-xs text-destructive"></span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label asp-for="Phone" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Teléfono</label>
+                        <input asp-for="Phone" placeholder="809-000-0000" class="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+                        <span asp-validation-for="Phone" class="text-xs text-destructive"></span>
+                        <p class="text-[10px] text-muted-foreground">Formato requerido (DR): 809, 829 o 849</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seguridad -->
+        <div class="rounded-2xl border bg-card shadow-sm overflow-hidden">
+            <div class="border-b bg-muted/30 px-6 py-4">
+                <h2 class="text-lg font-semibold flex items-center gap-2">
+                    <i data-lucide="shield" class="size-5 text-muted-foreground"></i>
+                    Seguridad
+                </h2>
+                <p class="text-xs text-muted-foreground mt-1">Cambia tu contraseña si es necesario. Déjalo en blanco si no deseas cambiarla.</p>
+            </div>
+
+            <div class="p-6 flex flex-col gap-4">
+                <!-- Contraseña actual -->
+                <div class="space-y-2">
+                    <label asp-for="CurrentPassword" class="text-sm font-medium leading-none">Contraseña Actual</label>
+                    <div class="relative">
+                        <input asp-for="CurrentPassword" type="password" class="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 pr-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="••••••••" />
+                        <button type="button" onclick="togglePassword('CurrentPassword', this)" class="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1" tabindex="-1" aria-label="Mostrar contraseña">
+                            <i data-lucide="eye" class="size-4"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="CurrentPassword" class="text-xs text-destructive"></span>
+                    <p class="text-[10px] text-muted-foreground">Requerida solo si deseas cambiar tu contraseña.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Nueva contraseña -->
+                    <div class="space-y-2">
+                        <label asp-for="Password" class="text-sm font-medium leading-none">Nueva Contraseña</label>
+                        <div class="relative">
+                            <input asp-for="Password" type="password" id="Password" class="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 pr-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="••••••••" oninput="checkPasswordStrength(this.value)" />
+                            <button type="button" onclick="togglePassword('Password', this)" class="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1" tabindex="-1" aria-label="Mostrar contraseña">
+                                <i data-lucide="eye" class="size-4"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="text-xs text-destructive"></span>
+
+                        <!-- Password Strength Indicator -->
+                        <div id="strengthContainer" class="hidden space-y-1.5 pt-1">
+                            <div class="flex gap-1">
+                                <div id="bar1" class="h-1 flex-1 rounded-full bg-muted transition-colors duration-300"></div>
+                                <div id="bar2" class="h-1 flex-1 rounded-full bg-muted transition-colors duration-300"></div>
+                                <div id="bar3" class="h-1 flex-1 rounded-full bg-muted transition-colors duration-300"></div>
+                                <div id="bar4" class="h-1 flex-1 rounded-full bg-muted transition-colors duration-300"></div>
+                            </div>
+                            <p id="strengthText" class="text-[10px] font-medium text-muted-foreground"></p>
+                        </div>
+                    </div>
+
+                    <!-- Confirmar nueva contraseña -->
+                    <div class="space-y-2">
+                        <label asp-for="ConfirmPassword" class="text-sm font-medium leading-none">Confirmar Nueva Contraseña</label>
+                        <div class="relative">
+                            <input asp-for="ConfirmPassword" type="password" class="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 pr-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" placeholder="••••••••" />
+                            <button type="button" onclick="togglePassword('ConfirmPassword', this)" class="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1" tabindex="-1" aria-label="Mostrar contraseña">
+                                <i data-lucide="eye" class="size-4"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="ConfirmPassword" class="text-xs text-destructive"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" asp-for="CurrentProfilePicture" />
+
+        <div class="flex justify-end pt-2">
+            <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap rounded-full text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 gap-2 w-full md:w-auto">
+                <i data-lucide="save" class="size-4"></i>
+                Guardar cambios
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        // Image preview
+        function previewFile() {
+            const preview = document.getElementById('previewImage');
+            const file = document.getElementById('File').files[0];
+            const reader = new FileReader();
+
+            reader.addEventListener("load", function () {
+                preview.src = reader.result;
+            }, false);
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Toggle password visibility
+        function togglePassword(fieldId, btn) {
+            const input = document.getElementById(fieldId);
+            if (!input) return;
+
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+
+            const icon = btn.querySelector('i');
+            if (icon) {
+                icon.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+                lucide.createIcons();
+            }
+        }
+
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            const container = document.getElementById('strengthContainer');
+            const bar1 = document.getElementById('bar1');
+            const bar2 = document.getElementById('bar2');
+            const bar3 = document.getElementById('bar3');
+            const bar4 = document.getElementById('bar4');
+            const text = document.getElementById('strengthText');
+            const bars = [bar1, bar2, bar3, bar4];
+            const resetColor = 'bg-muted';
+
+            if (!password || password.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+
+            let score = 0;
+            if (password.length >= 6) score++;
+            if (password.length >= 10) score++;
+            if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+            if (/[0-9]/.test(password)) score++;
+            if (/[^A-Za-z0-9]/.test(password)) score++;
+
+            let level = 0;
+            let label = '';
+            let color = '';
+
+            if (score <= 1) {
+                level = 1; label = 'Muy débil'; color = 'bg-red-500';
+            } else if (score === 2) {
+                level = 2; label = 'Débil'; color = 'bg-orange-500';
+            } else if (score === 3) {
+                level = 3; label = 'Aceptable'; color = 'bg-yellow-500';
+            } else {
+                level = 4; label = 'Fuerte'; color = 'bg-emerald-500';
+            }
+
+            bars.forEach((bar, i) => {
+                bar.className = 'h-1 flex-1 rounded-full transition-colors duration-300 ' + (i < level ? color : resetColor);
+            });
+
+            text.textContent = label;
+            text.className = 'text-[10px] font-medium ' + (
+                level <= 1 ? 'text-red-500' :
+                level === 2 ? 'text-orange-500' :
+                level === 3 ? 'text-yellow-500' :
+                'text-emerald-500'
+            );
+        }
+
+        // Re-initialize lucide icons after DOM updates
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
+}

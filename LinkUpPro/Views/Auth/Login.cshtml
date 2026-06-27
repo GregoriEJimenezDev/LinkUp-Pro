@@ -1,0 +1,66 @@
+@model LinkUpPro.Core.Application.ViewModel.Users.LoginViewModel
+
+@{
+    ViewData["Title"] = "Iniciar sesión";
+    Layout = "_AuthLayout";
+}
+
+<div class="flex flex-col gap-6 w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-2 text-primary font-bold text-xl mb-4">
+            <div class="bg-primary text-primary-foreground p-1.5 rounded-md">
+                <i data-lucide="sparkles" class="size-5 text-white"></i>
+            </div>
+            <span>LinkUp Pro</span>
+        </div>
+        <h1 class="text-3xl font-bold tracking-tight text-foreground">¡Qué bueno verte!</h1>
+        <p class="text-muted-foreground font-medium">Ingresa a tu cuenta para continuar.</p>
+    </div>
+
+    <form asp-controller="Auth" asp-action="Login" method="post" class="flex flex-col gap-5 mt-2">
+        
+        <div asp-validation-summary="ModelOnly" class="text-destructive text-sm font-semibold"></div>
+
+        <div class="grid gap-2">
+            <label asp-for="Username" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Nombre de usuario</label>
+            <div class="relative">
+                <i data-lucide="user" class="absolute left-3 top-2.5 size-5 text-muted-foreground"></i>
+                <input asp-for="Username" placeholder="tunombredeusuario" class="pl-10 h-11 bg-muted/40 border-transparent focus-visible:bg-transparent flex w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+            </div>
+            <span asp-validation-for="Username" class="text-destructive text-sm"></span>
+        </div>
+        
+        <div class="grid gap-2">
+            <div class="flex items-center justify-between">
+                <label asp-for="Password" class="text-foreground text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Contraseña</label>
+                <a href="#" class="text-sm font-semibold text-primary hover:underline">
+                    ¿Olvidaste tu contraseña?
+                </a>
+            </div>
+            <div class="relative">
+                <i data-lucide="lock" class="absolute left-3 top-2.5 size-5 text-muted-foreground"></i>
+                <input asp-for="Password" type="password" placeholder="Tu contraseña" class="pl-10 pr-10 h-11 bg-muted/40 border-transparent focus-visible:bg-transparent flex w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+                <button type="button" class="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground">
+                    <i data-lucide="eye" class="size-5"></i>
+                </button>
+            </div>
+            <span asp-validation-for="Password" class="text-destructive text-sm"></span>
+        </div>
+
+        <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-full h-11 mt-2 text-base font-medium">
+            Iniciar sesión
+            <i data-lucide="arrow-right" class="ml-2 size-4"></i>
+        </button>
+    </form>
+
+    <p class="text-center text-sm text-muted-foreground mt-4">
+        ¿Aún no tienes cuenta? 
+        <a href="/Auth/Register" class="font-bold text-primary hover:underline">
+            Crear cuenta
+        </a>
+    </p>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

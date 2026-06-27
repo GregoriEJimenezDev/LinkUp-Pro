@@ -1,133 +1,187 @@
-@model BattleshipIndexViewModel
+@using LinkUpPro.Core.Domain.Enum
+@using LinkUpPro.Core.Application.DTOs.Battleship
+@using System.Security.Claims
+@model LinkUpPro.Core.Application.ViewModel.Game.BattleshipIndexViewModel
+
 @{
     ViewData["Title"] = "Battleship";
-    var stats = ViewBag.Stats as GameStatsDto;
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="display-6">Battleship</h1>
-        <a asp-action="Create" class="btn btn-primary btn-lg">+ New Game</a>
+<div class="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-1">
+            <h1 class="text-2xl font-bold tracking-tight">Battleship</h1>
+            <p class="text-sm text-muted-foreground">Destruye la flota enemiga antes de que hundan la tuya.</p>
+        </div>
+        <a href="/Battleship/Create" class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-full shadow-sm gap-2">
+            <i data-lucide="swords" class="size-4"></i>
+            Nueva partida
+        </a>
     </div>
 
-    @if (TempData["Error"] is string errorMsg)
+    @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @errorMsg
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            @TempData["Error"]
         </div>
     }
 
-    @if (stats != null)
-    {
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card text-center border-primary">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Games</h5>
-                        <p class="display-6">@stats.TotalGames</p>
-                    </div>
-                </div>
+    <!-- Estadísticas -->
+    <div class="grid grid-cols-3 gap-4">
+        <div class="rounded-2xl border bg-card p-4 shadow-sm flex flex-col gap-2">
+            <div class="flex items-center gap-2 text-muted-foreground">
+                <i data-lucide="gamepad-2" class="size-4"></i>
+                <span class="text-xs font-medium">Partidas</span>
             </div>
-            <div class="col-md-3">
-                <div class="card text-center border-success">
-                    <div class="card-body">
-                        <h5 class="card-title">Won</h5>
-                        <p class="display-6 text-success">@stats.WonGames</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center border-danger">
-                    <div class="card-body">
-                        <h5 class="card-title">Lost</h5>
-                        <p class="display-6 text-danger">@stats.LostGames</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center border-info">
-                    <div class="card-body">
-                        <h5 class="card-title">Accuracy</h5>
-                        <p class="display-6 text-info">@stats.Accuracy%</p>
-                    </div>
-                </div>
-            </div>
+            <p class="text-2xl font-bold">@Model.TotalGames</p>
         </div>
-    }
+        <div class="rounded-2xl border bg-card p-4 shadow-sm flex flex-col gap-2">
+            <div class="flex items-center gap-2 text-success">
+                <i data-lucide="trophy" class="size-4"></i>
+                <span class="text-xs font-medium">Victorias</span>
+            </div>
+            <p class="text-2xl font-bold">@Model.WonGames</p>
+        </div>
+        <div class="rounded-2xl border bg-card p-4 shadow-sm flex flex-col gap-2">
+            <div class="flex items-center gap-2 text-destructive">
+                <i data-lucide="skull" class="size-4"></i>
+                <span class="text-xs font-medium">Derrotas</span>
+            </div>
+            <p class="text-2xl font-bold">@Model.LostGames</p>
+        </div>
+    </div>
 
-    <ul class="nav nav-tabs mb-3" id="battleshipTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="active-tab" data-bs-toggle="tab" data-bs-target="#active" type="button" role="tab">Active (@Model.ActiveGames.Count)</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="finished-tab" data-bs-toggle="tab" data-bs-target="#finished" type="button" role="tab">Finished (@Model.FinishedGames.Count)</button>
-        </li>
-    </ul>
-
-    <div class="tab-content">
-        <div class="tab-pane fade show active" id="active" role="tabpanel">
-            @if (!Model.ActiveGames.Any())
-            {
-                <div class="text-center py-5">
-                    <p class="text-muted fs-5">No active games. <a asp-action="Create">Start a new game!</a></p>
+    <div class="grid gap-6 md:grid-cols-2">
+        <!-- Partidas en curso -->
+        <div class="flex flex-col gap-4">
+            <div class="flex items-center gap-2">
+                <div class="flex size-6 items-center justify-center rounded-full bg-primary/10">
+                    <div class="size-2 rounded-full bg-primary animate-pulse"></div>
                 </div>
-            }
-            else
-            {
-                <div class="row">
-                    @foreach (var game in Model.ActiveGames)
+                <h2 class="text-lg font-semibold">En curso</h2>
+                <span class="ml-auto rounded-full bg-secondary px-2 py-0.5 text-xs font-medium">
+                    @Model.ActiveGames.Count
+                </span>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                @if (Model.ActiveGames.Any())
+                {
+                    foreach (var game in Model.ActiveGames)
                     {
-                        <div class="col-md-6 mb-3">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">@game.Player1Username vs @game.Player2Username</h5>
-                                    <p class="card-text">
-                                        <span class="badge bg-warning">@game.Status</span>
-                                        <span class="ms-2">@game.HoursElapsed hrs</span>
-                                    </p>
-                                    <a asp-action="SelectShip" asp-route-gameId="@game.Id" class="btn btn-outline-primary btn-sm">Play</a>
+                        var opponentUsername = game.Player1Id == currentUserId ? game.Player2Username : game.Player1Username;
+                        var isMyTurn = game.CurrentTurnPlayerId == currentUserId;
+                        
+                        <div class="group flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
+                            <div class="flex items-center gap-3">
+                                <div class="relative flex size-10 shrink-0 overflow-hidden rounded-full border border-border">
+                                    <img class="aspect-square h-full w-full bg-secondary object-cover" src="/placeholder.svg" alt="@opponentUsername" />
                                 </div>
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-semibold">vs @opponentUsername</span>
+                                    <span class="text-xs text-muted-foreground flex items-center gap-1">
+                                        @if (game.Status == GameStatus.PlacingShips)
+                                        {
+                                            <i data-lucide="anchor" class="size-3 text-yellow-500"></i>
+                                            <span>Fase de preparación</span>
+                                        }
+                                        else
+                                        {
+                                            if (isMyTurn)
+                                            {
+                                                <span class="text-primary font-medium">¡Tu turno!</span>
+                                            }
+                                            else
+                                            {
+                                                <span>Esperando al rival</span>
+                                            }
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+
+                            @if (game.Status == GameStatus.PlacingShips)
+                            {
+                                <a href="/Battleship/SelectShip?gameId=@game.Id" class="rounded-full bg-secondary px-3 py-1.5 text-xs font-medium hover:bg-secondary/80 transition-colors">
+                                    Preparar
+                                </a>
+                            }
+                            else
+                            {
+                                <a href="/Battleship/AttackBoard?gameId=@game.Id" class="rounded-full @(isMyTurn ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-secondary hover:bg-secondary/80") px-3 py-1.5 text-xs font-medium transition-colors">
+                                    @(isMyTurn ? "Atacar" : "Ver tablero")
+                                </a>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+                        <i data-lucide="ship" class="mb-2 size-6 opacity-20"></i>
+                        No tienes partidas en curso.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Historial de partidas -->
+        <div class="flex flex-col gap-4">
+            <div class="flex items-center gap-2">
+                <i data-lucide="history" class="size-5 text-muted-foreground"></i>
+                <h2 class="text-lg font-semibold">Historial</h2>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                @if (Model.FinishedGames.Any())
+                {
+                    foreach (var game in Model.FinishedGames.Take(5))
+                    {
+                        var opponentUsername = game.Player1Id == currentUserId ? game.Player2Username : game.Player1Username;
+                        var isWinner = game.WinnerId == currentUserId;
+                        var isAbandoned = game.Status == GameStatus.Abandoned;
+                        
+                        <div class="flex items-center justify-between rounded-xl border bg-card/50 p-3 shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="relative flex size-8 shrink-0 overflow-hidden rounded-full border border-border">
+                                    <img class="aspect-square h-full w-full bg-secondary object-cover opacity-80" src="/placeholder.svg" alt="@opponentUsername" />
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-medium">vs @opponentUsername</span>
+                                    <span class="text-[10px] text-muted-foreground">@game.FinishedAt?.ToString("dd MMM yyyy")</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                @if (isAbandoned)
+                                {
+                                    <span class="rounded-md bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">Abandonada</span>
+                                }
+                                else if (isWinner)
+                                {
+                                    <span class="rounded-md bg-success/15 px-2 py-0.5 text-[10px] font-medium text-success">Victoria</span>
+                                }
+                                else
+                                {
+                                    <span class="rounded-md bg-destructive/15 px-2 py-0.5 text-[10px] font-medium text-destructive">Derrota</span>
+                                }
+                                
+                                <a href="/Battleship/Result?gameId=@game.Id" class="rounded-full p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
+                                    <i data-lucide="chevron-right" class="size-4"></i>
+                                </a>
                             </div>
                         </div>
                     }
-                </div>
-            }
-        </div>
-
-        <div class="tab-pane fade" id="finished" role="tabpanel">
-            @if (!Model.FinishedGames.Any())
-            {
-                <div class="text-center py-5">
-                    <p class="text-muted fs-5">No finished games yet.</p>
-                </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Players</th>
-                                <th>Winner</th>
-                                <th>Duration</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var game in Model.FinishedGames)
-                            {
-                                <tr>
-                                    <td>@game.Player1Username vs @game.Player2Username</td>
-                                    <td><span class="badge bg-success">@game.WinnerUsername</span></td>
-                                    <td>@game.HoursElapsed hrs</td>
-                                    <td><a asp-action="Result" asp-route-gameId="@game.Id" class="btn btn-outline-info btn-sm">View</a></td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
+                }
+                else
+                {
+                    <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+                        <i data-lucide="inbox" class="mb-2 size-6 opacity-20"></i>
+                        Aún no has terminado ninguna partida.
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </div>

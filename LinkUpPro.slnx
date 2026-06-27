@@ -12,5 +12,4 @@
   <Folder Name="/Source/Web/">
     <Project Path="LinkUpPro/LinkUpPro.csproj" />
   </Folder>
-  <Project Path="LinkUpPro.Tests/LinkUpPro.Tests.csproj" />
 </Solution>

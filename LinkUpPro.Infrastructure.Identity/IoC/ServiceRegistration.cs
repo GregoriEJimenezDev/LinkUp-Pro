@@ -24,8 +24,8 @@ namespace LinkUpPro.Infrastructure.Identity.IoC
             })
             .AddCookie(IdentityConstants.ApplicationScheme, options =>
             {
-                options.LoginPath = "/Account/Login";
-                options.AccessDeniedPath = "/Account/AccessDenied";
+                options.LoginPath = "/Auth/Index";
+                options.AccessDeniedPath = "/Auth/AccessDenied";
                 options.SlidingExpiration = true;
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
                 options.Events.OnSigningIn = context =>

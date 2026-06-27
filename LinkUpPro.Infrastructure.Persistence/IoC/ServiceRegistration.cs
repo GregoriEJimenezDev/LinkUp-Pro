@@ -58,6 +58,7 @@ namespace LinkUpPro.Infrastructure.Persistence.IoC
             services.AddScoped<IBattleshipGameRepository, BattleshipGameRepository>();
             services.AddScoped<IShipRepository, ShipRepository>();
             services.AddScoped<IAttackRepository, AttackRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IUnitOfWork, EFUnitOfWork>();
             services.AddScoped<IShipPlacementDomainService, ShipPlacementDomainService>();
             services.AddScoped<IAttackDomainService, AttackDomainService>();

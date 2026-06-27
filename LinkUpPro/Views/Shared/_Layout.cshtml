@@ -1,55 +1,118 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es" class="bg-background">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - LinkUpPro</title>
-    <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/battleship.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/LinkUpPro.styles.css" asp-append-version="true" />
+    
+    <link rel="stylesheet" href="~/css/app.min.css" asp-append-version="true" />
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Theme initialization -->
+    <script>
+        // Check for saved theme preference or system preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">LinkUpPro</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+<body class="font-sans antialiased text-foreground">
+    
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        <div class="mx-auto flex min-h-screen w-full max-w-[1440px]">
+            <!-- App Sidebar -->
+            <partial name="_AppSidebar" />
+            
+            <div class="flex min-w-0 flex-1 flex-col">
+                <!-- Mobile Header -->
+                <partial name="_MobileHeader" />
+                
+                <main class="mx-auto w-full max-w-[760px] flex-1 px-3 pb-24 pt-4 sm:px-4 md:pb-10 lg:px-5">
+                    @RenderBody()
+                </main>
+            </div>
+            
+            <!-- Right Sidebar -->
+            <partial name="_RightSidebar" />
+            
+            <!-- Mobile Nav -->
+            <partial name="_MobileNav" />
+        </div>
+    }
+    else
+    {
+        <!-- Non-authenticated layout (Login, Register) -->
+        <div class="relative min-h-screen grid lg:grid-cols-2">
+            <!-- Theme Toggle at top right -->
+            <div class="absolute right-4 top-4 z-50">
+                <button type="button" onclick="toggleTheme()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 w-9">
+                    <i data-lucide="sun" class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"></i>
+                    <i data-lucide="moon" class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"></i>
+                    <span class="sr-only">Toggle theme</span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Battleship" asp-action="Index">Battleship</a>
-                        </li>
-                    </ul>
+            </div>
+
+            <!-- Left Column - Visual/Brand -->
+            <div class="hidden lg:flex flex-col justify-center relative overflow-hidden bg-zinc-900">
+                <!-- Background Image with Overlay -->
+                <div 
+                  class="absolute inset-0 z-0 bg-cover bg-center" 
+                  style="background-image: url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2938&auto=format&fit=crop')">
+                </div>
+                <div class="absolute inset-0 z-10 bg-gradient-to-br from-primary/90 via-primary/80 to-purple-900/90 mix-blend-multiply"></div>
+                
+                <!-- Content -->
+                <div class="relative z-20 flex flex-col justify-center h-full px-12 xl:px-20 text-white">
+                    <div class="mb-8 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium backdrop-blur-md w-fit">
+                        <i data-lucide="sparkles" class="size-4 text-yellow-300"></i>
+                        <span>Únete a la fiesta</span>
+                    </div>
+
+                    <h1 class="text-5xl xl:text-6xl font-bold tracking-tight text-balance leading-tight">
+                        Crea momentos <br /> inolvidables
+                    </h1>
+                    
+                    <p class="mt-6 max-w-md text-lg leading-relaxed text-white/80 font-medium">
+                        LinkUp es el lugar donde las conexiones digitales se transforman en aventuras reales. Conecta, juega y vive.
+                    </p>
+                    
+                    <!-- Glass Cards -->
+                    <div class="mt-12 grid grid-cols-2 gap-4 max-w-md">
+                        <div class="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-md transition-colors hover:bg-white/20">
+                            <i data-lucide="users" class="size-6 text-white"></i>
+                            <strong class="font-semibold tracking-wide">Comunidad Viva</strong>
+                        </div>
+                        <div class="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-md transition-colors hover:bg-white/20">
+                            <i data-lucide="gamepad-2" class="size-6 text-yellow-300"></i>
+                            <strong class="font-semibold tracking-wide">Desafíos Épicos</strong>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - LinkUpPro - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <!-- Right Column - Forms -->
+            <main class="flex items-center justify-center p-6 sm:p-12 min-h-screen bg-background">
+                <div class="w-full max-w-[400px]">
+                    @RenderBody()
+                </div>
+            </main>
         </div>
-    </footer>
+    }
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+      lucide.createIcons();
+    </script>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

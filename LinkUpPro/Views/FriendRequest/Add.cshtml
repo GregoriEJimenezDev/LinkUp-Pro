@@ -1,0 +1,96 @@
+@model LinkUpPro.Core.Application.ViewModel.Friend.SendFriendRequestViewModel
+
+@{
+    ViewData["Title"] = "Buscar Amigos";
+}
+
+<div class="flex flex-col gap-6 w-full max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <a href="/FriendRequest/Index" class="inline-flex items-center justify-center rounded-full bg-secondary h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors">
+                <i data-lucide="arrow-left" class="size-5"></i>
+            </a>
+            <div class="flex flex-col">
+                <h1 class="text-2xl font-bold tracking-tight text-foreground">Buscar Amigos</h1>
+                <p class="text-sm text-muted-foreground">Encuentra a personas que conoces</p>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            @TempData["Error"]
+        </div>
+    }
+    
+    @if (TempData["Success"] != null)
+    {
+        <div class="rounded-xl border border-success/50 bg-success/10 px-4 py-3 text-sm text-success">
+            @TempData["Success"]
+        </div>
+    }
+
+    <!-- Barra de Búsqueda -->
+    <div class="rounded-2xl border bg-card p-6 shadow-sm">
+        <form asp-action="Add" method="get" class="flex gap-2">
+            <div class="relative flex-1">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
+                    <i data-lucide="search" class="size-4"></i>
+                </div>
+                <input type="text" asp-for="SearchUsername" name="search" class="flex h-11 w-full rounded-full border border-input bg-transparent px-3 py-1 pl-10 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" placeholder="Buscar por nombre de usuario..." />
+            </div>
+            <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap rounded-full bg-primary px-6 h-11 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors">
+                Buscar
+            </button>
+        </form>
+    </div>
+
+    <!-- Resultados -->
+    <div class="flex flex-col gap-4">
+        @if (Model.AvailableUsers != null && Model.AvailableUsers.Any())
+        {
+            <div class="text-sm text-muted-foreground font-medium">Resultados de la búsqueda (@Model.AvailableUsers.Count)</div>
+            
+            <div class="flex flex-col gap-3">
+                @foreach (var user in Model.AvailableUsers)
+                {
+                    <div class="flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm transition-all hover:border-primary/50">
+                        <div class="flex items-center gap-3">
+                            <div class="relative flex size-12 shrink-0 overflow-hidden rounded-full border border-border">
+                                <img class="aspect-square h-full w-full object-cover" src="@user.ProfilePicture" alt="@user.Username" onerror="this.src='/placeholder.svg'" />
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-sm font-semibold text-foreground">@@@user.Username</span>
+                                @if (user.MutualFriendsCount > 0)
+                                {
+                                    <span class="text-xs text-muted-foreground">@user.MutualFriendsCount amigos en común</span>
+                                }
+                                else
+                                {
+                                    <span class="text-xs text-muted-foreground">Usuario en LinkUp</span>
+                                }
+                            </div>
+                        </div>
+                        
+                        <form asp-action="Send" method="post">
+                            <input type="hidden" name="receiverId" value="@user.UserId" />
+                            <button type="submit" class="inline-flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground h-9 px-4 text-xs font-medium transition-colors gap-2">
+                                <i data-lucide="user-plus" class="size-4"></i>
+                                Agregar
+                            </button>
+                        </form>
+                    </div>
+                }
+            </div>
+        }
+        else if (!string.IsNullOrEmpty(Model.SearchUsername))
+        {
+            <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed bg-card p-12 text-center text-muted-foreground">
+                <i data-lucide="search-x" class="mb-4 size-10 opacity-20"></i>
+                <p class="font-medium text-foreground">No se encontraron usuarios</p>
+                <p class="text-sm mt-1">No hay nadie que coincida con "@Model.SearchUsername" o ya le has enviado una solicitud.</p>
+            </div>
+        }
+    </div>
+</div>

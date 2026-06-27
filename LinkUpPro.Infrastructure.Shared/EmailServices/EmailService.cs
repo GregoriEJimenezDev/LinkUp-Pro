@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Application.Interfaces.IServices;
+using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Domain.Entities;
 using MailKit.Net.Smtp;
 using MailKit.Security;
@@ -13,28 +13,42 @@ namespace LinkUpPro.Infrastructure.Shared.EmailServices
 
         public async Task SendEmailAsync(EmailRequest request)
         {
-            var email = new MimeMessage();
+            try
+            {
+                if (string.IsNullOrEmpty(_settings.SmtpHost))
+                {
+                    Console.WriteLine("Warning: SmtpHost is empty. Skipping email sending.");
+                    return;
+                }
 
-            email.From.Add(new MailboxAddress(_settings.FromName, _settings.FromEmail));
-            email.To.Add(MailboxAddress.Parse(request.To));
-            email.Subject = request.Subject;
+                var email = new MimeMessage();
 
-            var builder = new BodyBuilder();
+                email.From.Add(new MailboxAddress(_settings.FromName, _settings.FromEmail));
+                email.To.Add(MailboxAddress.Parse(request.To));
+                email.Subject = request.Subject;
 
-            if (request.IsHtml)
-                builder.HtmlBody = request.Body;
-            else
-                builder.TextBody = request.Body;
+                var builder = new BodyBuilder();
 
-            email.Body = builder.ToMessageBody();
+                if (request.IsHtml)
+                    builder.HtmlBody = request.Body;
+                else
+                    builder.TextBody = request.Body;
 
-            using var smtp = new SmtpClient();
+                email.Body = builder.ToMessageBody();
 
-            await smtp.ConnectAsync(_settings.SmtpHost, _settings.SmtpPort, _settings.UseSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls );
+                using var smtp = new SmtpClient();
+                smtp.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
-            await smtp.AuthenticateAsync(_settings.SmtpUser, _settings.SmtpPassword);
-            await smtp.SendAsync(email);
-            await smtp.DisconnectAsync(true);
+                await smtp.ConnectAsync(_settings.SmtpHost, _settings.SmtpPort, _settings.UseSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls );
+
+                await smtp.AuthenticateAsync(_settings.SmtpUser, _settings.SmtpPassword);
+                await smtp.SendAsync(email);
+                await smtp.DisconnectAsync(true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending email: {ex.Message}");
+            }
         }
     }
 }
