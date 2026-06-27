@@ -1,9 +1,14 @@
 @using LinkUpPro.Core.Application.ViewModel.Post
 @using LinkUpPro.Core.Domain.Enum
+@using Microsoft.AspNetCore.Identity
+@using LinkUpPro.Infrastructure.Identity.Entities
+@inject UserManager<ApplicationUser> UserManager
 @model HomeViewModel
 
 @{
     ViewData["Title"] = "Inicio";
+    var currentUser = await UserManager.GetUserAsync(User);
+    var profilePic = currentUser?.ProfilePicturePath ?? "/placeholder.svg";
 }
 
 <div class="flex flex-col gap-4">
@@ -25,7 +30,7 @@
             <input type="hidden" name="MediaType" value="0" />
             <div class="flex items-start gap-3">
                 <div class="relative flex size-11 shrink-0 overflow-hidden rounded-full">
-                    <img class="aspect-square h-full w-full" src="@User.Identity?.Name" alt="User" onerror="this.src='/placeholder.svg'" />
+                    <img class="aspect-square h-full w-full object-cover" src="@profilePic" alt="User" onerror="this.src='/placeholder.svg'" />
                 </div>
                 <textarea name="Content" placeholder="¿Qué estás pensando?" class="flex min-h-[60px] w-full rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0" required></textarea>
             </div>

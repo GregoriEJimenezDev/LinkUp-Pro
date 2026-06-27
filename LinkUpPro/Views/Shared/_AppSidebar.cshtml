@@ -1,5 +1,10 @@
+@using Microsoft.AspNetCore.Identity
+@using LinkUpPro.Infrastructure.Identity.Entities
+@inject UserManager<ApplicationUser> UserManager
 @{
     var currentUrl = ViewContext.HttpContext.Request.Path.ToString().ToLower();
+    var currentUser = await UserManager.GetUserAsync(User);
+    var profilePic = currentUser?.ProfilePicturePath ?? "/placeholder.svg";
 }
 <aside class="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-sidebar px-4 py-5 md:flex xl:w-72">
     <a href="/" class="mb-6 flex items-center px-2">
@@ -47,7 +52,7 @@
 
     <div class="mt-4 flex items-center gap-3 rounded-2xl border border-border bg-card p-2.5">
         <div class="relative flex size-10 shrink-0 overflow-hidden rounded-full">
-            <img class="aspect-square h-full w-full object-cover" src="/placeholder.svg" alt="Avatar" />
+            <img class="aspect-square h-full w-full object-cover" src="@profilePic" alt="Avatar" onerror="this.src='/placeholder.svg'" />
         </div>
         <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-semibold">@User.Identity?.Name</p>
