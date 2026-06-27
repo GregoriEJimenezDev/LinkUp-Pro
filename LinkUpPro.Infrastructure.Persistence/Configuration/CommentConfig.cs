@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Domain.Entities;
+using LinkUpPro.Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,6 +11,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Configuration
             #region Comment
             builder.ToTable("Comments");
             builder.HasKey(c => c.Id);
+            builder.HasQueryFilter(c => !c.IsDeleted);
             #endregion
 
             #region properties

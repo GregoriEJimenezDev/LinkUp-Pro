@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using LinkUpPro.Infrastructure.Persistence.Repositories.Generic;
 using LinkUpPro.Infrastructure.Persistence.Context;
 using LinkUpPro.Core.Domain.Entities;
@@ -17,7 +17,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
 
         public async Task<IEnumerable<FriendRequest>> GetSentByUserAsync(string userId) =>
             await _context.FriendRequests
-            .Where(f => f.SenderId == userId)
+            .Where(f => f.SenderId == userId && f.SenderIsVisible)
             .OrderByDescending(f => f.SentAt)
             .AsNoTracking()
             .ToListAsync();

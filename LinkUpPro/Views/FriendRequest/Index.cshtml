@@ -50,18 +50,12 @@
                             </div>
                             
                             <div class="flex items-center gap-2 mt-2">
-                                <form asp-action="Accept" method="post" class="flex-1">
-                                    <input type="hidden" name="id" value="@request.Id" />
-                                    <button type="submit" class="w-full inline-flex items-center justify-center rounded-md bg-success/10 text-success hover:bg-success hover:text-success-foreground h-9 text-xs font-medium transition-colors">
-                                        Aceptar
-                                    </button>
-                                </form>
-                                <form asp-action="Reject" method="post" class="flex-1">
-                                    <input type="hidden" name="id" value="@request.Id" />
-                                    <button type="submit" class="w-full inline-flex items-center justify-center rounded-md bg-secondary text-secondary-foreground hover:bg-destructive hover:text-destructive-foreground h-9 text-xs font-medium transition-colors">
-                                        Rechazar
-                                    </button>
-                                </form>
+                                <a href="/FriendRequest/ConfirmAccept/@request.Id" class="flex-1 w-full inline-flex items-center justify-center rounded-md bg-success/10 text-success hover:bg-success hover:text-success-foreground h-9 text-xs font-medium transition-colors">
+                                    Aceptar
+                                </a>
+                                <a href="/FriendRequest/ConfirmReject/@request.Id" class="flex-1 w-full inline-flex items-center justify-center rounded-md bg-secondary text-secondary-foreground hover:bg-destructive hover:text-destructive-foreground h-9 text-xs font-medium transition-colors">
+                                    Rechazar
+                                </a>
                             </div>
                         </div>
                     }
@@ -96,16 +90,35 @@
                                 </div>
                                 <div class="flex flex-col">
                                     <span class="text-sm font-semibold">@request.ReceiverUsername</span>
-                                    <span class="text-xs text-muted-foreground">Esperando respuesta...</span>
+                                    <span class="text-xs text-muted-foreground">
+                                        @if (request.Status == LinkUpPro.Core.Domain.Enum.FriendRequestStatus.Pending)
+                                        {
+                                            <text>En espera de respuesta...</text>
+                                        }
+                                        else if (request.Status == LinkUpPro.Core.Domain.Enum.FriendRequestStatus.Accepted)
+                                        {
+                                            <text>Aceptada</text>
+                                        }
+                                        else if (request.Status == LinkUpPro.Core.Domain.Enum.FriendRequestStatus.Rejected)
+                                        {
+                                            <text>Rechazada</text>
+                                        }
+                                    </span>
                                 </div>
                             </div>
                             
-                            <form asp-action="Delete" method="post">
-                                <input type="hidden" name="id" value="@request.Id" />
-                                <button type="submit" class="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors" title="Cancelar solicitud">
+                            @if (request.Status == LinkUpPro.Core.Domain.Enum.FriendRequestStatus.Pending)
+                            {
+                                <a href="/FriendRequest/ConfirmCancel/@request.Id" class="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors" title="Cancelar solicitud">
                                     <i data-lucide="x" class="size-4"></i>
-                                </button>
-                            </form>
+                                </a>
+                            }
+                            else
+                            {
+                                <a href="/FriendRequest/ConfirmHide/@request.Id" class="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary/80 hover:text-foreground transition-colors" title="Eliminar del historial">
+                                    <i data-lucide="eye-slash" class="size-4"></i>
+                                </a>
+                            }
                         </div>
                     }
                 }

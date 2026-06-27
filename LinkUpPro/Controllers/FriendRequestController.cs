@@ -51,6 +51,9 @@ namespace LinkUpPro.Controllers
             return RedirectToAction(nameof(Add));
         }
 
+        [HttpGet]
+        public IActionResult ConfirmAccept(int id) => View(id);
+
         [HttpPost]
         public async Task<IActionResult> Accept(int id)
         {
@@ -64,6 +67,9 @@ namespace LinkUpPro.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpGet]
+        public IActionResult ConfirmReject(int id) => View(id);
 
         [HttpPost]
         public async Task<IActionResult> Reject(int id)
@@ -79,11 +85,31 @@ namespace LinkUpPro.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpGet]
+        public IActionResult ConfirmCancel(int id) => View(id);
+
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
             var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
             var result = await _friendRequestService.DeleteAsync(id, userId);
+
+            if (!result.Succeeded)
+            {
+                TempData["Error"] = result.ErrorMessage;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public IActionResult ConfirmHide(int id) => View(id);
+
+        [HttpPost]
+        public async Task<IActionResult> RemoveFromHistory(int id)
+        {
+            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var result = await _friendRequestService.RemoveFromHistoryAsync(id, userId);
 
             if (!result.Succeeded)
             {

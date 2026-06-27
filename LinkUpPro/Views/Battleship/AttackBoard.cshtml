@@ -1,4 +1,5 @@
 @using LinkUpPro.Core.Application.DTOs.Battleship
+@using LinkUpPro.Core.Domain.Enum
 @model LinkUpPro.Core.Application.ViewModel.Game.AttackBoardViewModel
 
 @{
@@ -25,10 +26,14 @@
 
     var myShipsCells = new HashSet<string>();
     var sunkCells = new HashSet<string>();
+    var mySunkenShipsList = new List<ShipType>();
+    
     if (Model.MyShips != null)
     {
         foreach (var ship in Model.MyShips)
         {
+            if (ship.IsSunk) mySunkenShipsList.Add(ship.ShipType);
+            
             foreach (var cell in ship.Cells)
             {
                 var key = $"{cell.Row},{cell.Column}";
@@ -41,29 +46,29 @@
         }
     }
 
-    string[] cols = { "A", "B", "C", "D", "E", "F", "G", "H" };
+    string[] cols = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L" };
     
     // Obtener el último movimiento para el log
-    string lastMove = "Esperando el primer ataque...";
-    if (Model.MyAttacks != null && Model.MyAttacks.Any() && Model.OpponentAttacks != null)
+    var myLast = Model.MyAttacks?.LastOrDefault();
+    var oppLast = Model.OpponentAttacks?.LastOrDefault();
+    
+    string GetShipName(ShipType type)
     {
-        var allAttacks = Model.MyAttacks.Select(a => new { ByMe = true, Attack = a })
-            .Concat(Model.OpponentAttacks.Select(a => new { ByMe = false, Attack = a }))
-            .OrderByDescending(x => x.Attack.Id) // Id assuming it's sequential or has a Date (we don't have Date in DTO but we can use list order as latest)
-            .FirstOrDefault();
-            
-        // actually in lists they are usually returned ordered or we can just pick the last in the array.
-        // wait, we don't have Attack.Id in DTO? Let's just use the last element.
-        var myLast = Model.MyAttacks.LastOrDefault();
-        var oppLast = Model.OpponentAttacks.LastOrDefault();
-        // Since we can't reliably know who attacked last without timestamps, 
-        // we can just say "Último ataque tuyo: X" y "Último ataque rival: Y"
+        return type switch
+        {
+            ShipType.size2 => "Submarino",
+            ShipType.size3A => "Destructor",
+            ShipType.size3B => "Crucero",
+            ShipType.size4 => "Acorazado",
+            ShipType.size5 => "Portaaviones",
+            _ => "Barco"
+        };
     }
 }
 
-<div class="flex flex-col gap-6 w-full max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+<div class="flex flex-col gap-6 w-full max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
     <!-- Encabezado -->
-    <div class="flex items-center justify-between rounded-xl bg-card border shadow-sm p-6">
+    <div class="flex flex-col md:flex-row items-center justify-between rounded-xl bg-card border shadow-sm p-6 gap-4">
         <div class="flex items-center gap-4">
             <a href="/Battleship/Index" class="inline-flex items-center justify-center rounded-full bg-secondary h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors">
                 <i data-lucide="arrow-left" class="size-5"></i>
@@ -73,39 +78,79 @@
                     <i data-lucide="crosshair" class="size-6 text-primary"></i>
                     Batalla contra @Model.OpponentUsername
                 </h1>
-                <div class="flex items-center gap-2 mt-1">
-                    <span class="text-sm font-medium text-muted-foreground">Estado:</span>
-                    @if (Model.IsMyTurn)
+                
+                <div class="flex items-center gap-2 mt-2">
+                    @if (Model.IsFinished)
                     {
-                        <span class="rounded-md bg-primary/20 px-2 py-0.5 text-xs font-semibold text-primary animate-pulse border border-primary/30">
-                            ¡Tu turno!
+                        <span class="rounded-md bg-destructive/20 px-3 py-1 text-sm font-bold text-destructive border border-destructive/30 flex items-center gap-2">
+                            <i data-lucide="flag" class="size-4"></i> PARTIDA FINALIZADA
+                        </span>
+                    }
+                    else if (Model.IsMyTurn)
+                    {
+                        <span class="rounded-md bg-green-500/20 px-3 py-1 text-sm font-bold text-green-500 animate-pulse border border-green-500/30 flex items-center gap-2">
+                            <div class="size-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div>
+                            TU TURNO
                         </span>
                     }
                     else
                     {
-                        <span class="rounded-md bg-secondary px-2 py-0.5 text-xs font-semibold text-muted-foreground">
-                            Esperando maniobra enemiga
+                        <span class="rounded-md bg-yellow-500/20 px-3 py-1 text-sm font-bold text-yellow-500 border border-yellow-500/30 flex items-center gap-2">
+                            <div class="size-3 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.8)] animate-pulse"></div>
+                            ESPERANDO OPONENTE
                         </span>
                     }
                 </div>
             </div>
         </div>
         
-        <div class="flex items-center gap-3">
-            @if (!Model.IsMyTurn)
+        <div class="flex flex-wrap items-center gap-3">
+            @if (!Model.IsFinished)
             {
-                <button type="button" onclick="window.location.reload()" class="inline-flex h-10 items-center justify-center rounded-md bg-secondary px-4 text-sm font-medium hover:bg-secondary/80 transition-colors gap-2">
-                    <i data-lucide="refresh-cw" class="size-4"></i>
-                    Actualizar estado
-                </button>
+                @if (!Model.IsMyTurn)
+                {
+                    <button type="button" onclick="window.location.reload()" class="inline-flex h-10 items-center justify-center rounded-md bg-secondary px-4 text-sm font-medium hover:bg-secondary/80 transition-colors gap-2">
+                        <i data-lucide="refresh-cw" class="size-4"></i>
+                        Actualizar estado
+                    </button>
+                }
+                <form asp-action="Surrender" method="post" class="m-0">
+                    <input type="hidden" name="gameId" value="@Model.GameId" />
+                    <button type="submit" class="inline-flex h-10 items-center justify-center rounded-md border border-destructive bg-transparent px-4 text-sm font-medium text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors gap-2" onclick="return confirm('¿Estás seguro de que quieres rendirte?');">
+                        <i data-lucide="flag-triangle-right" class="size-4"></i>
+                        Rendirse
+                    </button>
+                </form>
             }
-            <form asp-action="Surrender" method="post" class="m-0">
-                <input type="hidden" name="gameId" value="@Model.GameId" />
-                <button type="submit" class="inline-flex h-10 items-center justify-center rounded-md border border-destructive bg-transparent px-4 text-sm font-medium text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors gap-2" onclick="return confirm('¿Estás seguro de que quieres rendirte?');">
-                    <i data-lucide="flag-triangle-right" class="size-4"></i>
-                    Rendirse
-                </button>
-            </form>
+            else
+            {
+                <a href="/Battleship/Result?gameId=@Model.GameId" class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors gap-2">
+                    <i data-lucide="award" class="size-4"></i>
+                    Ver Resultados
+                </a>
+            }
+        </div>
+    </div>
+    
+    <!-- Info panel -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-card border rounded-lg p-3 flex flex-col justify-center items-center shadow-sm">
+            <span class="text-xs text-muted-foreground uppercase font-semibold">Tu Turno</span>
+            <span class="font-bold text-lg @(Model.IsMyTurn ? "text-green-500" : "text-muted-foreground")">@(Model.IsMyTurn ? "Sí" : "No")</span>
+        </div>
+        <div class="bg-card border rounded-lg p-3 flex flex-col justify-center items-center shadow-sm">
+            <span class="text-xs text-muted-foreground uppercase font-semibold">Últ. ataque enemigo</span>
+            <span class="font-bold text-lg text-foreground">
+                @(oppLast != null ? $"{cols[oppLast.Column]}{oppLast.Row + 1}" : "Ninguno")
+            </span>
+        </div>
+        <div class="bg-card border rounded-lg p-3 flex flex-col justify-center items-center shadow-sm">
+            <span class="text-xs text-muted-foreground uppercase font-semibold">Tus ataques</span>
+            <span class="font-bold text-lg text-foreground">@(Model.MyAttacks?.Count ?? 0)</span>
+        </div>
+        <div class="bg-card border rounded-lg p-3 flex flex-col justify-center items-center shadow-sm">
+            <span class="text-xs text-muted-foreground uppercase font-semibold">Barcos restantes</span>
+            <span class="font-bold text-lg text-primary">@(5 - mySunkenShipsList.Count)/5</span>
         </div>
     </div>
 
@@ -116,7 +161,7 @@
         </div>
     }
 
-    <!-- Contenedor Principal (2 Tableros) -->
+    <!-- Contenedor Principal (2 Tableros + Barcos Hundidos) -->
     <div class="grid gap-8 lg:grid-cols-2">
         
         <!-- TU TABLERO -->
@@ -125,24 +170,24 @@
                 <i data-lucide="shield-half" class="size-4"></i> Tu Tablero
             </h2>
             
-            <div class="mx-auto grid grid-cols-[auto_1fr] gap-2">
+            <div class="mx-auto grid gap-2" style="grid-template-columns: auto 1fr;">
                 <div class="flex flex-col gap-1 pr-2 pt-6">
-                    @for (int r = 1; r <= 8; r++)
+                    @for (int r = 1; r <= 12; r++)
                     {
-                        <div class="flex size-8 sm:size-10 items-center justify-center text-xs font-semibold text-muted-foreground">@r</div>
+                        <div class="flex size-6 sm:size-8 items-center justify-center text-xs font-semibold text-muted-foreground">@r</div>
                     }
                 </div>
                 <div class="flex flex-col gap-1">
-                    <div class="grid grid-cols-8 gap-1">
+                    <div class="grid gap-1" style="grid-template-columns: repeat(12, minmax(0, 1fr));">
                         @foreach (var c in cols)
                         {
-                            <div class="flex h-6 items-center justify-center text-xs font-semibold text-muted-foreground">@c</div>
+                            <div class="flex h-6 items-center justify-center text-[10px] sm:text-xs font-semibold text-muted-foreground">@c</div>
                         }
                     </div>
-                    <div class="grid grid-cols-8 gap-1 bg-border/50 p-1 rounded-lg">
-                        @for (int r = 0; r < 8; r++)
+                    <div class="grid gap-1 bg-border/50 p-1 rounded-lg" style="grid-template-columns: repeat(12, minmax(0, 1fr));">
+                        @for (int r = 0; r < 12; r++)
                         {
-                            for (int c = 0; c < 8; c++)
+                            for (int c = 0; c < 12; c++)
                             {
                                 string key = $"{r},{c}";
                                 bool isMyShip = myShipsCells.Contains(key);
@@ -166,14 +211,14 @@
                                     cellClass = "bg-accent border border-muted-foreground/30"; // Barco intacto
                                 }
 
-                                <div class="size-8 sm:size-10 rounded-sm transition-all flex items-center justify-center text-xs @cellClass">
+                                <div class="size-6 sm:size-8 rounded-sm transition-all flex items-center justify-center text-xs @cellClass">
                                     @if (hasBeenAttacked && isMyShip)
                                     {
-                                        <i data-lucide="flame" class="size-4 @(isSunk ? "text-white" : "text-destructive-foreground")"></i>
+                                        <i data-lucide="flame" class="size-3 sm:size-4 @(isSunk ? "text-white" : "text-destructive-foreground")"></i>
                                     }
                                     else if (hasBeenAttacked && !isMyShip)
                                     {
-                                        <div class="size-1.5 rounded-full bg-primary/50"></div>
+                                        <div class="size-1 sm:size-1.5 rounded-full bg-primary/50"></div>
                                     }
                                 </div>
                             }
@@ -189,7 +234,7 @@
                 <i data-lucide="swords" class="size-4"></i> Tablero Enemigo
             </h2>
             
-            @if (!Model.IsMyTurn)
+            @if (!Model.IsMyTurn && !Model.IsFinished)
             {
                 <div class="absolute inset-0 bg-background/50 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center">
                     <i data-lucide="radar" class="size-10 text-primary animate-spin opacity-60 mb-3"></i>
@@ -197,24 +242,24 @@
                 </div>
             }
 
-            <div class="mx-auto grid grid-cols-[auto_1fr] gap-2">
+            <div class="mx-auto grid gap-2" style="grid-template-columns: auto 1fr;">
                 <div class="flex flex-col gap-1 pr-2 pt-6">
-                    @for (int r = 1; r <= 8; r++)
+                    @for (int r = 1; r <= 12; r++)
                     {
-                        <div class="flex size-8 sm:size-10 items-center justify-center text-xs font-semibold text-muted-foreground">@r</div>
+                        <div class="flex size-6 sm:size-8 items-center justify-center text-xs font-semibold text-muted-foreground">@r</div>
                     }
                 </div>
                 <div class="flex flex-col gap-1">
-                    <div class="grid grid-cols-8 gap-1">
+                    <div class="grid gap-1" style="grid-template-columns: repeat(12, minmax(0, 1fr));">
                         @foreach (var c in cols)
                         {
-                            <div class="flex h-6 items-center justify-center text-xs font-semibold text-muted-foreground">@c</div>
+                            <div class="flex h-6 items-center justify-center text-[10px] sm:text-xs font-semibold text-muted-foreground">@c</div>
                         }
                     </div>
-                    <div class="grid grid-cols-8 gap-1 bg-border/50 p-1 rounded-lg">
-                        @for (int r = 0; r < 8; r++)
+                    <div class="grid gap-1 bg-border/50 p-1 rounded-lg" style="grid-template-columns: repeat(12, minmax(0, 1fr));">
+                        @for (int r = 0; r < 12; r++)
                         {
-                            for (int c = 0; c < 8; c++)
+                            for (int c = 0; c < 12; c++)
                             {
                                 string key = $"{r},{c}";
                                 bool hasAttacked = myAttacks.ContainsKey(key);
@@ -222,14 +267,14 @@
 
                                 if (hasAttacked)
                                 {
-                                    <div class="size-8 sm:size-10 rounded-sm flex items-center justify-center @(isHit ? "bg-destructive border-destructive" : "bg-primary/20 border border-primary/30")">
+                                    <div class="size-6 sm:size-8 rounded-sm flex items-center justify-center @(isHit ? "bg-destructive border-destructive" : "bg-primary/20 border border-primary/30")">
                                         @if (isHit)
                                         {
-                                            <i data-lucide="flame" class="size-4 text-white"></i>
+                                            <i data-lucide="flame" class="size-3 sm:size-4 text-white"></i>
                                         }
                                         else
                                         {
-                                            <div class="size-1.5 rounded-full bg-primary/50"></div>
+                                            <div class="size-1 sm:size-1.5 rounded-full bg-primary/50"></div>
                                         }
                                     </div>
                                 }
@@ -238,7 +283,7 @@
                                     <button type="button" 
                                             onclick="attackCell(@r, @c)"
                                             @(Model.IsMyTurn ? "" : "disabled")
-                                            class="size-8 sm:size-10 rounded-sm transition-all flex items-center justify-center bg-secondary hover:bg-primary/40 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                                            class="size-6 sm:size-8 rounded-sm transition-all flex items-center justify-center bg-secondary hover:bg-primary/40 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                                     </button>
                                 }
                             }
@@ -250,31 +295,81 @@
         
     </div>
 
-    <!-- Leyenda y Registro -->
-    <div class="flex flex-col sm:flex-row gap-6 bg-card rounded-xl border p-4 shadow-sm items-center justify-between">
-        <div class="flex items-center gap-6 text-sm">
-            <span class="font-semibold text-muted-foreground">Leyenda:</span>
-            <div class="flex items-center gap-2">
-                <div class="size-5 rounded-sm bg-accent border border-muted-foreground/30"></div>
-                <span class="text-muted-foreground text-xs">Barco propio</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="size-5 rounded-sm bg-destructive flex items-center justify-center"><i data-lucide="flame" class="size-3 text-white"></i></div>
-                <span class="text-muted-foreground text-xs">Impacto</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="size-5 rounded-sm bg-primary/20 flex items-center justify-center"><div class="size-1 rounded-full bg-primary/50"></div></div>
-                <span class="text-muted-foreground text-xs">Agua</span>
-            </div>
-        </div>
+    <!-- Paneles Inferiores: Leyenda y Barcos hundidos -->
+    <div class="grid gap-6 lg:grid-cols-3">
         
-        <div class="text-sm font-mono text-muted-foreground">
-            @if(Model.MyAttacks != null && Model.MyAttacks.Any())
-            {
-                var last = Model.MyAttacks.Last();
-                <span>Tu último disparo: @cols[last.Column]@(last.Row + 1) (@(last.IsHit ? "Impacto" : "Agua"))</span>
-            }
+        <!-- Leyenda -->
+        <div class="bg-card rounded-xl border p-5 shadow-sm lg:col-span-2">
+            <h3 class="font-semibold text-muted-foreground mb-4">Leyenda del Mapa</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="size-8 rounded-sm bg-accent border border-muted-foreground/30 flex items-center justify-center"><i data-lucide="ship" class="size-4 text-muted-foreground"></i></div>
+                    <span class="text-sm font-medium">Barco propio</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="size-8 rounded-sm bg-destructive flex items-center justify-center"><i data-lucide="target" class="size-4 text-white"></i></div>
+                    <span class="text-sm font-medium">Impacto</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="size-8 rounded-sm bg-primary/20 border border-primary/30 flex items-center justify-center"><div class="size-2 rounded-full bg-primary/50"></div></div>
+                    <span class="text-sm font-medium">Agua</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="size-8 rounded-sm bg-destructive border-destructive flex items-center justify-center opacity-70"><i data-lucide="flame" class="size-4 text-white"></i></div>
+                    <span class="text-sm font-medium">Hundido</span>
+                </div>
+            </div>
+            
+            <div class="mt-4 pt-4 border-t text-sm font-mono text-muted-foreground">
+                @if(Model.MyAttacks != null && Model.MyAttacks.Any())
+                {
+                    var last = Model.MyAttacks.Last();
+                    <span>Tu último disparo: @cols[last.Column]@(last.Row + 1) (@(last.IsHit ? "Impacto" : "Agua"))</span>
+                }
+            </div>
         </div>
+
+        <!-- Barcos hundidos -->
+        <div class="bg-card rounded-xl border p-5 shadow-sm">
+            <h3 class="font-semibold text-muted-foreground mb-4">Registro de Daños</h3>
+            
+            <div class="flex flex-col gap-4">
+                <div>
+                    <span class="text-xs font-bold uppercase text-primary mb-2 block">Flota Enemiga Hundida</span>
+                    <ul class="space-y-1">
+                        @if (Model.OpponentSunkenShips != null && Model.OpponentSunkenShips.Any())
+                        {
+                            foreach (var ship in Model.OpponentSunkenShips)
+                            {
+                                <li class="text-sm flex items-center gap-2 text-destructive"><i data-lucide="check-circle-2" class="size-4"></i> @GetShipName(ship.ShipType)</li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="text-sm text-muted-foreground italic">Ningún barco enemigo hundido aún</li>
+                        }
+                    </ul>
+                </div>
+                
+                <div class="border-t pt-3">
+                    <span class="text-xs font-bold uppercase text-muted-foreground mb-2 block">Tus Barcos Perdidos</span>
+                    <ul class="space-y-1">
+                        @if (mySunkenShipsList.Any())
+                        {
+                            foreach (var type in mySunkenShipsList)
+                            {
+                                <li class="text-sm flex items-center gap-2 text-destructive/80"><i data-lucide="skull" class="size-4"></i> @GetShipName(type)</li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="text-sm text-muted-foreground italic">Todos tus barcos están a flote</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -295,10 +390,7 @@
         @if (!Model.IsMyTurn)
         {
             <text>
-            // Recarga amigable cada 15s si el usuario prefiere no apretar el botón
-            setTimeout(() => {
-                window.location.reload();
-            }, 15000);
+            // El usuario debe refrescar manualmente con el botón
             </text>
         }
     </script>

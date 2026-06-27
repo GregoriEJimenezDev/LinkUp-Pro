@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Application.Interfaces.Services;
+using LinkUpPro.Core.Application.Interfaces.Services;
 using LinkUpPro.Core.Application.ViewModel.Friend;
 
 namespace LinkUpPro.Core.Application.Interfaces.IServices
@@ -11,5 +11,7 @@ namespace LinkUpPro.Core.Application.Interfaces.IServices
         Task<ServiceResult> AcceptAsync(int requestId, string userId);
         Task<ServiceResult> RejectAsync(int requestId, string userId);
         Task<ServiceResult> DeleteAsync(int requestId, string userId);
+        Task<ServiceResult> RemoveFromHistoryAsync(int requestId, string userId);
+        Task<int> GetPendingCountAsync(string userId);
     }
 }

@@ -11,7 +11,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
     {
         public async Task<IEnumerable<BattleshipGame>> GetActiveByUserIdAsync(string userId) =>
             await _context.BattleshipGames
-                .Where(g => (g.FirstPlayerId == userId || g.SecondPlayerId == userId) && g.Status != GameStatus.Finished)
+                .Where(g => (g.FirstPlayerId == userId || g.SecondPlayerId == userId) && g.Status != GameStatus.Finished && g.Status != GameStatus.Abandoned)
                 .OrderByDescending(g => g.StartedAt)
                 .Include(g => g.Ships).ThenInclude(s => s.Cells)
                 .Include(g => g.Attacks)
@@ -40,7 +40,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
 
         public async Task<IEnumerable<BattleshipGame>> GetAllActiveAsync() =>
             await _context.BattleshipGames
-                .Where(g => g.Status != GameStatus.Finished)
+                .Where(g => g.Status != GameStatus.Finished && g.Status != GameStatus.Abandoned)
                 .Include(g => g.Ships).ThenInclude(s => s.Cells)
                 .Include(g => g.Attacks)
                 .AsNoTracking()

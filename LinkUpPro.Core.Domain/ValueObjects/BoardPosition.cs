@@ -14,6 +14,6 @@ namespace LinkUpPro.Core.Domain.ValueObjects
         }
 
         public bool IsWithinBoard =>
-            Row >= 1 && Row <= BoardSize && Column >= 1 && Column <= BoardSize;
+            Row >= 0 && Row < BoardSize && Column >= 0 && Column < BoardSize;
     }
 }

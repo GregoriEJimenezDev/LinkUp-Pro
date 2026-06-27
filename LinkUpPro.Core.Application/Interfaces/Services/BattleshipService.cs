@@ -178,7 +178,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
 
             var cells = _placementService.CalculateCells(st, row, col, direction);
             if (cells == null)
-                return ServiceResult.Failure("Ship is out of bounds. The board is 12x12.");
+                return ServiceResult.Failure("El barco queda fuera del tablero (12x12).");
 
             var existingShipTypes = existingShips.Select(s => s.ShipType).ToHashSet();
             if (existingShipTypes.Contains(st))
@@ -215,6 +215,16 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
         public async Task<AttackBoardViewModel> GetAttackBoardAsync(int gameId, string playerId)
         {
             var game = await _gameRepo.GetWithDetailsAsync(gameId);
+            
+            if (game.Status == GameStatus.InProgress && game.CheckTimeout(48))
+            {
+                game.Status = GameStatus.Finished;
+                game.WinnerId = game.CurrentTurnPlayerId == game.FirstPlayerId ? game.SecondPlayerId : game.FirstPlayerId;
+                game.FinishedAt = DateTime.UtcNow;
+                await _gameRepo.UpdateAsync(game);
+                await _unitOfWork.SaveChangesAsync();
+            }
+
             var myAttacks = await _attackRepo.GetByGameAndAttackerAsync(gameId, playerId);
 
             var opponentId = game.FirstPlayerId == playerId ? game.SecondPlayerId : game.FirstPlayerId;
@@ -223,21 +233,36 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             var myShips = await _shipRepo.GetWithCellsByGameAndPlayerAsync(gameId, playerId);
             var opponentAttacks = await _attackRepo.GetByGameAndAttackerAsync(gameId, opponentId);
 
+            var opponentShips = await _shipRepo.GetWithCellsByGameAndPlayerAsync(gameId, opponentId);
+            var opponentSunkenShips = opponentShips.Where(s => s.IsSunk).Select(s => _mapper.Map<ShipDto>(s)).ToList();
+
             return new AttackBoardViewModel
             {
                 GameId = gameId,
-                IsMyTurn = game.CurrentTurnPlayerId == playerId,
+                IsMyTurn = game.CurrentTurnPlayerId == playerId && game.Status == GameStatus.InProgress,
+                IsFinished = game.Status == GameStatus.Finished || game.Status == GameStatus.Abandoned,
                 OpponentUsername = opponent.Username,
                 CurrentTurnUsername = opponent.Username,
                 MyAttacks = myAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList(),
                 MyShips = myShips.Select(s => _mapper.Map<ShipDto>(s)).ToList(),
-                OpponentAttacks = opponentAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList()
+                OpponentAttacks = opponentAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList(),
+                OpponentSunkenShips = opponentSunkenShips
             };
         }
 
         public async Task<ServiceResult> AttackAsync(int gameId, string attackerId, int row, int col)
         {
             var game = await _gameRepo.GetByIdAsync(gameId);
+
+            if (game.Status == GameStatus.InProgress && game.CheckTimeout(48))
+            {
+                game.Status = GameStatus.Finished;
+                game.WinnerId = game.CurrentTurnPlayerId == game.FirstPlayerId ? game.SecondPlayerId : game.FirstPlayerId;
+                game.FinishedAt = DateTime.UtcNow;
+                await _gameRepo.UpdateAsync(game);
+                await _unitOfWork.SaveChangesAsync();
+                return ServiceResult.Failure("El juego ha finalizado por inactividad del oponente.");
+            }
 
             var turnValidation = _attackDomainService.ValidateTurn(game, attackerId);
             if (!turnValidation.Succeeded)

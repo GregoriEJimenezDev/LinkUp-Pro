@@ -69,7 +69,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             if (comment.UserId != userId)
                 return ServiceResult.Failure("No estás autorizado para eliminar este comentario.");
 
-            comment.Content = "Este comentario fue eliminado";
+            comment.IsDeleted = true;
             await _commentRepo.UpdateAsync(comment);
             
             return ServiceResult.Success();

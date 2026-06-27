@@ -31,6 +31,22 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> Profile(EditProfileViewModel vm, IFormFile? File)
         {
+            if (File != null)
+            {
+                if (File.Length > 5 * 1024 * 1024)
+                {
+                    ModelState.AddModelError("ProfilePicture", "La imagen seleccionada no puede superar los 5 MB.");
+                }
+
+                var extension = Path.GetExtension(File.FileName).ToLowerInvariant();
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                
+                if (!allowedExtensions.Contains(extension))
+                {
+                    ModelState.AddModelError("ProfilePicture", "El archivo seleccionado no tiene un formato de imagen válido.");
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 var uid = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
@@ -61,7 +77,14 @@ namespace LinkUpPro.Controllers
                 return View(vm);
             }
 
-            TempData["Success"] = "¡Perfil actualizado exitosamente!";
+            // Si el usuario cambió la contraseña, lo cerramos de sesión
+            if (!string.IsNullOrEmpty(vm.Password))
+            {
+                TempData["Success"] = "Su perfil y contraseña fueron actualizados correctamente. Inicie sesión nuevamente.";
+                return RedirectToAction("Logout", "Auth");
+            }
+
+            TempData["Success"] = "Su perfil fue actualizado correctamente.";
             return RedirectToAction(nameof(Profile));
         }
     }

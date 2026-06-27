@@ -24,6 +24,13 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             if (request.ReceiverId != userId)
                 return ServiceResult.Failure("No estás autorizado para aceptar esta solicitud de amistad.");
 
+            if (request.Status != FriendRequestStatus.Pending)
+                return ServiceResult.Failure("La solicitud ya no está pendiente.");
+
+            var senderInfo = await _userService.GetUserBasicInfoAsync(request.SenderId!);
+            if (senderInfo == null || !senderInfo.IsActive)
+                return ServiceResult.Failure("El usuario que envió la solicitud está inactivo o no existe.");
+
             request.Status = FriendRequestStatus.Accepted;
             request.RespondedAt = DateTime.UtcNow;
             await _friendRequestRepository.UpdateAsync(request);
@@ -31,12 +38,24 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             if (string.IsNullOrEmpty(request.SenderId) || string.IsNullOrEmpty(request.ReceiverId))
                 return ServiceResult.Failure("Los datos de la solicitud de amistad no son válidos.");
 
-            await _friendshipRepository.AddAsync(new Friendship
+            var existingFriendship = await _friendshipRepository.GetByUsersAsync(request.SenderId, request.ReceiverId);
+            if (existingFriendship != null)
             {
-                FirstUserId = request.SenderId,
-                SecondUserId = request.ReceiverId,
-                CreatedAt = DateTime.UtcNow
-            });
+                if (existingFriendship.IsDeleted)
+                {
+                    existingFriendship.IsDeleted = false;
+                    await _friendshipRepository.UpdateAsync(existingFriendship);
+                }
+            }
+            else
+            {
+                await _friendshipRepository.AddAsync(new Friendship
+                {
+                    FirstUserId = request.SenderId,
+                    SecondUserId = request.ReceiverId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
 
             var receiverInfo = await _userService.GetUserBasicInfoAsync(userId);
             await _notificationService.CreateNotificationAsync(
@@ -55,9 +74,15 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             if (request == null)
                 return ServiceResult.Failure("Solicitud de amistad no encontrada.");
             if (request.SenderId != userId && request.ReceiverId != userId)
-                return ServiceResult.Failure("No estás autorizado para eliminar esta solicitud de amistad.");
+                return ServiceResult.Failure("No estás autorizado para cancelar esta solicitud de amistad.");
 
-            await _friendRequestRepository.DeleteAsync(request);
+            if (request.Status != FriendRequestStatus.Pending)
+                return ServiceResult.Failure("Solo se pueden cancelar solicitudes pendientes.");
+
+            request.Status = FriendRequestStatus.Canceled;
+            request.RespondedAt = DateTime.UtcNow;
+            await _friendRequestRepository.UpdateAsync(request);
+
             return ServiceResult.Success();
         }
         public async Task<SendFriendRequestViewModel> GetAvailableUsersAsync(string userId, string? search)
@@ -150,10 +175,27 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             if (request.ReceiverId != userId)
                 return ServiceResult.Failure("No estás autorizado para rechazar esta solicitud de amistad.");
 
+            if (request.Status != FriendRequestStatus.Pending)
+                return ServiceResult.Failure("Solo se pueden rechazar solicitudes pendientes.");
+
             request.Status = FriendRequestStatus.Rejected;
             request.RespondedAt = DateTime.UtcNow;
 
             await _friendRequestRepository.UpdateAsync(request);
+            return ServiceResult.Success();
+        }
+
+        public async Task<ServiceResult> RemoveFromHistoryAsync(int requestId, string userId)
+        {
+            var request = await _friendRequestRepository.GetByIdAsync(requestId);
+            if (request == null)
+                return ServiceResult.Failure("Solicitud de amistad no encontrada.");
+            if (request.SenderId != userId)
+                return ServiceResult.Failure("Solo el emisor puede eliminar la solicitud de su historial.");
+
+            request.SenderIsVisible = false;
+            await _friendRequestRepository.UpdateAsync(request);
+
             return ServiceResult.Success();
         }
 
@@ -185,6 +227,12 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             );
 
             return ServiceResult.Success();
+        }
+
+        public async Task<int> GetPendingCountAsync(string userId)
+        {
+            var received = await _friendRequestRepository.GetReceivedByUserAsync(userId);
+            return received.Count(r => r.Status == FriendRequestStatus.Pending);
         }
 
         #region Private Helpers

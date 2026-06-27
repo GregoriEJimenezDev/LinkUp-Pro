@@ -4,18 +4,21 @@
 @using System.Security.Claims
 @inject UserManager<ApplicationUser> UserManager
 @inject INotificationService NotificationService
+@inject IFriendRequestService FriendRequestService
 @{
     var currentUrl = ViewContext.HttpContext.Request.Path.ToString().ToLower();
     var currentUser = await UserManager.GetUserAsync(User);
     var profilePic = currentUser?.ProfilePicturePath ?? "/placeholder.svg";
     
     var unreadCount = 0;
+    var pendingRequestsCount = 0;
     if (User.Identity != null && User.Identity.IsAuthenticated)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId != null)
         {
             unreadCount = await NotificationService.GetUnreadCountAsync(userId);
+            pendingRequestsCount = await FriendRequestService.GetPendingCountAsync(userId);
         }
     }
 }
@@ -38,6 +41,10 @@
         <a href="/FriendRequest/Index" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors @(currentUrl.StartsWith("/friendrequest") ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground")">
             <i data-lucide="user-plus" class="size-5 shrink-0"></i>
             <span class="flex-1 truncate">Solicitudes</span>
+            @if (pendingRequestsCount > 0)
+            {
+                <span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-medium text-primary-foreground">@pendingRequestsCount</span>
+            }
         </a>
         <a href="/Notification/Index" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors @(currentUrl.StartsWith("/notification") ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground")">
             <i data-lucide="bell" class="size-5 shrink-0"></i>

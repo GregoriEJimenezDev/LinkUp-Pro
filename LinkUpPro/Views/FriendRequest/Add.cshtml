@@ -52,37 +52,42 @@
         {
             <div class="text-sm text-muted-foreground font-medium">Resultados de la búsqueda (@Model.AvailableUsers.Count)</div>
             
-            <div class="flex flex-col gap-3">
-                @foreach (var user in Model.AvailableUsers)
-                {
-                    <div class="flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm transition-all hover:border-primary/50">
-                        <div class="flex items-center gap-3">
-                            <div class="relative flex size-12 shrink-0 overflow-hidden rounded-full border border-border">
-                                <img class="aspect-square h-full w-full object-cover" src="@user.ProfilePicture" alt="@user.Username" onerror="this.src='/placeholder.svg'" />
+            <form asp-action="Send" method="post" class="flex flex-col gap-4">
+                <div class="flex flex-col gap-3">
+                    @foreach (var user in Model.AvailableUsers)
+                    {
+                        <label class="flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm transition-all hover:border-primary/50 cursor-pointer">
+                            <div class="flex items-center gap-3">
+                                <div class="relative flex size-12 shrink-0 overflow-hidden rounded-full border border-border">
+                                    <img class="aspect-square h-full w-full object-cover" src="@user.ProfilePicture" alt="@user.Username" onerror="this.src='/placeholder.svg'" />
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-semibold text-foreground">@@@user.Username</span>
+                                    @if (user.MutualFriendsCount > 0)
+                                    {
+                                        <span class="text-xs text-muted-foreground">@user.MutualFriendsCount amigos en común</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-xs text-muted-foreground">Usuario en LinkUp</span>
+                                    }
+                                </div>
                             </div>
-                            <div class="flex flex-col">
-                                <span class="text-sm font-semibold text-foreground">@@@user.Username</span>
-                                @if (user.MutualFriendsCount > 0)
-                                {
-                                    <span class="text-xs text-muted-foreground">@user.MutualFriendsCount amigos en común</span>
-                                }
-                                else
-                                {
-                                    <span class="text-xs text-muted-foreground">Usuario en LinkUp</span>
-                                }
+                            
+                            <div class="flex items-center">
+                                <input type="radio" name="receiverId" value="@user.UserId" class="size-5 accent-primary" required />
                             </div>
-                        </div>
-                        
-                        <form asp-action="Send" method="post">
-                            <input type="hidden" name="receiverId" value="@user.UserId" />
-                            <button type="submit" class="inline-flex items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground h-9 px-4 text-xs font-medium transition-colors gap-2">
-                                <i data-lucide="user-plus" class="size-4"></i>
-                                Agregar
-                            </button>
-                        </form>
-                    </div>
-                }
-            </div>
+                        </label>
+                    }
+                </div>
+                
+                <div class="flex justify-end mt-2">
+                    <button type="submit" class="inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground h-11 px-8 font-medium transition-colors hover:bg-primary/90 gap-2">
+                        <i data-lucide="send" class="size-4"></i>
+                        Enviar Solicitud
+                    </button>
+                </div>
+            </form>
         }
         else if (!string.IsNullOrEmpty(Model.SearchUsername))
         {

@@ -286,12 +286,17 @@ namespace LinkUpPro.Infrastructure.Identity.Services
                 user.ProfilePicturePath = await _fileStorageService.UploadFileAsync(vm.ProfilePicture, fileName, "profiles", contentType);
             }
 
-            if (!string.IsNullOrEmpty(vm.Password))
+            if (!string.IsNullOrEmpty(vm.Password) && !string.IsNullOrEmpty(vm.CurrentPassword))
             {
-                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var result = await _userManager.ResetPasswordAsync(user, token, vm.Password);
+                var checkPassword = await _userManager.CheckPasswordAsync(user, vm.CurrentPassword);
+                if (!checkPassword)
+                    return ServiceResult.Failure("La contraseña actual es incorrecta.");
+
+                var result = await _userManager.ChangePasswordAsync(user, vm.CurrentPassword, vm.Password);
                 if (!result.Succeeded)
                     return ServiceResult.Failure(result.Errors.First().Description);
+
+                await _userManager.UpdateSecurityStampAsync(user);
             }
 
             var updateResult = await _userManager.UpdateAsync(user);

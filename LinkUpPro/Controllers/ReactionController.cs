@@ -22,6 +22,11 @@ namespace LinkUpPro.Controllers
             var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
             await _reactionService.ReactAsync(postId, userId, isLike);
 
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Ok();
+            }
+
             return Redirect(Request.Headers.Referer.ToString() ?? "/");
         }
     }

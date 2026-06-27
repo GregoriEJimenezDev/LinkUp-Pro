@@ -1,4 +1,4 @@
-﻿namespace LinkUpPro.Core.Domain.Entities
+namespace LinkUpPro.Core.Domain.Entities
 {
     public class Friendship
     {
@@ -7,5 +7,6 @@
 
         public string? FirstUserId { get; set; }
         public string? SecondUserId { get; set; }
+        public bool IsDeleted { get; set; } = false;
     }
 }

@@ -1,3 +1,18 @@
+@using LinkUpPro.Core.Application.Interfaces.Services
+@using LinkUpPro.Core.Application.Interfaces.IServices
+@inject IBattleshipService BattleshipService
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    var userId = HttpContextAccessor.HttpContext?.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    int activeBattlesCount = 0;
+    LinkUpPro.Core.Application.ViewModel.Game.BattleshipIndexViewModel? gameIndex = null;
+    
+    if (userId != null)
+    {
+        gameIndex = await BattleshipService.GetIndexAsync(userId);
+        activeBattlesCount = gameIndex?.ActiveGames?.Count ?? 0;
+    }
+}
 <aside class="sticky top-0 hidden h-screen w-72 shrink-0 flex-col gap-4 overflow-y-auto py-5 pr-4 no-scrollbar lg:flex xl:w-80">
     <!-- Suggestions Card -->
     <div class="rounded-2xl border bg-card text-card-foreground shadow-sm">
@@ -17,14 +32,40 @@
         <div class="flex flex-col space-y-1.5 p-6 pb-3">
             <h3 class="font-semibold leading-none tracking-tight flex items-center gap-2 text-base">
                 <i data-lucide="ship" class="size-4 text-primary"></i>
-                Batallas activas
+                Batallas activas @(activeBattlesCount > 0 ? $"({activeBattlesCount})" : "")
             </h3>
         </div>
         <div class="p-6 pt-0 flex flex-col gap-3">
-            <p class="text-sm text-muted-foreground text-center py-4">No hay batallas activas.</p>
+            @if (activeBattlesCount == 0)
+            {
+                <p class="text-sm text-muted-foreground text-center py-4">No hay batallas activas.</p>
+            }
+            else
+            {
+                <div class="flex flex-col gap-2">
+                    @foreach (var game in gameIndex!.ActiveGames!.Take(3))
+                    {
+                        var opponentName = game.Player1Id == userId ? game.Player2Username : game.Player1Username;
+                        <a href="/Battleship/Game?gameId=@game.Id" class="flex items-center justify-between rounded-lg border p-3 hover:bg-accent transition-colors">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="swords" class="size-4 text-muted-foreground"></i>
+                                <div class="flex flex-col">
+                                    <span class="text-sm font-semibold truncate max-w-[120px]">vs @opponentName</span>
+                                    <span class="text-xs text-muted-foreground">
+                                        @(game.Status == LinkUpPro.Core.Domain.Enum.GameStatus.PlacingShips ? "Fase de preparación" : "En progreso")
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    }
+                </div>
+                if (activeBattlesCount > 3)
+                {
+                    <a href="/Battleship/Index" class="text-xs text-center text-primary hover:underline mt-2">Ver todas</a>
+                }
+            }
         </div>
     </div>
-
 
     <p class="px-2 text-xs text-muted-foreground">
         LinkUp Pro © 2026 · Privacidad · Términos · Ayuda

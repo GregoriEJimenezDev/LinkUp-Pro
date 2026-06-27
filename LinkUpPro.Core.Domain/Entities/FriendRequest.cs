@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Domain.Enum;
+using LinkUpPro.Core.Domain.Enum;
 
 namespace LinkUpPro.Core.Domain.Entities
 {
@@ -11,5 +11,6 @@ namespace LinkUpPro.Core.Domain.Entities
 
         public string? SenderId { get; set; }
         public string? ReceiverId { get; set; }
+        public bool SenderIsVisible { get; set; } = true;
     }
 }
