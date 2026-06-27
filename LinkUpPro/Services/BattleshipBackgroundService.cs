@@ -15,7 +15,7 @@ namespace LinkUpPro.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Battleship BackgroundService started.");
+            _logger.LogInformation("Servicio en segundo plano de Battleship iniciado.");
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -29,11 +29,11 @@ namespace LinkUpPro.Services
                     using var scope = _scopeFactory.CreateScope();
                     var battleshipService = scope.ServiceProvider.GetRequiredService<IBattleshipService>();
                     await battleshipService.CheckTimeoutsAsync();
-                    _logger.LogInformation("Battleship timeout check completed.");
+                    _logger.LogInformation("Verificación de expiración de tiempo de Battleship completada.");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error checking battleship timeouts.");
+                    _logger.LogError(ex, "Error al verificar la expiración de tiempo de Battleship.");
                 }
             }
         }

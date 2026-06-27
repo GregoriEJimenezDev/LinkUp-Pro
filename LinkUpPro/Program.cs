@@ -31,7 +31,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseStaticFiles(); // Necesario para servir archivos subidos dinámicamente en .NET 9
+app.UseStaticFiles(); 
 app.MapStaticAssets();
 
 app.MapControllerRoute(
