@@ -1,4 +1,5 @@
 using LinkUpPro.Core.Application.DTOs.Notification;
+using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Interfaces;
@@ -9,7 +10,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
     {
         private readonly INotificationRepository _notificationRepo = notificationRepo;
 
-        public async Task<ServiceResult> CreateNotificationAsync(string userId, string title, string message, string? url = null)
+        public async Task<ServiceResult> CreateNotificationAsync(string userId, string title, string message, string? url = null, NotificationType type = NotificationType.FriendRequestReceived)
         {
             var notification = new Notification
             {
@@ -17,6 +18,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 Title = title,
                 Message = message,
                 Url = url,
+                Type = type,
                 CreatedAt = DateTime.UtcNow
             };
 

@@ -74,7 +74,45 @@ namespace LinkUpPro.Controllers
                 return View(vm);
             }
 
-            TempData["Success"] = "Cuenta creada exitosamente. Te hemos enviado un correo con el enlace de activación.";
+            return RedirectToAction("RegisterSuccess");
+        }
+
+        public IActionResult RegisterSuccess()
+        {
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            return View();
+        }
+
+        public IActionResult ResendActivation()
+        {
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResendActivation(string username)
+        {
+            if (string.IsNullOrEmpty(username))
+            {
+                ModelState.AddModelError("", "Por favor ingresa tu nombre de usuario o correo electrónico.");
+                return View();
+            }
+
+            var result = await _userService.ResendActivationEmailAsync(username);
+
+            if (result != null && !result.Succeeded)
+            {
+                ModelState.AddModelError("", result.ErrorMessage);
+                return View();
+            }
+
+            TempData["Success"] = "Se ha reenviado el enlace de activación. Por favor verifica tu bandeja de entrada o spam.";
             return RedirectToAction("Index");
         }
 

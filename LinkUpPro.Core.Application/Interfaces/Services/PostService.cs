@@ -67,7 +67,8 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             if (post.UserId != userId)
                 return ServiceResult.Failure("No estás autorizado para eliminar esta publicación.");
 
-            await _postRepository.DeleteAsync(post);
+            post.IsDeleted = true;
+            await _postRepository.UpdateAsync(post);
             return ServiceResult.Success();
         }
 
@@ -80,9 +81,10 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             var allposts = await _postRepository.GetAllPostWithDetailsAsync();
 
             var feedPosts = allposts.Where(p => 
-                p.UserId == userId || 
+                !p.IsDeleted &&
+                (p.UserId == userId || 
                 p.Privacy == PostPrivacy.Public || 
-                (p.Privacy == PostPrivacy.FriendsOnly && friendIds.Contains(p.UserId))
+                (p.Privacy == PostPrivacy.FriendsOnly && friendIds.Contains(p.UserId)))
             ).OrderByDescending(p => p.CreatedAt).ToList();
 
             var result = new List<PostViewModel>();
@@ -116,8 +118,9 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
         public async Task<List<PostViewModel>> GetByUserAsync(string targetUserId, string currentUserId)
         {
             var posts = await _postRepository.GetByUserIdAsync(targetUserId);
+            var activePosts = posts.Where(p => !p.IsDeleted).ToList();
             var userInfo = await _userService.GetUserBasicInfoAsync(targetUserId);
-            return await MapToViewModels(posts, currentUserId, userInfo);
+            return await MapToViewModels(activePosts, currentUserId, userInfo);
         }
 
         public async Task<ServiceResult> UpdateAsync(SavePostViewModel vm, string userId)
@@ -210,6 +213,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 MediaType = post.MediaType,
                 MediaUrl = post.MediaUrl,
                 CreatedAt = post.CreatedAt,
+                UpdatedAt = post.UpdatedAt,
                 Privacy = post.Privacy,
                 AllowComments = post.AllowComments,
                 UserId = post.UserId!,
@@ -239,6 +243,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 Id = comment.Id,
                 Content = comment.Content,
                 CreatedAt = comment.CreatedAt,
+                UpdatedAt = comment.UpdatedAt,
                 UserId = comment.UserId!,
                 Username = userInfo.Username,
                 UserProfilePicture = userInfo.ProfilePictureUrl,
@@ -255,6 +260,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 Id = comment.Id,
                 Content = comment.Content,
                 CreatedAt = comment.CreatedAt,
+                UpdatedAt = comment.UpdatedAt,
                 UserId = comment.UserId!,
                 PostId = comment.PostId,
                 ParentCommentId = comment.ParentCommentId,

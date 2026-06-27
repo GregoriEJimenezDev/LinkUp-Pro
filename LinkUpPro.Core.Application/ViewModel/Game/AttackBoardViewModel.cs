@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Application.DTOs.Battleship;
+using LinkUpPro.Core.Application.DTOs.Battleship;
 
 namespace LinkUpPro.Core.Application.ViewModel.Game
 {
@@ -10,5 +10,7 @@ namespace LinkUpPro.Core.Application.ViewModel.Game
         public string CurrentTurnUsername { get; set; } = string.Empty;
 
         public List<AttackDto> MyAttacks { get; set; } = [];
+        public List<ShipDto> MyShips { get; set; } = [];
+        public List<AttackDto> OpponentAttacks { get; set; } = [];
     }
 }

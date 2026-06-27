@@ -23,6 +23,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IShipPlacementDomainService _placementService;
         private readonly IAttackDomainService _attackDomainService;
+        private readonly INotificationService _notificationService;
 
         public BattleshipService(
             IBattleshipGameRepository gameRepo,
@@ -32,7 +33,8 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             IMapper mapper,
             IUnitOfWork unitOfWork,
             IShipPlacementDomainService placementService,
-            IAttackDomainService attackDomainService)
+            IAttackDomainService attackDomainService,
+            INotificationService notificationService)
         {
             _gameRepo = gameRepo;
             _shipRepo = shipRepo;
@@ -42,6 +44,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             _unitOfWork = unitOfWork;
             _placementService = placementService;
             _attackDomainService = attackDomainService;
+            _notificationService = notificationService;
         }
 
         public async Task<BattleshipIndexViewModel> GetIndexAsync(string userId)
@@ -109,6 +112,15 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
 
             await _gameRepo.AddAsync(game);
             await _unitOfWork.SaveChangesAsync();
+
+            var inviterInfo = await _userService.GetUserBasicInfoAsync(player1Id);
+            await _notificationService.CreateNotificationAsync(
+                player2Id,
+                "Invitación a jugar",
+                $"{inviterInfo.Username} te ha invitado a una partida de Battleship.",
+                "/Battleship/Index",
+                NotificationType.GameInvitation
+            );
 
             return ServiceResult<int>.Success(game.Id);
         }
@@ -208,13 +220,18 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             var opponentId = game.FirstPlayerId == playerId ? game.SecondPlayerId : game.FirstPlayerId;
             var opponent = await _userService.GetUserBasicInfoAsync(opponentId);
 
+            var myShips = await _shipRepo.GetWithCellsByGameAndPlayerAsync(gameId, playerId);
+            var opponentAttacks = await _attackRepo.GetByGameAndAttackerAsync(gameId, opponentId);
+
             return new AttackBoardViewModel
             {
                 GameId = gameId,
                 IsMyTurn = game.CurrentTurnPlayerId == playerId,
                 OpponentUsername = opponent.Username,
                 CurrentTurnUsername = opponent.Username,
-                MyAttacks = myAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList()
+                MyAttacks = myAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList(),
+                MyShips = myShips.Select(s => _mapper.Map<ShipDto>(s)).ToList(),
+                OpponentAttacks = opponentAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList()
             };
         }
 

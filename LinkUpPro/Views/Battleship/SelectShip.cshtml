@@ -4,14 +4,14 @@
     ViewData["Title"] = "Fase de preparación";
 }
 
-<div class="flex flex-col gap-6 w-full max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <div class="flex items-center gap-4">
+<div class="flex flex-col gap-6 w-full max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div class="flex items-center gap-4 border-b pb-4">
         <a href="/Battleship/Index" class="inline-flex items-center justify-center rounded-full bg-secondary h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors">
             <i data-lucide="arrow-left" class="size-5"></i>
         </a>
         <div class="flex flex-col">
-            <h1 class="text-2xl font-bold tracking-tight text-foreground">Fase de preparación</h1>
-            <p class="text-sm text-muted-foreground">Coloca tus naves en el tablero antes de comenzar la batalla</p>
+            <h1 class="text-2xl font-bold tracking-tight text-foreground">Coloca tus barcos</h1>
+            <p class="text-sm text-muted-foreground">Prepara tu flota para el combate</p>
         </div>
     </div>
 
@@ -22,83 +22,85 @@
         </div>
     }
 
-    <div class="grid gap-6 md:grid-cols-2">
-        <!-- Naves Pendientes -->
-        <div class="flex flex-col gap-4">
-            <div class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold flex items-center gap-2">
-                    <i data-lucide="anchor" class="size-5 text-muted-foreground"></i>
-                    Naves disponibles
-                </h2>
-                <span class="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">@Model.PendingShips.Count restantes</span>
-            </div>
-
-            <div class="flex flex-col gap-3">
-                @if (Model.PendingShips.Any())
-                {
-                    foreach (var ship in Model.PendingShips)
-                    {
-                        <a href="/Battleship/PlaceShip?gameId=@Model.GameId&shipType=@ship.ShipType" class="group flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm transition-all hover:border-primary/50 hover:bg-primary/5">
-                            <div class="flex flex-col gap-1">
-                                <span class="font-medium">@ship.ShipType.ToString()</span>
-                                <div class="flex items-center gap-1">
-                                    @for (int i = 0; i < ship.Size; i++)
-                                    {
-                                        <div class="h-3 w-4 rounded-sm bg-primary/40 group-hover:bg-primary transition-colors"></div>
-                                    }
+    <div class="grid gap-6 md:grid-cols-[1fr_300px]">
+        <!-- Lista de Naves -->
+        <div class="flex flex-col gap-6">
+            @if (Model.PendingShips.Any())
+            {
+                <div class="flex flex-col gap-3">
+                    <h2 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Flota Disponible (@Model.PendingShips.Count)</h2>
+                    <div class="grid gap-3">
+                        @foreach (var ship in Model.PendingShips)
+                        {
+                            <a href="/Battleship/PlaceShip?gameId=@Model.GameId&shipType=@ship.ShipType" class="group flex items-center justify-between rounded-lg border bg-card p-4 hover:bg-accent/50 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <div class="flex size-10 items-center justify-center rounded-md bg-primary/10">
+                                        <i data-lucide="anchor" class="size-5 text-primary"></i>
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <span class="font-semibold text-sm">@ship.ShipType.ToString()</span>
+                                        <div class="flex items-center gap-1">
+                                            @for (int i = 0; i < ship.Size; i++)
+                                            {
+                                                <div class="h-2 w-3 rounded-sm bg-primary/40 group-hover:bg-primary transition-colors"></div>
+                                            }
+                                            <span class="text-[10px] text-muted-foreground ml-2">(@ship.Size espacios)</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                                <i data-lucide="crosshair" class="size-4"></i>
-                            </div>
-                        </a>
-                    }
-                }
-                else
-                {
-                    <div class="rounded-2xl border border-dashed border-success bg-success/5 p-6 text-center text-sm text-success">
-                        <i data-lucide="check-circle-2" class="mx-auto mb-2 size-8 opacity-80"></i>
-                        <p class="font-bold text-lg">¡Flota posicionada!</p>
-                        <p class="opacity-80">Has colocado todas tus naves en el tablero.</p>
-                        <a href="/Battleship/AttackBoard?gameId=@Model.GameId" class="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-success px-6 font-medium text-success-foreground hover:bg-success/90">
-                            Ir al combate <i data-lucide="swords" class="ml-2 size-4"></i>
-                        </a>
+                                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                                    <i data-lucide="arrow-right" class="size-4"></i>
+                                </div>
+                            </a>
+                        }
                     </div>
-                }
-            </div>
+                </div>
+            }
+            else
+            {
+                <div class="flex flex-col items-center justify-center h-full min-h-[300px] rounded-lg border border-dashed bg-card/50 p-8 text-center text-sm text-muted-foreground">
+                    <div class="flex size-16 items-center justify-center rounded-full bg-success/20 mb-4">
+                        <i data-lucide="check" class="size-8 text-success"></i>
+                    </div>
+                    <p class="font-bold text-lg text-foreground mb-1">¡Flota posicionada!</p>
+                    <p class="mb-6 max-w-sm">Has colocado todas tus naves en el tablero y estás listo para la batalla.</p>
+                    <a href="/Battleship/AttackBoard?gameId=@Model.GameId" class="inline-flex h-11 items-center justify-center rounded-md bg-primary px-8 font-medium text-primary-foreground hover:bg-primary/90 transition-colors gap-2">
+                        <i data-lucide="swords" class="size-4"></i> Ir al combate
+                    </a>
+                </div>
+            }
         </div>
 
-        <!-- Naves Colocadas -->
+        <!-- Panel de Estado -->
         <div class="flex flex-col gap-4">
-            <h2 class="text-lg font-semibold flex items-center gap-2">
-                <i data-lucide="check-circle" class="size-5 text-muted-foreground"></i>
-                Naves posicionadas
-            </h2>
-            
-            <div class="flex flex-col gap-3">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Estado del Tablero</h2>
+            <div class="flex flex-col gap-2 rounded-lg border bg-card p-4">
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-muted-foreground">Posicionadas</span>
+                    <span class="font-medium text-success">@Model.PlacedShips.Count</span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <span class="text-muted-foreground">Pendientes</span>
+                    <span class="font-medium">@Model.PendingShips.Count</span>
+                </div>
+                
+                <div class="my-2 h-[1px] w-full bg-border"></div>
+                
                 @if (Model.PlacedShips.Any())
                 {
-                    foreach (var ship in Model.PlacedShips)
-                    {
-                        <div class="flex items-center justify-between rounded-xl border border-border bg-muted/50 p-4">
-                            <div class="flex flex-col gap-1">
-                                <span class="font-medium text-muted-foreground">@ship.ShipType.ToString()</span>
-                                <div class="flex items-center gap-1">
-                                    @for (int i = 0; i < ship.Size; i++)
-                                    {
-                                        <div class="h-3 w-4 rounded-sm bg-success/40"></div>
-                                    }
-                                </div>
+                    <div class="flex flex-col gap-2">
+                        @foreach (var ship in Model.PlacedShips)
+                        {
+                            <div class="flex items-center gap-2 text-sm text-muted-foreground">
+                                <i data-lucide="check-circle-2" class="size-4 text-success"></i>
+                                <span>@ship.ShipType.ToString()</span>
                             </div>
-                            <i data-lucide="check" class="size-5 text-success"></i>
-                        </div>
-                    }
+                        }
+                    </div>
                 }
                 else
                 {
-                    <div class="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-                        Aún no has colocado ninguna nave.
-                    </div>
+                    <p class="text-xs text-muted-foreground italic text-center py-2">Ninguna nave posicionada.</p>
                 }
             </div>
         </div>

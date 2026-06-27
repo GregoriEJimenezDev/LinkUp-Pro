@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Application.DTOs.Friend;
+using LinkUpPro.Core.Application.DTOs.Friend;
 using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Application.ViewModel.Friend;
 using LinkUpPro.Core.Domain.Entities;
@@ -8,11 +8,12 @@ using LinkUpPro.Core.Domain.Interfaces;
 namespace LinkUpPro.Core.Application.Interfaces.Services
 {
     public class FriendRequestService(IFriendRequestRepository friendRequestRepository,
-        IFriendshipRepository friendshipRepository, IUserService userService) : IFriendRequestService
+        IFriendshipRepository friendshipRepository, IUserService userService, INotificationService notificationService) : IFriendRequestService
     {
         private readonly IFriendRequestRepository _friendRequestRepository = friendRequestRepository;
         private readonly IFriendshipRepository _friendshipRepository = friendshipRepository;
         private readonly IUserService _userService = userService;
+        private readonly INotificationService _notificationService = notificationService;
 
         public async Task<ServiceResult> AcceptAsync(int requestId, string userId)
         {
@@ -36,6 +37,15 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 SecondUserId = request.ReceiverId,
                 CreatedAt = DateTime.UtcNow
             });
+
+            var receiverInfo = await _userService.GetUserBasicInfoAsync(userId);
+            await _notificationService.CreateNotificationAsync(
+                request.SenderId, 
+                "Solicitud de amistad aceptada", 
+                $"{receiverInfo.Username} aceptó tu solicitud de amistad.", 
+                "/Friendship/Index",
+                NotificationType.FriendRequestAccepted
+            );
 
             return ServiceResult.Success();
         }
@@ -164,6 +174,15 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 Status = FriendRequestStatus.Pending,
                 SentAt = DateTime.UtcNow
             });
+
+            var senderInfo = await _userService.GetUserBasicInfoAsync(senderId);
+            await _notificationService.CreateNotificationAsync(
+                receiverId,
+                "Nueva solicitud de amistad",
+                $"{senderInfo.Username} te ha enviado una solicitud de amistad.",
+                "/FriendRequest/Index",
+                NotificationType.FriendRequestReceived
+            );
 
             return ServiceResult.Success();
         }

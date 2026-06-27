@@ -17,6 +17,22 @@
         <p class="text-muted-foreground font-medium">Ingresa a tu cuenta para continuar.</p>
     </div>
 
+    @if (TempData["Success"] != null)
+    {
+        <div class="bg-green-100/10 border border-green-500/20 text-green-500 p-4 rounded-md mb-2 flex items-start gap-3">
+            <i data-lucide="check-circle-2" class="size-5 shrink-0 mt-0.5"></i>
+            <span class="text-sm font-medium">@TempData["Success"]</span>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="bg-red-100/10 border border-red-500/20 text-red-500 p-4 rounded-md mb-2 flex items-start gap-3">
+            <i data-lucide="alert-circle" class="size-5 shrink-0 mt-0.5"></i>
+            <span class="text-sm font-medium">@TempData["Error"]</span>
+        </div>
+    }
+
     <form asp-controller="Auth" asp-action="Login" method="post" class="flex flex-col gap-5 mt-2">
         
         <div asp-validation-summary="ModelOnly" class="text-destructive text-sm font-semibold"></div>
@@ -33,18 +49,25 @@
         <div class="grid gap-2">
             <div class="flex items-center justify-between">
                 <label asp-for="Password" class="text-foreground text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Contraseña</label>
-                <a href="#" class="text-sm font-semibold text-primary hover:underline">
+                <a href="/Auth/ForgotPassword" class="text-sm font-semibold text-primary hover:underline">
                     ¿Olvidaste tu contraseña?
                 </a>
             </div>
             <div class="relative">
                 <i data-lucide="lock" class="absolute left-3 top-2.5 size-5 text-muted-foreground"></i>
                 <input asp-for="Password" type="password" placeholder="Tu contraseña" class="pl-10 pr-10 h-11 bg-muted/40 border-transparent focus-visible:bg-transparent flex w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
-                <button type="button" class="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground">
+                <button type="button" id="togglePassword" class="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground">
                     <i data-lucide="eye" class="size-5"></i>
                 </button>
             </div>
             <span asp-validation-for="Password" class="text-destructive text-sm"></span>
+        </div>
+
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <input asp-for="RememberMe" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                <label asp-for="RememberMe" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Mantener sesión iniciada</label>
+            </div>
         </div>
 
         <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-full h-11 mt-2 text-base font-medium">
@@ -53,14 +76,40 @@
         </button>
     </form>
 
-    <p class="text-center text-sm text-muted-foreground mt-4">
-        ¿Aún no tienes cuenta? 
-        <a href="/Auth/Register" class="font-bold text-primary hover:underline">
-            Crear cuenta
-        </a>
-    </p>
+    <div class="flex flex-col gap-2 text-center text-sm mt-4">
+        <p class="text-muted-foreground">
+            ¿Aún no tienes cuenta? 
+            <a href="/Auth/Register" class="font-bold text-primary hover:underline">
+                Crear cuenta
+            </a>
+        </p>
+        <p class="text-muted-foreground">
+            ¿No recibiste el correo? 
+            <a href="/Auth/ResendActivation" class="font-bold text-primary hover:underline">
+                Reenviar activación
+            </a>
+        </p>
+    </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const togglePasswordBtn = document.getElementById("togglePassword");
+            const passwordInput = document.getElementById("Password");
+            const eyeIcon = togglePasswordBtn.querySelector("i");
+            
+            togglePasswordBtn.addEventListener("click", function() {
+                if (passwordInput.type === "password") {
+                    passwordInput.type = "text";
+                    eyeIcon.setAttribute("data-lucide", "eye-off");
+                } else {
+                    passwordInput.type = "password";
+                    eyeIcon.setAttribute("data-lucide", "eye");
+                }
+                lucide.createIcons();
+            });
+        });
+    </script>
 }

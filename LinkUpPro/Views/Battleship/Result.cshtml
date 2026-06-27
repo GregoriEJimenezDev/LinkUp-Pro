@@ -1,78 +1,75 @@
 @model LinkUpPro.Core.Application.ViewModel.Game.GameResultViewModel
 
 @{
-    ViewData["Title"] = "Resultado del Combate";
+    ViewData["Title"] = "Resultado de Partida";
     
     var duration = Model.FinishedAt.HasValue 
         ? Model.FinishedAt.Value.Subtract(Model.StartedAt) 
         : TimeSpan.Zero;
 }
 
-<div class="flex flex-col gap-6 w-full max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-    
-    <!-- Pantalla de Resultado -->
-    <div class="flex flex-col items-center justify-center rounded-3xl border bg-card p-10 shadow-lg text-center relative overflow-hidden">
+<div class="flex flex-col gap-6 w-full max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div class="flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
         
-        <!-- Background Decorativo -->
-        <div class="absolute inset-0 opacity-10 pointer-events-none">
-            @if (Model.IWon)
-            {
-                <div class="absolute inset-0 bg-gradient-to-tr from-success/50 to-transparent"></div>
-            }
-            else
-            {
-                <div class="absolute inset-0 bg-gradient-to-tr from-destructive/50 to-transparent"></div>
-            }
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b bg-muted/30 px-6 py-4">
+            <h1 class="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
+                <i data-lucide="flag-checkered" class="size-5 text-muted-foreground"></i> Partida Finalizada
+            </h1>
         </div>
 
-        <div class="relative z-10 flex flex-col items-center">
-            @if (Model.IWon)
-            {
-                <div class="size-24 rounded-full bg-success/20 flex items-center justify-center mb-6 ring-8 ring-success/10">
-                    <i data-lucide="trophy" class="size-12 text-success"></i>
+        <!-- Contenido Central -->
+        <div class="flex flex-col p-6">
+            <div class="flex items-center gap-4 mb-8 p-4 rounded-lg @(Model.IWon ? "bg-success/10 border border-success/20" : "bg-destructive/10 border border-destructive/20")">
+                <div class="flex size-14 shrink-0 items-center justify-center rounded-full @(Model.IWon ? "bg-success/20" : "bg-destructive/20")">
+                    @if (Model.IWon)
+                    {
+                        <i data-lucide="trophy" class="size-7 text-success"></i>
+                    }
+                    else
+                    {
+                        <i data-lucide="skull" class="size-7 text-destructive"></i>
+                    }
                 </div>
-                <h1 class="text-4xl font-extrabold tracking-tight text-success mb-2">¡VICTORIA!</h1>
-                <p class="text-lg text-muted-foreground mb-8">Has destruido la flota de <span class="font-semibold text-foreground">@Model.OpponentUsername</span></p>
-            }
-            else
-            {
-                <div class="size-24 rounded-full bg-destructive/20 flex items-center justify-center mb-6 ring-8 ring-destructive/10">
-                    <i data-lucide="skull" class="size-12 text-destructive"></i>
-                </div>
-                <h1 class="text-4xl font-extrabold tracking-tight text-destructive mb-2">DERROTA</h1>
-                <p class="text-lg text-muted-foreground mb-8">Tu flota ha sido hundida por <span class="font-semibold text-foreground">@Model.OpponentUsername</span></p>
-            }
-
-            <!-- Estadísticas del Juego -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full mb-8">
-                <div class="flex flex-col bg-secondary/50 rounded-2xl p-4">
-                    <span class="text-xs text-muted-foreground mb-1 uppercase font-semibold tracking-wider">Tus ataques</span>
-                    <span class="text-xl font-bold">@Model.MyAttacks.Count</span>
-                </div>
-                <div class="flex flex-col bg-secondary/50 rounded-2xl p-4">
-                    <span class="text-xs text-muted-foreground mb-1 uppercase font-semibold tracking-wider">Acertados</span>
-                    <span class="text-xl font-bold text-success">@Model.MyAttacks.Count(a => a.IsHit)</span>
-                </div>
-                <div class="flex flex-col bg-secondary/50 rounded-2xl p-4">
-                    <span class="text-xs text-muted-foreground mb-1 uppercase font-semibold tracking-wider">Recibidos</span>
-                    <span class="text-xl font-bold">@Model.OpponentAttacks.Count</span>
-                </div>
-                <div class="flex flex-col bg-secondary/50 rounded-2xl p-4">
-                    <span class="text-xs text-muted-foreground mb-1 uppercase font-semibold tracking-wider">Duración</span>
-                    <span class="text-xl font-bold">@((int)duration.TotalMinutes)m @duration.Seconds.ToString("00")s</span>
+                <div class="flex flex-col">
+                    <h2 class="text-2xl font-black uppercase tracking-wider @(Model.IWon ? "text-success" : "text-destructive")">
+                        @(Model.IWon ? "¡Has Ganado!" : "Derrota")
+                    </h2>
+                    <p class="text-sm text-muted-foreground">
+                        @(Model.IWon ? "Destruiste la flota enemiga." : "Tu flota fue hundida.")
+                    </p>
                 </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
-                <a href="/Battleship/Create" class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 rounded-full shadow-sm gap-2">
-                    <i data-lucide="swords" class="size-4"></i>
-                    Revancha
-                </a>
-                <a href="/Battleship/Index" class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-11 px-8 rounded-full shadow-sm gap-2">
-                    <i data-lucide="list" class="size-4"></i>
-                    Volver a mis partidas
-                </a>
+            <div class="flex flex-col gap-1 rounded-lg border bg-secondary/20 p-4">
+                <div class="flex items-center justify-between py-2 border-b border-border/50">
+                    <span class="text-sm text-muted-foreground">Rival</span>
+                    <span class="text-sm font-semibold">@Model.OpponentUsername</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-border/50">
+                    <span class="text-sm text-muted-foreground">Duración</span>
+                    <span class="text-sm font-semibold">@((int)duration.TotalMinutes) min @duration.Seconds.ToString("00") s</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-border/50">
+                    <span class="text-sm text-muted-foreground">Movimientos</span>
+                    <span class="text-sm font-semibold">@Model.MyAttacks.Count</span>
+                </div>
+                <div class="flex items-center justify-between py-2">
+                    <span class="text-sm text-muted-foreground">Fecha</span>
+                    <span class="text-sm font-semibold">@Model.FinishedAt?.ToString("dd/MM/yyyy")</span>
+                </div>
             </div>
         </div>
+        
+        <!-- Acciones -->
+        <div class="flex flex-col sm:flex-row gap-3 bg-muted/30 p-6 border-t mt-auto">
+            <a href="/Battleship/Index" class="inline-flex flex-1 items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 rounded-md shadow-sm">
+                Volver a Batallas
+            </a>
+            <a href="/Battleship/Index" class="inline-flex flex-1 items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 rounded-md shadow-sm">
+                Ver historial
+            </a>
+        </div>
+        
     </div>
 </div>

@@ -67,27 +67,53 @@ namespace LinkUpPro.Infrastructure.Identity.Services
         public async Task<ServiceResult> ForgotPasswordAsync(string username)
         {
             var user = await _userManager.FindByNameAsync(username);
-            if (user == null || !user.IsActive)
-                return ServiceResult.Failure("Nombre de usuario inválido o cuenta no activada.");
-
-            user.IsActive = false;
-            await _userManager.UpdateAsync(user);
+            if (user == null)
+                return ServiceResult.Failure("Usuario no encontrado."); // No debería mostrarse en frontend por seguridad, el controller lo maneja
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
             var baseUrl = GetBaseUrl();
-            var resetLink = $"{baseUrl}/Auth/ResetPassword?token={encodedToken}&userId={user.Id}";
+            var resetLink = $"{baseUrl}/Auth/ResetPassword?userId={user.Id}&token={encodedToken}";
 
             await _emailService.SendEmailAsync(new EmailRequest
             {
                 To = user.Email!,
-                Subject = "Restablece tu contraseña - LinkUp",
+                Subject = "Recuperación de contraseña - LinkUp",
                 Body = $@"
-                <h2>Restablecer contraseña</h2>
-                <p>Haz clic en el siguiente enlace para crear una nueva contraseña:</p>
+                <h2>¡Hola {user.FirstName}!</h2>
+                <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
                 <a href='{resetLink}'>Restablecer contraseña</a>
-                <p>Si no puedes hacer clic, copia este enlace:</p>
-                <p>{resetLink}</p>"
+                <p>Si no solicitaste esto, ignora este correo.</p>"
+            });
+
+            return ServiceResult.Success();
+        }
+
+        public async Task<ServiceResult> ResendActivationEmailAsync(string username)
+        {
+            var user = await _userManager.FindByNameAsync(username) ?? await _userManager.FindByEmailAsync(username);
+            
+            if (user == null)
+                return ServiceResult.Failure("No existe ninguna cuenta asociada a este correo o nombre de usuario.");
+
+            if (user.IsActive)
+                return ServiceResult.Failure("Esta cuenta ya se encuentra activa. Puedes iniciar sesión.");
+
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+            var baseUrl = GetBaseUrl();
+            var activationLink = $"{baseUrl}/Auth/ActivateAccount?token={encodedToken}&userId={user.Id}";
+
+            await _emailService.SendEmailAsync(new EmailRequest
+            {
+                To = user.Email!,
+                Subject = "Activa tu cuenta de LinkUp",
+                Body = $@"
+                <h2>¡Hola {user.FirstName}!</h2>
+                <p>Haz clic en el siguiente enlace para activar tu cuenta de LinkUp:</p>
+                <a href='{activationLink}'>Activar cuenta</a>
+                <p>Si no puedes hacer clic, copia este enlace en tu navegador:</p>
+                <p>{activationLink}</p>"
             });
 
             return ServiceResult.Success();
@@ -113,19 +139,35 @@ namespace LinkUpPro.Infrastructure.Identity.Services
         public async Task<ServiceResult> LoginAsync(LoginViewModel vm)
         {
             var user = await _userManager.FindByNameAsync(vm.Username);
-            if (user == null || !user.IsActive)
-                return ServiceResult.Failure("Nombre de usuario inválido o cuenta no activada.");
+            
+            // Si el usuario no existe, devolvemos error genérico sin revelar que no existe
+            if (user == null)
+                return ServiceResult.Failure("El nombre de usuario o la contraseña son incorrectos.");
 
+            // Si está bloqueado
             if (await _userManager.IsLockedOutAsync(user))
-                return ServiceResult.Failure("Tu cuenta está bloqueada temporalmente. Intenta de nuevo en 15 minutos.");
+                return ServiceResult.Failure("La cuenta se encuentra bloqueada temporalmente debido a varios intentos fallidos. Intenta de nuevo en 15 minutos.");
 
-            var result = await _signInManager.PasswordSignInAsync(user, vm.Password!, isPersistent: vm.RememberMe, lockoutOnFailure: true);
+            // Validar contraseña manualmente (para no iniciar sesión si está inactiva)
+            var passwordValid = await _userManager.CheckPasswordAsync(user, vm.Password!);
+            if (!passwordValid)
+            {
+                await _userManager.AccessFailedAsync(user);
+                
+                if (await _userManager.IsLockedOutAsync(user))
+                    return ServiceResult.Failure("La cuenta se encuentra bloqueada temporalmente debido a varios intentos fallidos. Intenta de nuevo en 15 minutos.");
+                    
+                return ServiceResult.Failure("El nombre de usuario o la contraseña son incorrectos.");
+            }
 
-            if (result.IsLockedOut)
-                return ServiceResult.Failure("Tu cuenta ha sido bloqueada por múltiples intentos fallidos. Intenta de nuevo en 15 minutos.");
+            // Si la contraseña es correcta, validamos si la cuenta está activa
+            if (!user.IsActive)
+                return ServiceResult.Failure("Su cuenta se encuentra inactiva. Debe activarla mediante el enlace enviado a su correo electrónico.");
 
-            if (!result.Succeeded)
-                return ServiceResult.Failure("Contraseña incorrecta.");
+            // Si todo está correcto, reiniciamos contador de intentos e iniciamos sesión
+            await _userManager.ResetAccessFailedCountAsync(user);
+
+            await _signInManager.SignInAsync(user, isPersistent: vm.RememberMe);
 
             return ServiceResult.Success();
         }

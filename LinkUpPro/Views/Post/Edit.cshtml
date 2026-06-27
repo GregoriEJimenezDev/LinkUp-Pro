@@ -1,0 +1,69 @@
+@using LinkUpPro.Core.Application.ViewModel.Save
+@using LinkUpPro.Core.Domain.Enum
+@model SavePostViewModel
+
+@{
+    ViewData["Title"] = "Editar Publicación";
+}
+
+<div class="max-w-2xl mx-auto flex flex-col gap-4">
+    <div class="rounded-2xl border bg-card text-card-foreground shadow-sm p-6">
+        <h2 class="text-xl font-bold mb-4">Editar Publicación</h2>
+        
+        <form asp-controller="Post" asp-action="Edit" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="MediaType" id="MediaType" />
+            
+            <div class="flex flex-col gap-4">
+                <textarea asp-for="Content" placeholder="¿Qué estás pensando?" class="flex min-h-[120px] w-full rounded-md px-3 py-2 text-sm border bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" required></textarea>
+                <span asp-validation-for="Content" class="text-xs text-destructive"></span>
+                
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-medium">Privacidad</label>
+                    <select asp-for="Privacy" class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-card px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
+                        <option value="1">Público</option>
+                        <option value="2">Solo amigos</option>
+                        <option value="3">Solo yo</option>
+                    </select>
+                </div>
+                
+                <div class="flex items-center gap-2 mt-2">
+                    <input asp-for="AllowComments" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                    <label asp-for="AllowComments" class="text-sm font-medium">Permitir comentarios</label>
+                </div>
+
+                <div class="my-2 h-[1px] w-full shrink-0 bg-border"></div>
+                
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-medium">Multimedia (Opcional)</label>
+                    
+                    @if (Model.MediaType == MediaType.Video)
+                    {
+                        <input type="text" asp-for="VideoUrl" placeholder="URL de YouTube" class="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" oninput="document.getElementById('MediaType').value = '1';" />
+                        <span class="text-xs text-muted-foreground">Si deseas cambiar a imagen, borra la URL y selecciona una foto.</span>
+                        <input type="file" name="File" accept="image/*" class="mt-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90" onchange="document.getElementById('MediaType').value = '0'; document.getElementById('VideoUrl').value = '';" />
+                    }
+                    else
+                    {
+                        <input type="text" asp-for="VideoUrl" placeholder="URL de YouTube" class="hidden h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background" id="VideoUrlInput" oninput="document.getElementById('MediaType').value = '1'; document.getElementById('ImageFileInput').value = '';" />
+                        <input type="file" id="ImageFileInput" name="File" accept="image/*" class="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90" onchange="document.getElementById('MediaType').value = '0'; document.getElementById('VideoUrlInput').classList.add('hidden');" />
+                        <button type="button" onclick="document.getElementById('VideoUrlInput').classList.toggle('hidden')" class="self-start text-xs text-primary hover:underline mt-1">O usar enlace de Video (reemplazará la imagen actual)</button>
+                    }
+                </div>
+            </div>
+
+            <div class="mt-6 flex items-center justify-end gap-3">
+                <a asp-controller="Home" asp-action="Index" class="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 rounded-md text-sm border border-input">
+                    Cancelar
+                </a>
+                <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-md text-sm">
+                    Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

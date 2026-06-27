@@ -6,17 +6,30 @@
 @{
     ViewData["Title"] = "Battleship";
     var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    
+    // Separate invitations from active games
+    var pendingInvitations = Model.ActiveGames
+        .Where(g => g.Status == GameStatus.WaitingForOpponent && g.Player2Id == currentUserId)
+        .ToList();
+        
+    var activeGames = Model.ActiveGames
+        .Except(pendingInvitations)
+        .ToList();
 }
 
-<div class="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <div class="flex items-center justify-between">
+<div class="flex flex-col gap-8 w-full max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <!-- Encabezado -->
+    <div class="flex items-center justify-between rounded-xl bg-card border shadow-sm p-6">
         <div class="flex flex-col gap-1">
-            <h1 class="text-2xl font-bold tracking-tight">Battleship</h1>
-            <p class="text-sm text-muted-foreground">Destruye la flota enemiga antes de que hundan la tuya.</p>
+            <h1 class="text-2xl font-bold tracking-tight flex items-center gap-2">
+                <i data-lucide="gamepad-2" class="size-6 text-primary"></i>
+                Batallas
+            </h1>
+            <p class="text-sm text-muted-foreground">Juega Battleship con tus amigos</p>
         </div>
-        <a href="/Battleship/Create" class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-full shadow-sm gap-2">
-            <i data-lucide="swords" class="size-4"></i>
-            Nueva partida
+        <a href="/Battleship/Create" class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-md shadow-sm gap-2">
+            <i data-lucide="plus" class="size-4"></i>
+            Nueva Partida
         </a>
     </div>
 
@@ -27,90 +40,91 @@
         </div>
     }
 
-    <!-- Estadísticas -->
-    <div class="grid grid-cols-3 gap-4">
-        <div class="rounded-2xl border bg-card p-4 shadow-sm flex flex-col gap-2">
-            <div class="flex items-center gap-2 text-muted-foreground">
-                <i data-lucide="gamepad-2" class="size-4"></i>
-                <span class="text-xs font-medium">Partidas</span>
-            </div>
-            <p class="text-2xl font-bold">@Model.TotalGames</p>
-        </div>
-        <div class="rounded-2xl border bg-card p-4 shadow-sm flex flex-col gap-2">
-            <div class="flex items-center gap-2 text-success">
-                <i data-lucide="trophy" class="size-4"></i>
-                <span class="text-xs font-medium">Victorias</span>
-            </div>
-            <p class="text-2xl font-bold">@Model.WonGames</p>
-        </div>
-        <div class="rounded-2xl border bg-card p-4 shadow-sm flex flex-col gap-2">
-            <div class="flex items-center gap-2 text-destructive">
-                <i data-lucide="skull" class="size-4"></i>
-                <span class="text-xs font-medium">Derrotas</span>
-            </div>
-            <p class="text-2xl font-bold">@Model.LostGames</p>
-        </div>
-    </div>
-
-    <div class="grid gap-6 md:grid-cols-2">
-        <!-- Partidas en curso -->
-        <div class="flex flex-col gap-4">
-            <div class="flex items-center gap-2">
-                <div class="flex size-6 items-center justify-center rounded-full bg-primary/10">
-                    <div class="size-2 rounded-full bg-primary animate-pulse"></div>
-                </div>
-                <h2 class="text-lg font-semibold">En curso</h2>
-                <span class="ml-auto rounded-full bg-secondary px-2 py-0.5 text-xs font-medium">
-                    @Model.ActiveGames.Count
-                </span>
-            </div>
-
-            <div class="flex flex-col gap-3">
-                @if (Model.ActiveGames.Any())
+    <!-- Invitaciones pendientes -->
+    @if (pendingInvitations.Any())
+    {
+        <div class="flex flex-col gap-3">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Invitaciones pendientes (@pendingInvitations.Count)</h2>
+            <div class="grid gap-3">
+                @foreach (var game in pendingInvitations)
                 {
-                    foreach (var game in Model.ActiveGames)
+                    <div class="flex items-center justify-between rounded-lg border bg-card p-4 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                                <i data-lucide="swords" class="size-5 text-primary"></i>
+                            </div>
+                            <p class="text-sm font-medium"><span class="font-bold text-foreground">@game.Player1Username</span> te invitó a jugar</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a href="/Battleship/SelectShip?gameId=@game.Id" class="inline-flex items-center justify-center h-8 px-3 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors">
+                                Aceptar
+                            </a>
+                            <form asp-action="Reject" method="post" class="m-0">
+                                <input type="hidden" name="gameId" value="@game.Id" />
+                                <button type="submit" class="inline-flex items-center justify-center h-8 px-3 rounded-md bg-secondary text-secondary-foreground text-xs font-medium hover:bg-secondary/80 transition-colors">
+                                    Rechazar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="grid gap-8 md:grid-cols-[2fr_1fr]">
+        <!-- Partidas Activas -->
+        <div class="flex flex-col gap-3">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Partidas activas</h2>
+            
+            <div class="flex flex-col gap-3">
+                @if (activeGames.Any())
+                {
+                    foreach (var game in activeGames)
                     {
                         var opponentUsername = game.Player1Id == currentUserId ? game.Player2Username : game.Player1Username;
                         var isMyTurn = game.CurrentTurnPlayerId == currentUserId;
                         
-                        <div class="group flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
+                        <div class="flex items-center justify-between rounded-lg border bg-card p-4 hover:bg-accent/50 transition-colors">
                             <div class="flex items-center gap-3">
-                                <div class="relative flex size-10 shrink-0 overflow-hidden rounded-full border border-border">
-                                    <img class="aspect-square h-full w-full bg-secondary object-cover" src="/placeholder.svg" alt="@opponentUsername" />
+                                <div class="relative flex size-10 shrink-0 overflow-hidden rounded-full border border-border bg-secondary">
+                                    <i data-lucide="user" class="size-5 m-auto text-muted-foreground"></i>
                                 </div>
                                 <div class="flex flex-col">
                                     <span class="text-sm font-semibold">vs @opponentUsername</span>
-                                    <span class="text-xs text-muted-foreground flex items-center gap-1">
-                                        @if (game.Status == GameStatus.PlacingShips)
+                                    
+                                    @if (game.Status == GameStatus.WaitingForOpponent)
+                                    {
+                                        <span class="text-xs text-muted-foreground">Esperando que acepte...</span>
+                                    }
+                                    else if (game.Status == GameStatus.PlacingShips)
+                                    {
+                                        <span class="text-xs text-yellow-500 font-medium">Fase de preparación</span>
+                                    }
+                                    else
+                                    {
+                                        if (isMyTurn)
                                         {
-                                            <i data-lucide="anchor" class="size-3 text-yellow-500"></i>
-                                            <span>Fase de preparación</span>
+                                            <span class="text-xs text-primary font-medium flex items-center gap-1"><i data-lucide="play" class="size-3 fill-current"></i> Tu turno</span>
                                         }
                                         else
                                         {
-                                            if (isMyTurn)
-                                            {
-                                                <span class="text-primary font-medium">¡Tu turno!</span>
-                                            }
-                                            else
-                                            {
-                                                <span>Esperando al rival</span>
-                                            }
+                                            <span class="text-xs text-muted-foreground">Esperando al rival</span>
                                         }
-                                    </span>
+                                    }
                                 </div>
                             </div>
 
-                            @if (game.Status == GameStatus.PlacingShips)
+                            @if (game.Status == GameStatus.PlacingShips || (game.Status == GameStatus.WaitingForOpponent && game.Player1Id == currentUserId))
                             {
-                                <a href="/Battleship/SelectShip?gameId=@game.Id" class="rounded-full bg-secondary px-3 py-1.5 text-xs font-medium hover:bg-secondary/80 transition-colors">
-                                    Preparar
+                                <a href="/Battleship/SelectShip?gameId=@game.Id" class="inline-flex h-8 items-center justify-center rounded-md bg-secondary px-3 text-xs font-medium hover:bg-secondary/80">
+                                    @(game.Status == GameStatus.WaitingForOpponent ? "Ver sala" : "Preparar")
                                 </a>
                             }
                             else
                             {
-                                <a href="/Battleship/AttackBoard?gameId=@game.Id" class="rounded-full @(isMyTurn ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-secondary hover:bg-secondary/80") px-3 py-1.5 text-xs font-medium transition-colors">
-                                    @(isMyTurn ? "Atacar" : "Ver tablero")
+                                <a href="/Battleship/AttackBoard?gameId=@game.Id" class="inline-flex h-8 items-center justify-center rounded-md @(isMyTurn ? "bg-primary text-primary-foreground hover:bg-primary/90" : "bg-secondary text-secondary-foreground hover:bg-secondary/80") px-3 text-xs font-medium">
+                                    @(isMyTurn ? "Continuar" : "Ver partida")
                                 </a>
                             }
                         </div>
@@ -118,68 +132,48 @@
                 }
                 else
                 {
-                    <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-                        <i data-lucide="ship" class="mb-2 size-6 opacity-20"></i>
-                        No tienes partidas en curso.
+                    <div class="flex flex-col items-center justify-center rounded-lg border border-dashed py-8 text-center text-sm text-muted-foreground">
+                        No hay partidas activas.
                     </div>
                 }
             </div>
         </div>
 
-        <!-- Historial de partidas -->
-        <div class="flex flex-col gap-4">
-            <div class="flex items-center gap-2">
-                <i data-lucide="history" class="size-5 text-muted-foreground"></i>
-                <h2 class="text-lg font-semibold">Historial</h2>
-            </div>
-
-            <div class="flex flex-col gap-3">
+        <!-- Historial reciente -->
+        <div class="flex flex-col gap-3">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Historial reciente</h2>
+            
+            <div class="flex flex-col gap-2">
                 @if (Model.FinishedGames.Any())
                 {
-                    foreach (var game in Model.FinishedGames.Take(5))
+                    foreach (var game in Model.FinishedGames.Take(6))
                     {
                         var opponentUsername = game.Player1Id == currentUserId ? game.Player2Username : game.Player1Username;
                         var isWinner = game.WinnerId == currentUserId;
                         var isAbandoned = game.Status == GameStatus.Abandoned;
                         
-                        <div class="flex items-center justify-between rounded-xl border bg-card/50 p-3 shadow-sm">
-                            <div class="flex items-center gap-3">
-                                <div class="relative flex size-8 shrink-0 overflow-hidden rounded-full border border-border">
-                                    <img class="aspect-square h-full w-full bg-secondary object-cover opacity-80" src="/placeholder.svg" alt="@opponentUsername" />
-                                </div>
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-medium">vs @opponentUsername</span>
-                                    <span class="text-[10px] text-muted-foreground">@game.FinishedAt?.ToString("dd MMM yyyy")</span>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-2">
+                        <a href="/Battleship/Result?gameId=@game.Id" class="flex items-center justify-between rounded-lg border bg-card p-3 hover:bg-accent/50 transition-colors">
+                            <span class="text-sm font-medium flex items-center gap-2">
                                 @if (isAbandoned)
                                 {
-                                    <span class="rounded-md bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">Abandonada</span>
+                                    <span>🏳️ vs @opponentUsername</span>
                                 }
                                 else if (isWinner)
                                 {
-                                    <span class="rounded-md bg-success/15 px-2 py-0.5 text-[10px] font-medium text-success">Victoria</span>
+                                    <span>🏆 vs @opponentUsername</span>
                                 }
                                 else
                                 {
-                                    <span class="rounded-md bg-destructive/15 px-2 py-0.5 text-[10px] font-medium text-destructive">Derrota</span>
+                                    <span>❌ vs @opponentUsername</span>
                                 }
-                                
-                                <a href="/Battleship/Result?gameId=@game.Id" class="rounded-full p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors">
-                                    <i data-lucide="chevron-right" class="size-4"></i>
-                                </a>
-                            </div>
-                        </div>
+                            </span>
+                            <i data-lucide="chevron-right" class="size-4 text-muted-foreground"></i>
+                        </a>
                     }
                 }
                 else
                 {
-                    <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-                        <i data-lucide="inbox" class="mb-2 size-6 opacity-20"></i>
-                        Aún no has terminado ninguna partida.
-                    </div>
+                    <div class="text-sm text-muted-foreground py-4 text-center">Sin historial.</div>
                 }
             </div>
         </div>

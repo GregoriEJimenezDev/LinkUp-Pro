@@ -3,7 +3,6 @@
 
 @{
     ViewData["Title"] = "Colocar nave";
-    // Crear mapa de celdas ocupadas para fácil acceso
     var occupied = new HashSet<string>();
     if (Model.OccupiedCells != null)
     {
@@ -14,14 +13,15 @@
     }
 }
 
-<div class="flex flex-col gap-6 w-full max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <div class="flex items-center gap-4">
+<div class="flex flex-col gap-6 w-full max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <!-- Encabezado -->
+    <div class="flex items-center gap-4 border-b pb-4">
         <a href="/Battleship/SelectShip?gameId=@Model.GameId" class="inline-flex items-center justify-center rounded-full bg-secondary h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors">
             <i data-lucide="arrow-left" class="size-5"></i>
         </a>
         <div class="flex flex-col">
-            <h1 class="text-2xl font-bold tracking-tight text-foreground">Posicionar @Model.ShipType</h1>
-            <p class="text-sm text-muted-foreground">Tamaño: @Model.ShipSize casillas</p>
+            <h1 class="text-2xl font-bold tracking-tight text-foreground">Coloca tus barcos</h1>
+            <p class="text-sm text-muted-foreground">Posicionando: <span class="font-semibold text-primary">@Model.ShipType</span> (@Model.ShipSize espacios)</p>
         </div>
     </div>
 
@@ -32,80 +32,89 @@
         </div>
     }
 
-    <div class="grid gap-8 md:grid-cols-2">
-        <!-- Tablero -->
-        <div class="flex flex-col items-center justify-center rounded-2xl border bg-card p-6 shadow-sm">
-            <div class="grid grid-cols-8 gap-1 bg-secondary/20 p-2 rounded-xl" id="battleship-board">
-                @for (int r = 0; r < 8; r++)
-                {
-                    for (int c = 0; c < 8; c++)
+    <div class="grid gap-8 md:grid-cols-[1fr_300px]">
+        <!-- TU TABLERO -->
+        <div class="flex flex-col gap-4 rounded-xl border bg-card p-6 shadow-sm relative overflow-hidden">
+            <h2 class="text-center font-bold tracking-widest text-muted-foreground uppercase text-xs mb-2">Tu Tablero</h2>
+            
+            <div class="mx-auto grid grid-cols-[auto_1fr] gap-2">
+                <!-- Números de fila -->
+                <div class="flex flex-col gap-1 pr-2 pt-6">
+                    @for (int r = 1; r <= 8; r++)
                     {
-                        bool isOccupied = occupied.Contains($"{r},{c}");
-                        <button type="button" 
-                                class="board-cell size-10 md:size-12 rounded-md transition-all flex items-center justify-center text-xs @(isOccupied ? "bg-success/80 cursor-not-allowed" : "bg-secondary hover:bg-primary/20 cursor-pointer")"
-                                data-row="@r" 
-                                data-col="@c"
-                                @(isOccupied ? "disabled" : "")
-                                onclick="selectCell(@r, @c, this)">
-                            @if (isOccupied)
-                            {
-                                <i data-lucide="check" class="size-4 text-success-foreground opacity-80"></i>
-                            }
-                        </button>
+                        <div class="flex size-10 md:size-12 items-center justify-center text-xs font-semibold text-muted-foreground">@r</div>
                     }
-                }
+                </div>
+                
+                <div class="flex flex-col gap-1">
+                    <!-- Letras de columna -->
+                    <div class="grid grid-cols-8 gap-1">
+                        @{ string[] cols = { "A", "B", "C", "D", "E", "F", "G", "H" }; }
+                        @foreach (var c in cols)
+                        {
+                            <div class="flex h-6 items-center justify-center text-xs font-semibold text-muted-foreground">@c</div>
+                        }
+                    </div>
+
+                    <!-- Grilla -->
+                    <div class="grid grid-cols-8 gap-1 bg-border/50 p-1 rounded-lg" id="battleship-board">
+                        @for (int r = 0; r < 8; r++)
+                        {
+                            for (int c = 0; c < 8; c++)
+                            {
+                                bool isOccupied = occupied.Contains($"{r},{c}");
+                                <button type="button" 
+                                        class="board-cell size-10 md:size-12 rounded-sm transition-all flex items-center justify-center text-xs @(isOccupied ? "bg-primary/40 cursor-not-allowed" : "bg-secondary hover:bg-primary/20 cursor-pointer") border border-transparent"
+                                        data-row="@r" 
+                                        data-col="@c"
+                                        @(isOccupied ? "disabled" : "")
+                                        onclick="selectCell(@r, @c, this)">
+                                </button>
+                            }
+                        }
+                    </div>
+                </div>
             </div>
-            <p class="text-xs text-muted-foreground mt-4 text-center">Selecciona la coordenada inicial para tu nave</p>
+            
+            <p class="text-xs text-muted-foreground mt-4 text-center">Selecciona la coordenada inicial en el tablero</p>
         </div>
 
-        <!-- Formulario -->
-        <div class="flex flex-col rounded-2xl border bg-card p-6 shadow-sm">
-            <h2 class="text-lg font-semibold mb-4">Configurar posición</h2>
+        <!-- Panel Lateral (Controles) -->
+        <div class="flex flex-col rounded-xl border bg-card p-6 shadow-sm">
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">Controles</h2>
             
             <form asp-action="PlaceShip" method="post" class="flex flex-col gap-6 flex-1">
                 <input type="hidden" name="gameId" value="@Model.GameId" />
                 <input type="hidden" name="shipType" value="@Model.ShipType" />
                 <input type="hidden" id="inputRow" name="row" value="" required />
                 <input type="hidden" id="inputCol" name="col" value="" required />
+                <input type="hidden" id="inputDir" name="direction" value="3" required /> <!-- 3 = Right, 1 = Down -->
 
                 <div class="flex flex-col gap-2">
                     <span class="text-sm font-medium">Coordenada seleccionada</span>
-                    <div id="selected-coords" class="flex items-center justify-center rounded-xl border border-dashed bg-secondary/50 p-4 text-2xl font-mono text-muted-foreground">
+                    <div id="selected-coords" class="flex items-center justify-center rounded-lg border border-dashed bg-secondary/50 p-4 text-2xl font-mono text-muted-foreground transition-colors">
                         --
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-2 mt-2">
-                    <span class="text-sm font-medium">Dirección de la nave</span>
-                    <div class="grid grid-cols-2 gap-2">
-                        <label class="flex cursor-pointer flex-col items-center justify-center rounded-xl border bg-card p-3 transition-all hover:bg-accent/50 [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5">
-                            <input type="radio" name="direction" value="@((int)ShipDirection.Up)" class="sr-only" required />
-                            <i data-lucide="arrow-up" class="size-5 mb-1 text-muted-foreground"></i>
-                            <span class="text-xs font-medium">Arriba</span>
-                        </label>
-                        <label class="flex cursor-pointer flex-col items-center justify-center rounded-xl border bg-card p-3 transition-all hover:bg-accent/50 [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5">
-                            <input type="radio" name="direction" value="@((int)ShipDirection.Down)" class="sr-only" required checked />
-                            <i data-lucide="arrow-down" class="size-5 mb-1 text-muted-foreground"></i>
-                            <span class="text-xs font-medium">Abajo</span>
-                        </label>
-                        <label class="flex cursor-pointer flex-col items-center justify-center rounded-xl border bg-card p-3 transition-all hover:bg-accent/50 [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5">
-                            <input type="radio" name="direction" value="@((int)ShipDirection.Left)" class="sr-only" required />
-                            <i data-lucide="arrow-left" class="size-5 mb-1 text-muted-foreground"></i>
-                            <span class="text-xs font-medium">Izquierda</span>
-                        </label>
-                        <label class="flex cursor-pointer flex-col items-center justify-center rounded-xl border bg-card p-3 transition-all hover:bg-accent/50 [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5">
-                            <input type="radio" name="direction" value="@((int)ShipDirection.Right)" class="sr-only" required />
-                            <i data-lucide="arrow-right" class="size-5 mb-1 text-muted-foreground"></i>
-                            <span class="text-xs font-medium">Derecha</span>
-                        </label>
-                    </div>
+                    <span class="text-sm font-medium">Orientación</span>
+                    <button type="button" id="btnRotate" onclick="toggleRotation()" class="flex h-11 w-full items-center justify-between rounded-lg border bg-secondary/50 px-4 text-sm font-medium transition-colors hover:bg-secondary">
+                        <span id="rotationLabel">Horizontal</span>
+                        <i data-lucide="rotate-cw" class="size-4"></i>
+                    </button>
+                    <p class="text-xs text-muted-foreground mt-1">La nave se extenderá hacia la <span id="directionHint" class="font-semibold text-foreground">derecha</span>.</p>
                 </div>
 
-                <div class="mt-auto pt-4 flex justify-end">
-                    <button type="submit" id="submitBtn" disabled class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 rounded-full shadow-sm gap-2 w-full">
-                        <i data-lucide="anchor" class="size-4"></i>
+                <div class="mt-auto pt-4 flex flex-col gap-3">
+                    <button type="submit" id="submitBtn" disabled class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 rounded-md shadow-sm w-full gap-2">
+                        <i data-lucide="check" class="size-4"></i>
                         Confirmar posición
                     </button>
+                    
+                    <a href="/Battleship/SelectShip?gameId=@Model.GameId" class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 px-8 rounded-md w-full">
+                        Cancelar
+                    </a>
                 </div>
             </form>
         </div>
@@ -115,11 +124,27 @@
 @section Scripts {
     <script>
         const columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+        let isHorizontal = true; // true = Right (3), false = Down (1)
+        
+        function toggleRotation() {
+            isHorizontal = !isHorizontal;
+            document.getElementById('inputDir').value = isHorizontal ? '3' : '1';
+            document.getElementById('rotationLabel').textContent = isHorizontal ? 'Horizontal' : 'Vertical';
+            document.getElementById('directionHint').textContent = isHorizontal ? 'derecha' : 'abajo';
+            
+            // Re-render preview si hay una celda seleccionada
+            const r = document.getElementById('inputRow').value;
+            const c = document.getElementById('inputCol').value;
+            if (r !== "" && c !== "") {
+                const btn = document.querySelector(`.board-cell[data-row="${r}"][data-col="${c}"]`);
+                if (btn) selectCell(parseInt(r), parseInt(c), btn);
+            }
+        }
         
         function selectCell(row, col, btnElement) {
             // Quitar clase de seleccionado a todos
             document.querySelectorAll('.board-cell').forEach(el => {
-                el.classList.remove('ring-2', 'ring-primary', 'ring-offset-2', 'bg-primary/20');
+                el.classList.remove('ring-2', 'ring-primary', 'ring-offset-2', 'bg-primary/20', 'border-primary');
             });
             
             // Añadir clase al seleccionado

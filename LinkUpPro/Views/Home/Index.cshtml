@@ -27,7 +27,7 @@
     }
     <div class="rounded-2xl border bg-card text-card-foreground shadow-sm p-4">
         <form asp-controller="Post" asp-action="Create" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="MediaType" value="0" />
+            <input type="hidden" id="MediaType" name="MediaType" value="0" />
             <div class="flex items-start gap-3">
                 <div class="relative flex size-11 shrink-0 overflow-hidden rounded-full">
                     <img class="aspect-square h-full w-full object-cover" src="@profilePic" alt="User" onerror="this.src='/placeholder.svg'" />
@@ -88,6 +88,10 @@
                                     <p class="text-sm font-semibold leading-none">@post.Username</p>
                                     <div class="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                                         <span>@post.CreatedAt.ToString("g")</span>
+                                        @if (post.UpdatedAt.HasValue)
+                                        {
+                                            <span class="text-[10px] ml-1">(Editado)</span>
+                                        }
                                         <span>•</span>
                                         @if (post.Privacy == PostPrivacy.Public)
                                         {
@@ -104,6 +108,21 @@
                                     </div>
                                 </div>
                             </div>
+                            @if (post.UserId == ViewBag.CurrentUserId)
+                            {
+                                <div class="relative group">
+                                    <button class="p-2 text-muted-foreground hover:bg-accent rounded-full focus:outline-none">
+                                        <i data-lucide="more-vertical" class="size-4"></i>
+                                    </button>
+                                    <div class="absolute right-0 mt-1 hidden w-32 rounded-md shadow-lg bg-card ring-1 ring-border ring-opacity-5 group-hover:block z-10 border">
+                                        <a asp-controller="Post" asp-action="Edit" asp-route-id="@post.Id" class="block w-full text-left px-4 py-2 text-sm text-foreground hover:bg-muted cursor-pointer">Editar</a>
+                                        <form asp-controller="Post" asp-action="Delete" method="post" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta publicación?');">
+                                            <input type="hidden" name="id" value="@post.Id" />
+                                            <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-destructive hover:bg-muted cursor-pointer">Eliminar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            }
                         </div>
 
                         <div class="mt-4 text-sm whitespace-pre-wrap">@post.Content</div>
@@ -128,7 +147,12 @@
                             <div class="flex items-center justify-center rounded-full bg-primary p-1">
                                 <i data-lucide="thumbs-up" class="size-3 text-primary-foreground fill-current"></i>
                             </div>
-                            <span class="font-medium">@post.LikesCount</span>
+                            <span class="font-medium mr-2">@post.LikesCount</span>
+                            
+                            <div class="flex items-center justify-center rounded-full bg-destructive p-1">
+                                <i data-lucide="thumbs-down" class="size-3 text-destructive-foreground fill-current"></i>
+                            </div>
+                            <span class="font-medium">@post.DislikesCount</span>
                         </div>
                         <div class="ml-auto flex items-center gap-3">
                             <span>@post.Comments.Count comentarios</span>
@@ -138,14 +162,128 @@
                     <div class="my-0 h-[1px] w-full shrink-0 bg-border mx-4"></div>
 
                     <div class="flex items-center justify-between gap-1 p-2">
-                        <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 py-2 flex-1 gap-2 text-muted-foreground @(post.CurrentUserReaction == true ? "text-primary" : "")">
-                            <i data-lucide="thumbs-up" class="size-4 @(post.CurrentUserReaction == true ? "fill-current" : "")"></i>
-                            Me gusta
-                        </button>
-                        <button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 py-2 flex-1 gap-2 text-muted-foreground">
+                        <form asp-controller="Reaction" asp-action="Toggle" method="post" class="flex-1 flex">
+                            <input type="hidden" name="postId" value="@post.Id" />
+                            <input type="hidden" name="isLike" value="true" />
+                            <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 py-2 flex-1 gap-2 text-muted-foreground @(post.CurrentUserReaction == true ? "text-primary" : "")">
+                                <i data-lucide="thumbs-up" class="size-4 @(post.CurrentUserReaction == true ? "fill-current" : "")"></i>
+                                Me gusta
+                            </button>
+                        </form>
+                        
+                        <form asp-controller="Reaction" asp-action="Toggle" method="post" class="flex-1 flex">
+                            <input type="hidden" name="postId" value="@post.Id" />
+                            <input type="hidden" name="isLike" value="false" />
+                            <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 py-2 flex-1 gap-2 text-muted-foreground @(post.CurrentUserReaction == false ? "text-destructive" : "")">
+                                <i data-lucide="thumbs-down" class="size-4 @(post.CurrentUserReaction == false ? "fill-current" : "")"></i>
+                                No me gusta
+                            </button>
+                        </form>
+
+                        <button type="button" onclick="document.getElementById('comments-@post.Id').classList.toggle('hidden')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 py-2 flex-1 gap-2 text-muted-foreground">
                             <i data-lucide="message-circle" class="size-4"></i>
                             Comentar
                         </button>
+                    </div>
+
+                    <!-- Seccion de Comentarios -->
+                    <div id="comments-@post.Id" class="hidden border-t border-border p-4 bg-muted/5">
+                        @if (post.AllowComments)
+                        {
+                            <form asp-controller="Comment" asp-action="Create" method="post" class="flex items-start gap-3 mb-4">
+                                <input type="hidden" name="PostId" value="@post.Id" />
+                                <div class="relative flex size-8 shrink-0 overflow-hidden rounded-full">
+                                    <img class="aspect-square h-full w-full object-cover" src="@profilePic" alt="User" onerror="this.src='/placeholder.svg'" />
+                                </div>
+                                <div class="flex-1 flex flex-col gap-2">
+                                    <input type="text" name="Content" placeholder="Escribe un comentario..." class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required />
+                                    <button type="submit" class="self-end bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md px-3 text-xs font-medium">
+                                        Publicar
+                                    </button>
+                                </div>
+                            </form>
+                        }
+                        else
+                        {
+                            <p class="text-sm text-muted-foreground text-center mb-4">Los comentarios están desactivados.</p>
+                        }
+
+                        @if (post.Comments != null && post.Comments.Any())
+                        {
+                            <div class="flex flex-col gap-4 mt-2">
+                                @foreach (var comment in post.Comments)
+                                {
+                                    <div class="flex flex-col gap-2">
+                                        <div class="flex gap-3">
+                                            <div class="relative flex size-8 shrink-0 overflow-hidden rounded-full">
+                                                <img class="aspect-square h-full w-full object-cover" src="@comment.UserProfilePicture" alt="@comment.Username" onerror="this.src='/placeholder.svg'" />
+                                            </div>
+                                            <div class="flex-1 bg-muted/30 border rounded-lg p-3 group">
+                                                <div class="flex items-center justify-between">
+                                                    <p class="text-sm font-semibold">@comment.Username</p>
+                                                    <div class="flex items-center gap-2">
+                                                        @if (comment.Username == User.Identity!.Name)
+                                                        {
+                                                            <form asp-controller="Comment" asp-action="Delete" method="post" class="inline">
+                                                                <input type="hidden" name="id" value="@comment.Id" />
+                                                                <input type="hidden" name="postId" value="@post.Id" />
+                                                                <button type="submit" class="text-[10px] text-destructive hover:underline hidden group-hover:inline-block">Eliminar</button>
+                                                            </form>
+                                                        }
+                                                    </div>
+                                                </div>
+                                                <p class="text-sm mt-1 whitespace-pre-wrap">@comment.Content</p>
+                                                <div class="flex items-center gap-3 mt-2">
+                                                    <p class="text-xs text-muted-foreground">@comment.CreatedAt.ToString("g")</p>
+                                                    <button type="button" onclick="document.getElementById('reply-form-@comment.Id').classList.toggle('hidden')" class="text-xs text-muted-foreground hover:text-primary font-medium">Responder</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Reply form -->
+                                        <form id="reply-form-@comment.Id" asp-controller="Comment" asp-action="Create" method="post" class="hidden flex items-start gap-3 ml-11 mt-1">
+                                            <input type="hidden" name="PostId" value="@post.Id" />
+                                            <input type="hidden" name="ParentCommentId" value="@comment.Id" />
+                                            <div class="flex-1 flex flex-col gap-2">
+                                                <input type="text" name="Content" placeholder="Escribe una respuesta..." class="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required />
+                                                <button type="submit" class="self-end bg-primary text-primary-foreground hover:bg-primary/90 h-7 rounded-md px-3 text-[10px] font-medium">
+                                                    Responder
+                                                </button>
+                                            </div>
+                                        </form>
+
+                                        @if (comment.Replies != null && comment.Replies.Any())
+                                        {
+                                            <div class="flex flex-col gap-3 ml-11 mt-1">
+                                                @foreach (var reply in comment.Replies)
+                                                {
+                                                    <div class="flex gap-3">
+                                                        <div class="relative flex size-6 shrink-0 overflow-hidden rounded-full mt-1">
+                                                            <img class="aspect-square h-full w-full object-cover" src="@reply.UserProfilePicture" alt="@reply.Username" onerror="this.src='/placeholder.svg'" />
+                                                        </div>
+                                                        <div class="flex-1 bg-muted/20 border rounded-lg p-2 group">
+                                                            <div class="flex items-center justify-between">
+                                                                <p class="text-xs font-semibold">@reply.Username</p>
+                                                                @if (reply.Username == User.Identity!.Name)
+                                                                {
+                                                                    <form asp-controller="Comment" asp-action="Delete" method="post" class="inline">
+                                                                        <input type="hidden" name="id" value="@reply.Id" />
+                                                                        <input type="hidden" name="postId" value="@post.Id" />
+                                                                        <button type="submit" class="text-[10px] text-destructive hover:underline hidden group-hover:inline-block">Eliminar</button>
+                                                                    </form>
+                                                                }
+                                                            </div>
+                                                            <p class="text-xs mt-1 whitespace-pre-wrap">@reply.Content</p>
+                                                            <p class="text-[10px] text-muted-foreground mt-1">@reply.CreatedAt.ToString("g")</p>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
                     </div>
                 </div>
             }

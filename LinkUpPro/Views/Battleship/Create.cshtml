@@ -6,7 +6,8 @@
 }
 
 <div class="flex flex-col gap-6 w-full max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <div class="flex items-center gap-4">
+    <!-- Header -->
+    <div class="flex items-center gap-4 border-b pb-4">
         <a href="/Battleship/Index" class="inline-flex items-center justify-center rounded-full bg-secondary h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors">
             <i data-lucide="arrow-left" class="size-5"></i>
         </a>
@@ -23,36 +24,41 @@
         </div>
     }
 
-    <div class="rounded-2xl border bg-card p-6 shadow-sm">
+    <div class="flex flex-col gap-4">
         @if (Model != null && Model.Any())
         {
-            <form asp-action="Create" method="post" class="flex flex-col gap-4">
-                <div class="space-y-4">
+            <!-- Buscador -->
+            <div class="relative">
+                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"></i>
+                <input type="text" id="friendSearch" placeholder="Buscar amigo..." class="flex h-11 w-full rounded-md border border-input bg-card pl-9 pr-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+            </div>
+
+            <!-- Lista de Amigos -->
+            <form asp-action="Create" method="post" class="rounded-xl border bg-card overflow-hidden">
+                <div class="flex flex-col divide-y divide-border" id="friendList">
                     @foreach (var friend in Model)
                     {
-                        <label class="flex cursor-pointer items-center justify-between rounded-xl border bg-card p-4 transition-all hover:bg-accent/50 [&:has(:checked)]:border-primary [&:has(:checked)]:bg-primary/5">
-                            <div class="flex items-center gap-4">
-                                <div class="relative flex size-12 shrink-0 overflow-hidden rounded-full border border-border">
+                        <div class="friend-item flex items-center justify-between p-4 transition-colors hover:bg-accent/50">
+                            <div class="flex items-center gap-3">
+                                <div class="relative flex size-10 shrink-0 overflow-hidden rounded-full border border-border">
                                     <img class="aspect-square h-full w-full object-cover" src="@friend.ProfilePicture" alt="@friend.Username" onerror="this.src='/placeholder.svg'" />
                                 </div>
                                 <div class="flex flex-col">
-                                    <span class="text-sm font-semibold">@friend.FullName</span>
-                                    <span class="text-xs text-muted-foreground">@@@friend.Username</span>
+                                    <span class="text-sm font-semibold friend-name">@friend.FullName</span>
+                                    <span class="text-xs text-muted-foreground friend-username">@@@friend.Username</span>
                                 </div>
                             </div>
                             
-                            <div class="flex items-center justify-center">
-                                <input type="radio" name="friendId" value="@friend.UserId" class="size-4 border-primary text-primary focus:ring-primary" required />
-                            </div>
-                        </label>
+                            <button type="submit" name="friendId" value="@friend.UserId" class="inline-flex items-center justify-center whitespace-nowrap text-xs font-medium transition-colors bg-primary text-primary-foreground hover:bg-primary/90 h-8 px-4 rounded-md">
+                                Invitar
+                            </button>
+                        </div>
                     }
                 </div>
-
-                <div class="mt-4 flex justify-end">
-                    <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 rounded-full shadow-sm gap-2 w-full md:w-auto">
-                        <i data-lucide="crosshair" class="size-4"></i>
-                        Desafiar a jugar
-                    </button>
+                
+                <div id="noResults" class="hidden flex-col items-center justify-center p-8 text-center text-sm text-muted-foreground">
+                    <i data-lucide="search-x" class="mb-2 size-8 opacity-20"></i>
+                    <p>No se encontraron amigos.</p>
                 </div>
             </form>
         }
@@ -62,10 +68,46 @@
                 <i data-lucide="users" class="mb-3 size-8 opacity-20"></i>
                 <p class="font-medium text-foreground">No tienes amigos agregados</p>
                 <p class="mt-1 max-w-sm">Para jugar Battleship, necesitas agregar amigos a tu lista primero.</p>
-                <a href="/Friendship/Index" class="mt-4 rounded-full bg-secondary px-4 py-2 text-xs font-medium text-foreground hover:bg-secondary/80">
-                    Ir a Amigos
+                <a href="/Friendship/Index" class="mt-4 rounded-md bg-secondary px-4 py-2 text-xs font-medium text-foreground hover:bg-secondary/80 transition-colors">
+                    Buscar amigos
                 </a>
             </div>
         }
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchInput = document.getElementById('friendSearch');
+            if (!searchInput) return;
+
+            searchInput.addEventListener('input', function(e) {
+                const term = e.target.value.toLowerCase();
+                const items = document.querySelectorAll('.friend-item');
+                let visibleCount = 0;
+
+                items.forEach(item => {
+                    const name = item.querySelector('.friend-name').textContent.toLowerCase();
+                    const username = item.querySelector('.friend-username').textContent.toLowerCase();
+                    
+                    if (name.includes(term) || username.includes(term)) {
+                        item.style.display = 'flex';
+                        visibleCount++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                const noResults = document.getElementById('noResults');
+                if (visibleCount === 0) {
+                    noResults.style.display = 'flex';
+                    noResults.classList.remove('hidden');
+                } else {
+                    noResults.style.display = 'none';
+                    noResults.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+}

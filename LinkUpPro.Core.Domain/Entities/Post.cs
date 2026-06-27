@@ -12,6 +12,7 @@ namespace LinkUpPro.Core.Domain.Entities
         public bool AllowComments { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
+        public bool IsDeleted { get; set; } = false;
 
         public string? UserId { get; set; }
 

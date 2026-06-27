@@ -27,7 +27,7 @@ namespace LinkUpPro.Infrastructure.Identity.IoC
                 options.LoginPath = "/Auth/Index";
                 options.AccessDeniedPath = "/Auth/AccessDenied";
                 options.SlidingExpiration = true;
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                options.ExpireTimeSpan = TimeSpan.FromDays(7);
                 options.Events.OnSigningIn = context =>
                 {
                     if (context.Properties.IsPersistent)

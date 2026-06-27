@@ -2,14 +2,16 @@ using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Domain.Entities;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
 namespace LinkUpPro.Infrastructure.Shared.EmailServices
 {
-    public class EmailService(IOptions<EmailSettings> settings) : IEmailService
+    public class EmailService(IOptions<EmailSettings> settings, ILogger<EmailService> logger) : IEmailService
     {
         private readonly EmailSettings _settings = settings.Value;
+        private readonly ILogger<EmailService> _logger = logger;
 
         public async Task SendEmailAsync(EmailRequest request)
         {
@@ -17,7 +19,7 @@ namespace LinkUpPro.Infrastructure.Shared.EmailServices
             {
                 if (string.IsNullOrEmpty(_settings.SmtpHost))
                 {
-                    Console.WriteLine("Warning: SmtpHost is empty. Skipping email sending.");
+                    _logger.LogWarning("SmtpHost is empty. Skipping email sending.");
                     return;
                 }
 
@@ -47,7 +49,8 @@ namespace LinkUpPro.Infrastructure.Shared.EmailServices
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error sending email: {ex.Message}");
+                _logger.LogError(ex, "Error sending email to {To}", request.To);
+                throw new Exception("Ha ocurrido un error al enviar el correo electrónico.");
             }
         }
     }

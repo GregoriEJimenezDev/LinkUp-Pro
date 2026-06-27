@@ -10,6 +10,7 @@ namespace LinkUpPro.Core.Application.ViewModel.Post
         public MediaType MediaType { get; set; }
         public string? MediaUrl { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public string UserId { get; set; } = string.Empty;
         public string Username { get; set; } = string.Empty;
         public string? UserProfilePicture { get; set; }
