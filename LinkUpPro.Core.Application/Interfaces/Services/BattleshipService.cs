@@ -1,7 +1,6 @@
 using AutoMapper;
 using LinkUpPro.Core.Application.DTOs.Battleship;
 using LinkUpPro.Core.Application.Interfaces.IServices;
-using LinkUpPro.Core.Application.Interfaces.Services;
 using LinkUpPro.Core.Application.ViewModel.Game;
 using LinkUpPro.Core.Application.ViewModel.Select;
 using LinkUpPro.Core.Domain.DomainServices;
@@ -9,43 +8,29 @@ using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Core.Domain.Exceptions;
 using LinkUpPro.Core.Domain.Interfaces;
-using LinkUpPro.Core.Application.Interfaces.Services;
 
 namespace LinkUpPro.Core.Application.Interfaces.Services
 {
-    public class BattleshipService : IBattleshipService
+    public class BattleshipService(
+        IBattleshipGameRepository gameRepo,
+        IShipRepository shipRepo,
+        IAttackRepository attackRepo,
+        IUserService userService,
+        IMapper mapper,
+        IUnitOfWork unitOfWork,
+        IShipPlacementDomainService placementService,
+        IAttackDomainService attackDomainService,
+        INotificationService notificationService) : IBattleshipService
     {
-        private readonly IBattleshipGameRepository _gameRepo;
-        private readonly IShipRepository _shipRepo;
-        private readonly IAttackRepository _attackRepo;
-        private readonly IUserService _userService;
-        private readonly IMapper _mapper;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IShipPlacementDomainService _placementService;
-        private readonly IAttackDomainService _attackDomainService;
-        private readonly INotificationService _notificationService;
-
-        public BattleshipService(
-            IBattleshipGameRepository gameRepo,
-            IShipRepository shipRepo,
-            IAttackRepository attackRepo,
-            IUserService userService,
-            IMapper mapper,
-            IUnitOfWork unitOfWork,
-            IShipPlacementDomainService placementService,
-            IAttackDomainService attackDomainService,
-            INotificationService notificationService)
-        {
-            _gameRepo = gameRepo;
-            _shipRepo = shipRepo;
-            _attackRepo = attackRepo;
-            _userService = userService;
-            _mapper = mapper;
-            _unitOfWork = unitOfWork;
-            _placementService = placementService;
-            _attackDomainService = attackDomainService;
-            _notificationService = notificationService;
-        }
+        private readonly IBattleshipGameRepository _gameRepo = gameRepo;
+        private readonly IShipRepository _shipRepo = shipRepo;
+        private readonly IAttackRepository _attackRepo = attackRepo;
+        private readonly IUserService _userService = userService;
+        private readonly IMapper _mapper = mapper;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IShipPlacementDomainService _placementService = placementService;
+        private readonly IAttackDomainService _attackDomainService = attackDomainService;
+        private readonly INotificationService _notificationService = notificationService;
 
         public async Task<BattleshipIndexViewModel> GetIndexAsync(string userId)
         {

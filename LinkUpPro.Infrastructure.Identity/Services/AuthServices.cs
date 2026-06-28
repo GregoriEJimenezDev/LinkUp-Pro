@@ -13,8 +13,8 @@ using System.Text.RegularExpressions;
 
 namespace LinkUpPro.Infrastructure.Identity.Services
 {
-    public class AuthServices(UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager, IEmailService emailService, IHttpContextAccessor httpContextAccessor, IFileStorageService fileStorageService) : IUserService
+    public class AuthServices(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, 
+        IEmailService emailService, IHttpContextAccessor httpContextAccessor, IFileStorageService fileStorageService) : IUserService
     {
         private readonly UserManager<ApplicationUser> _userManager = userManager;
         private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
@@ -68,7 +68,7 @@ namespace LinkUpPro.Infrastructure.Identity.Services
         {
             var user = await _userManager.FindByNameAsync(username);
             if (user == null)
-                return ServiceResult.Failure("Usuario no encontrado."); // No debería mostrarse en frontend por seguridad, el controller lo maneja
+                return ServiceResult.Failure("Usuario no encontrado.");
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
@@ -124,7 +124,7 @@ namespace LinkUpPro.Infrastructure.Identity.Services
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) 
             {
-                return new EditProfileViewModel(); // Devuelve vacío si no existe (ej. DB en memoria reiniciada)
+                return new EditProfileViewModel(); 
             }
             
             return new EditProfileViewModel
@@ -139,16 +139,13 @@ namespace LinkUpPro.Infrastructure.Identity.Services
         public async Task<ServiceResult> LoginAsync(LoginViewModel vm)
         {
             var user = await _userManager.FindByNameAsync(vm.Username);
-            
-            // Si el usuario no existe, devolvemos error genérico sin revelar que no existe
+
             if (user == null)
                 return ServiceResult.Failure("El nombre de usuario o la contraseña son incorrectos.");
 
-            // Si está bloqueado
             if (await _userManager.IsLockedOutAsync(user))
                 return ServiceResult.Failure("La cuenta se encuentra bloqueada temporalmente debido a varios intentos fallidos. Intenta de nuevo en 15 minutos.");
 
-            // Validar contraseña manualmente (para no iniciar sesión si está inactiva)
             var passwordValid = await _userManager.CheckPasswordAsync(user, vm.Password!);
             if (!passwordValid)
             {
@@ -160,11 +157,9 @@ namespace LinkUpPro.Infrastructure.Identity.Services
                 return ServiceResult.Failure("El nombre de usuario o la contraseña son incorrectos.");
             }
 
-            // Si la contraseña es correcta, validamos si la cuenta está activa
             if (!user.IsActive)
                 return ServiceResult.Failure("Su cuenta se encuentra inactiva. Debe activarla mediante el enlace enviado a su correo electrónico.");
 
-            // Si todo está correcto, reiniciamos contador de intentos e iniciamos sesión
             await _userManager.ResetAccessFailedCountAsync(user);
 
             await _signInManager.SignInAsync(user, isPersistent: vm.RememberMe);

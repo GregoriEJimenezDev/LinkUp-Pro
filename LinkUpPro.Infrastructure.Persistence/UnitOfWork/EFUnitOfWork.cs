@@ -22,8 +22,7 @@ namespace LinkUpPro.Infrastructure.Persistence.UnitOfWork
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                throw new ConcurrencyException(
-                    "The game was modified by another player. Please retry your action.", ex);
+                throw new ConcurrencyException("El juego fue modificado por el otro jugador. por favor, intente nuevamente.", ex);
             }
         }
     }
