@@ -30,6 +30,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             }
             else if(existing.IsLike == isLike)
             {
+                await _reactionRepository.DeleteAsync(existing);
                 return ServiceResult.Success();
             }
             else

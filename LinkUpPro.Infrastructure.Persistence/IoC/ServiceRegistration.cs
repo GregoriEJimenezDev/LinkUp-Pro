@@ -1,4 +1,5 @@
 using LinkUpPro.Core.Application.Interfaces.Services;
+using LinkUpPro.Core.Application.Interfaces.Repositories;
 using LinkUpPro.Core.Domain.DomainServices;
 using LinkUpPro.Core.Domain.Interfaces;
 using LinkUpPro.Core.Domain.Interfaces.IGeneric;

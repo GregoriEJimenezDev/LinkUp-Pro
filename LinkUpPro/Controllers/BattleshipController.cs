@@ -1,4 +1,5 @@
 using LinkUpPro.Core.Application.Interfaces.IServices;
+using LinkUpPro.Core.Application.ViewModel.Select;
 using LinkUpPro.Core.Domain.Enum;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -70,18 +71,18 @@ namespace LinkUpPro.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> PlaceShip(int gameId, string shipType, int row, int col, ShipDirection direction)
+        public async Task<IActionResult> PlaceShip(SelectDirectionViewModel vm)
         {
             var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
-            var result = await _battleshipService.PlaceShipAsync(gameId, userId, shipType, row, col, direction);
+            var result = await _battleshipService.PlaceShipAsync(vm.GameId, userId, vm.ShipType, vm.Row, vm.Col, vm.Direction);
 
             if (!result.Succeeded)
             {
                 TempData["Error"] = result.ErrorMessage;
-                return RedirectToAction(nameof(PlaceShip), new { gameId, shipType });
+                return RedirectToAction(nameof(PlaceShip), new { gameId = vm.GameId, shipType = vm.ShipType });
             }
 
-            return RedirectToAction(nameof(SelectShip), new { gameId });
+            return RedirectToAction(nameof(SelectShip), new { gameId = vm.GameId });
         }
 
         public async Task<IActionResult> AttackBoard(int gameId)
@@ -130,9 +131,10 @@ namespace LinkUpPro.Controllers
             return View(vm);
         }
 
-        public IActionResult Leaderboard()
+        public async Task<IActionResult> Leaderboard()
         {
-            return View();
+            var leaderboard = await _battleshipService.GetLeaderboardAsync();
+            return View(leaderboard);
         }
     }
 }

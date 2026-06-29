@@ -8,7 +8,7 @@
     <div class="flex flex-col gap-2">
         <div class="flex items-center gap-2 text-primary font-bold text-xl mb-4">
             <div class="bg-primary text-primary-foreground p-1.5 rounded-md">
-                <i data-lucide="sparkles" class="size-5 text-white"></i>
+                <i data-lucide="network" class="size-5 text-white"></i>
             </div>
             <span>LinkUp Pro</span>
         </div>
@@ -16,7 +16,7 @@
         <p class="text-muted-foreground font-medium">La vida es mejor con amigos. Empieza hoy.</p>
     </div>
 
-    <form asp-controller="Auth" asp-action="Register" method="post" enctype="multipart/form-data" class="flex flex-col gap-5 mt-2">
+    <form asp-controller="Auth" asp-action="Register" method="post" enctype="multipart/form-data" class="flex flex-col gap-5 mt-2" onsubmit="disableSubmit(this)">
         
         <div asp-validation-summary="ModelOnly" class="text-destructive text-sm font-semibold"></div>
 
@@ -71,15 +71,30 @@
                 <label asp-for="Password" class="text-foreground text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Contraseña</label>
                 <div class="relative">
                     <i data-lucide="lock" class="absolute left-3 top-2.5 size-5 text-muted-foreground"></i>
-                    <input asp-for="Password" type="password" placeholder="Mínimo 8 caracteres" class="pl-10 h-11 bg-muted/40 border-transparent focus-visible:bg-transparent flex w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+                    <input asp-for="Password" type="password" placeholder="Mínimo 8 caracteres" class="pl-10 pr-10 h-11 bg-muted/40 border-transparent focus-visible:bg-transparent flex w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50" oninput="checkPasswordStrength(this.value)" />
+                    <button type="button" id="togglePassword" class="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground">
+                        <i data-lucide="eye" class="size-5"></i>
+                    </button>
                 </div>
                 <span asp-validation-for="Password" class="text-destructive text-sm"></span>
+                <!-- Password Strength Indicator -->
+                <div id="strengthContainer" class="hidden space-y-1.5 pt-1">
+                    <div class="flex gap-1">
+                        <div id="bar1" class="h-1 flex-1 rounded-full bg-muted transition-colors duration-300"></div>
+                        <div id="bar2" class="h-1 flex-1 rounded-full bg-muted transition-colors duration-300"></div>
+                        <div id="bar3" class="h-1 flex-1 rounded-full bg-muted transition-colors duration-300"></div>
+                    </div>
+                    <p id="strengthText" class="text-[10px] font-medium text-muted-foreground"></p>
+                </div>
             </div>
             <div class="grid gap-2">
                 <label asp-for="ConfirmPassword" class="text-foreground text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Confirmar</label>
                 <div class="relative">
                     <i data-lucide="lock" class="absolute left-3 top-2.5 size-5 text-muted-foreground"></i>
-                    <input asp-for="ConfirmPassword" type="password" placeholder="Mínimo 8 caracteres" class="pl-10 h-11 bg-muted/40 border-transparent focus-visible:bg-transparent flex w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+                    <input asp-for="ConfirmPassword" type="password" placeholder="Mínimo 8 caracteres" class="pl-10 pr-10 h-11 bg-muted/40 border-transparent focus-visible:bg-transparent flex w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50" />
+                    <button type="button" id="toggleConfirmPassword" class="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground">
+                        <i data-lucide="eye" class="size-5"></i>
+                    </button>
                 </div>
                 <span asp-validation-for="ConfirmPassword" class="text-destructive text-sm"></span>
             </div>
@@ -116,4 +131,96 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            function setupToggle(btnId, inputId) {
+                const btn = document.getElementById(btnId);
+                const input = document.getElementById(inputId);
+                if (!btn || !input) return;
+                const icon = btn.querySelector("i");
+                
+                btn.addEventListener("click", function() {
+                    if (input.type === "password") {
+                        input.type = "text";
+                        icon.setAttribute("data-lucide", "eye-off");
+                    } else {
+                        input.type = "password";
+                        icon.setAttribute("data-lucide", "eye");
+                    }
+                    lucide.createIcons();
+                });
+            }
+            
+            setupToggle("togglePassword", "Password");
+            setupToggle("toggleConfirmPassword", "ConfirmPassword");
+        });
+
+        function disableSubmit(form) {
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    icon.setAttribute('data-lucide', 'loader-2');
+                    icon.classList.add('animate-spin');
+                    lucide.createIcons();
+                }
+            }
+            return true;
+        }
+
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            const container = document.getElementById('strengthContainer');
+            const bar1 = document.getElementById('bar1');
+            const bar2 = document.getElementById('bar2');
+            const bar3 = document.getElementById('bar3');
+            const text = document.getElementById('strengthText');
+            
+            const bars = [bar1, bar2, bar3];
+            const resetColor = 'bg-muted';
+
+            if (!password || password.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+
+            let score = 0;
+            if (password.length >= 8) score++;
+            if (/[A-Z]/.test(password)) score++;
+            if (/[a-z]/.test(password)) score++;
+            if (/[0-9]/.test(password)) score++;
+            if (/[^A-Za-z0-9]/.test(password)) score++;
+
+            let level = 0;
+            let label = '';
+            let color = '';
+
+            // Débil: <= 2. Media: 3 o 4. Fuerte: 5
+            if (score <= 2) {
+                level = 1; label = 'Débil'; color = 'bg-red-500';
+            } else if (score === 3 || score === 4) {
+                level = 2; label = 'Media'; color = 'bg-orange-500';
+            } else if (score === 5) {
+                level = 3; label = 'Fuerte'; color = 'bg-emerald-500';
+            }
+
+            bars.forEach((bar, i) => {
+                if(bar) {
+                    bar.className = 'h-1 flex-1 rounded-full transition-colors duration-300 ' + (i < level ? color : resetColor);
+                }
+            });
+
+            if (text) {
+                text.textContent = label;
+                text.className = 'text-[10px] font-medium ' + (
+                    level === 1 ? 'text-red-500' :
+                    level === 2 ? 'text-orange-500' :
+                    'text-emerald-500'
+                );
+            }
+        }
+    </script>
 }

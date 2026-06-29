@@ -19,6 +19,7 @@ namespace LinkUpPro.Core.Application.ViewModel.Post
         public int LikesCount { get; set; }
         public int DislikesCount { get; set; }
         public bool? CurrentUserReaction { get; set; }
+        public int CommentsCount { get; set; }
         public List<CommentDto> Comments { get; set; } = [];
     }
 }

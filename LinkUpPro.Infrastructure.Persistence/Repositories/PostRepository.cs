@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Domain.Entities;
+using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Interfaces;
 using LinkUpPro.Infrastructure.Persistence.Context;
 using LinkUpPro.Infrastructure.Persistence.Repositories.Generic;
@@ -11,13 +11,14 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
         public async Task<IEnumerable<Post>> GetByFriendsAsync(IEnumerable<string> friendIds) 
         {
             var idlist = friendIds.ToList();
-            if(idlist.Any()) return [];
+            if(!idlist.Any()) return [];
 
             var allpost= await _context.Posts
                 .OrderByDescending(p => p.CreatedAt)
                 .Include(p => p.Comments).ThenInclude(c => c.Replies)
                 .Include(p => p.Reactions)
                 .AsNoTracking()
+                .AsSplitQuery()
                 .ToListAsync();
             return allpost.Where(p => idlist.Contains(p.UserId!));
         }
@@ -30,6 +31,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
                     .ThenInclude(c => c.Replies)
                 .Include(p => p.Reactions)
                 .AsNoTracking()
+                .AsSplitQuery()
                 .ToListAsync();
 
 
@@ -40,6 +42,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
                     .ThenInclude(c => c.Replies)
                 .Include(p => p.Reactions)
                 .AsNoTracking()
+                .AsSplitQuery()
                 .ToListAsync();
     }
 }

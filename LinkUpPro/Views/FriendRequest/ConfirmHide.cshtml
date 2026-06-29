@@ -4,22 +4,23 @@
     ViewData["Title"] = "Ocultar del Historial";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-        <div class="card shadow-sm mt-5">
-            <div class="card-body text-center p-4">
-                <i class="bi bi-eye-slash-fill text-secondary" style="font-size: 3rem;"></i>
-                <h4 class="card-title mt-3">¿Eliminar del historial?</h4>
-                <p class="text-muted mb-4">Esta acción solo ocultará la solicitud de tu vista. El estado original de la solicitud se conserva.</p>
-                
-                <form asp-action="RemoveFromHistory" method="post">
-                    <input type="hidden" name="id" value="@Model" />
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-secondary">Ocultar</button>
-                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
-                    </div>
-                </form>
-            </div>
+<div class="flex items-center justify-center min-h-[50vh]">
+    <div class="w-full max-w-md rounded-2xl border bg-card text-card-foreground shadow-sm p-6 text-center">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-secondary/20">
+            <i data-lucide="eye-off" class="size-6 text-secondary-foreground"></i>
         </div>
+        <h3 class="mt-4 text-lg font-semibold tracking-tight">¿Eliminar del historial?</h3>
+        <p class="mt-2 text-sm text-muted-foreground">
+            Esta acción solo ocultará la solicitud de tu vista. El estado original de la solicitud se conserva.
+        </p>
+        <form asp-action="RemoveFromHistory" method="post" class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <input type="hidden" name="id" value="@Model" />
+            <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 px-4 py-2 w-full sm:w-auto">
+                Ocultar
+            </button>
+            <a asp-action="Index" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full sm:w-auto">
+                Cancelar
+            </a>
+        </form>
     </div>
 </div>

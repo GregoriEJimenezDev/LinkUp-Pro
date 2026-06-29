@@ -8,6 +8,7 @@ using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Core.Domain.Exceptions;
 using LinkUpPro.Core.Domain.Interfaces;
+using LinkUpPro.Core.Application.Interfaces.Repositories;
 
 namespace LinkUpPro.Core.Application.Interfaces.Services
 {
@@ -34,23 +35,16 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
 
         public async Task<BattleshipIndexViewModel> GetIndexAsync(string userId)
         {
-            var activeGames = await _gameRepo.GetActiveByUserIdAsync(userId);
-            var finishedGames = await _gameRepo.GetFinishedByUserIdAsync(userId);
+            var activeGames = (await _gameRepo.GetActiveByUserIdAsync(userId)).DistinctBy(g => g.Id).ToList();
+            var finishedGames = (await _gameRepo.GetFinishedByUserIdAsync(userId)).DistinctBy(g => g.Id).ToList();
 
             var activeDtos = await MapGamesAsync(activeGames);
             var finishedDtos = await MapGamesAsync(finishedGames);
 
-            var finishedList = finishedGames.ToList();
-            var total = finishedList.Count;
-            var won = finishedList.Count(g => g.WinnerId == userId);
-
             return new BattleshipIndexViewModel
             {
                 ActiveGames = activeDtos.ToList(),
-                FinishedGames = finishedDtos.ToList(),
-                TotalGames = total,
-                WonGames = won,
-                LostGames = total - won
+                FinishedGames = finishedDtos.ToList()
             };
         }
 
@@ -77,14 +71,81 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             };
         }
 
+        public async Task<List<LeaderboardDto>> GetLeaderboardAsync()
+        {
+            var finishedGames = await _gameRepo.GetAllFinishedAsync();
+
+            var userStats = new Dictionary<string, LeaderboardDto>();
+
+            foreach (var game in finishedGames)
+            {
+                if (!userStats.ContainsKey(game.FirstPlayerId))
+                {
+                    var p1 = await _userService.GetUserBasicInfoAsync(game.FirstPlayerId);
+                    userStats[game.FirstPlayerId] = new LeaderboardDto
+                    {
+                        UserId = p1?.Id ?? string.Empty,
+                        Username = p1?.Username ?? string.Empty,
+                        UserProfilePicture = p1?.ProfilePictureUrl,
+                        TotalGames = 0,
+                        WonGames = 0,
+                        LostGames = 0,
+                        Score = 0
+                    };
+                }
+
+                if (!userStats.ContainsKey(game.SecondPlayerId))
+                {
+                    var p2 = await _userService.GetUserBasicInfoAsync(game.SecondPlayerId);
+                    userStats[game.SecondPlayerId] = new LeaderboardDto
+                    {
+                        UserId = p2?.Id ?? string.Empty,
+                        Username = p2?.Username ?? string.Empty,
+                        UserProfilePicture = p2?.ProfilePictureUrl,
+                        TotalGames = 0,
+                        WonGames = 0,
+                        LostGames = 0,
+                        Score = 0
+                    };
+                }
+
+                userStats[game.FirstPlayerId].TotalGames++;
+                userStats[game.SecondPlayerId].TotalGames++;
+
+                if (game.WinnerId == game.FirstPlayerId)
+                {
+                    userStats[game.FirstPlayerId].WonGames++;
+                    userStats[game.FirstPlayerId].Score += 10;
+                    userStats[game.SecondPlayerId].LostGames++;
+                }
+                else if (game.WinnerId == game.SecondPlayerId)
+                {
+                    userStats[game.SecondPlayerId].WonGames++;
+                    userStats[game.SecondPlayerId].Score += 10;
+                    userStats[game.FirstPlayerId].LostGames++;
+                }
+            }
+
+            foreach (var stats in userStats.Values)
+            {
+                stats.WinRatio = stats.TotalGames > 0 ? Math.Round((double)stats.WonGames / stats.TotalGames * 100, 2) : 0;
+            }
+
+            return userStats.Values
+                .OrderByDescending(x => x.Score)
+                .ThenByDescending(x => x.WinRatio)
+                .Take(50)
+                .ToList();
+        }
+
         public async Task<ServiceResult<int>> CreateGameAsync(string player1Id, string player2Id)
         {
             if (player1Id == player2Id)
-                return ServiceResult<int>.Failure("Cannot create a game with yourself.");
+                return ServiceResult<int>.Failure("No puedes crear un juego contigo mismo.");
 
             var hasActive = await _gameRepo.HasActiveGameWithFriendAsync(player1Id, player2Id);
             if (hasActive)
-                return ServiceResult<int>.Failure("You already have an active game with this player.");
+                return ServiceResult<int>.Failure("Ya tienes un juego activo con este jugador.");
 
             var game = new BattleshipGame
             {
@@ -134,7 +195,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
         public async Task<SelectCellViewModel> GetBoardForPlacementAsync(int gameId, string playerId, string shipType)
         {
             if (!Enum.TryParse<ShipType>(shipType, out var st))
-                throw new ArgumentException("Invalid ship type.");
+                throw new ArgumentException("Tipo de barco inválido.");
 
             var existingShips = await _shipRepo.GetByGameAndPlayerAsync(gameId, playerId);
             var occupiedCells = existingShips.SelectMany(s => s.Cells)
@@ -152,12 +213,12 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
         public async Task<ServiceResult> PlaceShipAsync(int gameId, string playerId, string shipType, int row, int col, ShipDirection direction)
         {
             if (!Enum.TryParse<ShipType>(shipType, out var st))
-                return ServiceResult.Failure("Invalid ship type.");
+                return ServiceResult.Failure("Tipo de barco inválido.");
 
             var game = await _gameRepo.GetByIdAsync(gameId);
 
             if (game.Status != GameStatus.PlacingShips)
-                return ServiceResult.Failure("The game is not in placement phase.");
+                return ServiceResult.Failure("El juego no está en fase de colocación.");
 
             var existingShips = await _shipRepo.GetByGameAndPlayerAsync(gameId, playerId);
 
@@ -167,13 +228,13 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
 
             var existingShipTypes = existingShips.Select(s => s.ShipType).ToHashSet();
             if (existingShipTypes.Contains(st))
-                return ServiceResult.Failure("This ship type has already been placed.");
+                return ServiceResult.Failure("Este tipo de barco ya ha sido colocado.");
 
             var occupied = existingShips.SelectMany(s => s.Cells)
                 .Select(c => (c.Row, c.Column)).ToHashSet();
 
             if (_placementService.Overlaps(cells, occupied))
-                return ServiceResult.Failure("Cells are already occupied by another ship.");
+                return ServiceResult.Failure("Las celdas ya están ocupadas por otro barco.");
 
             var ship = new Ship
             {
@@ -227,7 +288,6 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 IsMyTurn = game.CurrentTurnPlayerId == playerId && game.Status == GameStatus.InProgress,
                 IsFinished = game.Status == GameStatus.Finished || game.Status == GameStatus.Abandoned,
                 OpponentUsername = opponent.Username,
-                CurrentTurnUsername = opponent.Username,
                 MyAttacks = myAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList(),
                 MyShips = myShips.Select(s => _mapper.Map<ShipDto>(s)).ToList(),
                 OpponentAttacks = opponentAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList(),
@@ -255,7 +315,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
 
             var existingAttacks = await _attackRepo.GetByGameAndAttackerAsync(gameId, attackerId);
             if (_attackDomainService.IsDuplicateAttack(existingAttacks, row, col))
-                return ServiceResult.Failure("You already attacked this cell.");
+                return ServiceResult.Failure("Ya atacaste esta celda.");
 
             var opponentId = game.FirstPlayerId == attackerId ? game.SecondPlayerId : game.FirstPlayerId;
             var opponentShips = (await _shipRepo.GetWithCellsByGameAndPlayerAsync(gameId, opponentId)).ToList();
@@ -301,7 +361,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             }
             catch (ConcurrencyException)
             {
-                return ServiceResult.Failure("The game was modified by another player. Please retry your attack.");
+                return ServiceResult.Failure("El juego fue modificado por otro jugador. Por favor intenta tu ataque de nuevo.");
             }
 
             return ServiceResult.Success();
@@ -312,7 +372,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             var game = await _gameRepo.GetByIdAsync(gameId);
 
             if (game.Status == GameStatus.Finished)
-                return ServiceResult.Failure("The game is already finished.");
+                return ServiceResult.Failure("El juego ya ha finalizado.");
 
             game.SetSurrender(playerId);
 

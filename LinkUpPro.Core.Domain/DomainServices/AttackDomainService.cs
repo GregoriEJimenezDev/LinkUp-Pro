@@ -8,10 +8,10 @@ namespace LinkUpPro.Core.Domain.DomainServices
         public DomainResult ValidateTurn(BattleshipGame game, string attackerId)
         {
             if (game.Status != GameStatus.InProgress)
-                return DomainResult.Failure("The game is not in progress.");
+                return DomainResult.Failure("La partida no está en progreso.");
 
             if (game.CurrentTurnPlayerId != attackerId)
-                return DomainResult.Failure("It is not your turn.");
+                return DomainResult.Failure("No es tu turno.");
 
             return DomainResult.Success();
         }

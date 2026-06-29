@@ -1,4 +1,5 @@
 using LinkUpPro.Core.Application.Interfaces.Services;
+using LinkUpPro.Core.Application.Interfaces.Repositories;
 using LinkUpPro.Core.Domain.Exceptions;
 using LinkUpPro.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;

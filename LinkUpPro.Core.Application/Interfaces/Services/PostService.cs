@@ -26,6 +26,9 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             bool hasImage = vm.ImageFile != null && vm.ImageFile.Length > 0;
             bool hasVideo = !string.IsNullOrWhiteSpace(vm.VideoUrl);
 
+            if (hasVideo) vm.MediaType = MediaType.Video;
+            else if (hasImage) vm.MediaType = MediaType.Image;
+
             if (hasImage && hasVideo)
                 return ServiceResult.Failure("Solo puedes adjuntar una imagen o un video de YouTube, no ambos.");
 
@@ -33,7 +36,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
 
             if (vm.MediaType == MediaType.Image && hasImage)
             {
-                if (vm.ImageFile.Length > 5 * 1024 * 1024)
+                if (vm.ImageFile!.Length > 5 * 1024 * 1024)
                     return ServiceResult.Failure("La imagen de la publicación no puede superar los 5 MB.");
                 string extension = ".jpg";
                 mediaUrl = await SaveImageAsync(vm.ImageFile, extension);
@@ -85,7 +88,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 (p.UserId == userId || 
                 p.Privacy == PostPrivacy.Public || 
                 (p.Privacy == PostPrivacy.FriendsOnly && friendIds.Contains(p.UserId)))
-            ).OrderByDescending(p => p.CreatedAt).ToList();
+            ).DistinctBy(p => p.Id).OrderByDescending(p => p.CreatedAt).ToList();
 
             var result = new List<PostViewModel>();
 
@@ -135,6 +138,9 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
 
             bool hasImage = vm.ImageFile != null && vm.ImageFile.Length > 0;
             bool hasVideo = !string.IsNullOrWhiteSpace(vm.VideoUrl);
+
+            if (hasVideo) vm.MediaType = MediaType.Video;
+            else if (hasImage) vm.MediaType = MediaType.Image;
 
             bool isKeepingExistingImage = (vm.MediaType == MediaType.Image && post.MediaType == MediaType.Image && !hasImage && !string.IsNullOrEmpty(post.MediaUrl));
             
@@ -198,7 +204,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             var comment = new List<CommentDto>();
             if (post.Comments != null)
             {
-                foreach (var cm in post.Comments.Where(c => c.ParentCommentId == null).OrderBy(c => c.CreatedAt))
+                foreach (var cm in post.Comments.Where(c => c.ParentCommentId == null).DistinctBy(c => c.Id).OrderBy(c => c.CreatedAt))
                 {
                     var commentUserInfo = await _userService.GetUserBasicInfoAsync(cm.UserId!);
                     var dto = await MapCommentWhitUser(cm, commentUserInfo);
@@ -222,6 +228,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 LikesCount = reactions.Count(r => r.IsLike),
                 DislikesCount = reactions.Count(r => !r.IsLike),
                 CurrentUserReaction = userReaction?.IsLike,
+                CommentsCount = post.Comments?.Count(c => !c.IsDeleted) ?? 0,
                 Comments = comment
             };
         }
@@ -231,7 +238,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             var replies = new List<CommentDto>();
             if (comment.Replies != null)
             {
-                foreach (var reply in comment.Replies.OrderBy(r => r.CreatedAt))
+                foreach (var reply in comment.Replies.DistinctBy(r => r.Id).OrderBy(r => r.CreatedAt))
                 {
                     var replyUserInfo = await _userService.GetUserBasicInfoAsync(reply.UserId!);
                     var replyDto = await MapCommentWhitUser(reply, replyUserInfo);
@@ -249,6 +256,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 UserProfilePicture = userInfo.ProfilePictureUrl,
                 PostId = comment.PostId,
                 ParentCommentId = comment.ParentCommentId,
+                IsDeleted = comment.IsDeleted,
                 Replies = replies
             };
         }
@@ -264,6 +272,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 UserId = comment.UserId!,
                 PostId = comment.PostId,
                 ParentCommentId = comment.ParentCommentId,
+                IsDeleted = comment.IsDeleted,
                 Replies = comment.Replies?
                     .OrderBy(r => r.CreatedAt)
                     .Select(r => MapComment(r))
@@ -291,6 +300,14 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             else if (url.Contains("youtu.be/"))
             {
                 videoId = url.Split("youtu.be/").Last().Split('?').First();
+            }
+            else if (url.Contains("youtube.com/shorts/"))
+            {
+                videoId = url.Split("youtube.com/shorts/").Last().Split('?').First();
+            }
+            else if (url.Contains("youtube.com/embed/"))
+            {
+                videoId = url.Split("youtube.com/embed/").Last().Split('?').First();
             }
 
             return videoId != null ? $"https://www.youtube.com/embed/{videoId}" : null;

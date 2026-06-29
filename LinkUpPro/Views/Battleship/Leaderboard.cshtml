@@ -1,15 +1,61 @@
+@model List<LinkUpPro.Core.Application.DTOs.Battleship.LeaderboardDto>
+
 @{
     ViewData["Title"] = "Clasificación";
+    Layout = "_Layout";
 }
 
-<div class="space-y-6">
-    <div class="flex items-center justify-between">
-        <h1 class="text-3xl font-bold tracking-tight">Clasificación</h1>
+<div class="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div class="flex flex-col gap-2">
+        <h1 class="text-3xl font-bold tracking-tight text-foreground">Top Jugadores de Battleship</h1>
+        <p class="text-muted-foreground font-medium">Mira el ranking de los mejores almirantes.</p>
     </div>
 
-    <div class="rounded-2xl border bg-card text-card-foreground shadow-sm p-8 text-center">
-        <i data-lucide="trophy" class="mx-auto size-12 text-yellow-500 mb-4"></i>
-        <h2 class="text-xl font-semibold mb-2">Próximamente</h2>
-        <p class="text-muted-foreground">La tabla de clasificación global de Battleship estará disponible pronto.</p>
+    <div class="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                <thead class="bg-muted/50 text-muted-foreground font-medium border-b">
+                    <tr>
+                        <th class="px-4 py-3">#</th>
+                        <th class="px-4 py-3">Jugador</th>
+                        <th class="px-4 py-3 text-center">Puntuación</th>
+                        <th class="px-4 py-3 text-center">Victorias</th>
+                        <th class="px-4 py-3 text-center">Derrotas</th>
+                        <th class="px-4 py-3 text-center">Win Ratio</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    @if (Model != null && Model.Any())
+                    {
+                        var rank = 1;
+                        foreach (var player in Model)
+                        {
+                            <tr class="hover:bg-muted/50 transition-colors">
+                                <td class="px-4 py-3 font-semibold text-muted-foreground">@rank</td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="relative flex size-8 shrink-0 overflow-hidden rounded-full">
+                                            <img class="aspect-square h-full w-full object-cover" src="@player.UserProfilePicture" alt="@player.Username" onerror="this.src='/placeholder.svg'" />
+                                        </div>
+                                        <span class="font-medium">@player.Username</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-center font-bold text-primary">@player.Score</td>
+                                <td class="px-4 py-3 text-center text-success">@player.WonGames</td>
+                                <td class="px-4 py-3 text-center text-destructive">@player.LostGames</td>
+                                <td class="px-4 py-3 text-center font-medium">@player.WinRatio%</td>
+                            </tr>
+                            rank++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-muted-foreground">Aún no hay partidas registradas en el leaderboard.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

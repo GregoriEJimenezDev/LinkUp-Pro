@@ -144,17 +144,22 @@ namespace LinkUpPro.Controllers
             {
                 return RedirectToAction("Index", "Home");
             }
-            return View();
+            return View(new ForgotPasswordViewModel());
         }
 
         [HttpPost]
-        public async Task<IActionResult> ForgotPassword(string username)
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel vm)
         {
-            await _userService.ForgotPasswordAsync(username);
+            if (!ModelState.IsValid)
+            {
+                return View(vm);
+            }
+
+            await _userService.ForgotPasswordAsync(vm.Username);
 
             TempData["Success"] = "Si el usuario existe, se ha enviado un enlace de recuperación al correo asociado.";
 
-            return View();
+            return View(vm);
         }
 
         public IActionResult ResetPassword(string userId, string token)

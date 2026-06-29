@@ -15,6 +15,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
                 .OrderByDescending(g => g.StartedAt)
                 .Include(g => g.Ships).ThenInclude(s => s.Cells)
                 .Include(g => g.Attacks)
+                .AsSplitQuery()
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -29,6 +30,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
             await _context.BattleshipGames
                 .Include(g => g.Ships).ThenInclude(s => s.Cells)
                 .Include(g => g.Attacks)
+                .AsSplitQuery()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(g => g.Id == gameId)
             ?? throw new Exception($"Details not found.");
@@ -43,6 +45,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
                 .Where(g => g.Status != GameStatus.Finished && g.Status != GameStatus.Abandoned)
                 .Include(g => g.Ships).ThenInclude(s => s.Cells)
                 .Include(g => g.Attacks)
+                .AsSplitQuery()
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -50,6 +53,13 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
             await _context.BattleshipGames
                 .Where(g => g.FirstPlayerId == userId || g.SecondPlayerId == userId)
                 .OrderByDescending(g => g.StartedAt)
+                .AsNoTracking()
+                .ToListAsync();
+
+        public async Task<IEnumerable<BattleshipGame>> GetAllFinishedAsync() =>
+            await _context.BattleshipGames
+                .Where(g => g.Status == GameStatus.Finished)
+                .OrderByDescending(g => g.FinishedAt)
                 .AsNoTracking()
                 .ToListAsync();
     }

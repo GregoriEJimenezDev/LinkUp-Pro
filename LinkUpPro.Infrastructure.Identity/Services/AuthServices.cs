@@ -66,7 +66,7 @@ namespace LinkUpPro.Infrastructure.Identity.Services
 
         public async Task<ServiceResult> ForgotPasswordAsync(string username)
         {
-            var user = await _userManager.FindByNameAsync(username);
+            var user = await _userManager.FindByNameAsync(username) ?? await _userManager.FindByEmailAsync(username);
             if (user == null)
                 return ServiceResult.Failure("Usuario no encontrado.");
 

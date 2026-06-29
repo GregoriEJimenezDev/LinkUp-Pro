@@ -9,11 +9,10 @@
 </head>
 <body class="bg-background text-foreground antialiased min-h-screen">
     <div class="relative min-h-screen grid lg:grid-cols-2">
-      <!-- Theme Toggle at top right -->
       <div class="absolute right-4 top-4 z-50">
-        <button id="theme-toggle" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9 bg-background/50 backdrop-blur border border-border">
-            <i data-lucide="moon" class="size-4 hidden dark:block"></i>
-            <i data-lucide="sun" class="size-4 block dark:hidden"></i>
+        <button onclick="toggleTheme()" class="inline-flex h-9 w-9 items-center justify-center rounded-md bg-transparent text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shrink-0" aria-label="Cambiar tema">
+            <span class="theme-icon-sun" style="display: none;"><i data-lucide="sun" class="size-5"></i></span>
+            <span class="theme-icon-moon"><i data-lucide="moon" class="size-5"></i></span>
         </button>
       </div>
 
@@ -66,25 +65,38 @@
     <script>
         lucide.createIcons();
         
+        function updateThemeIcons(isDark) {
+            document.querySelectorAll('.theme-icon-sun').forEach(el => el.style.display = isDark ? 'inline-flex' : 'none');
+            document.querySelectorAll('.theme-icon-moon').forEach(el => el.style.display = isDark ? 'none' : 'inline-flex');
+        }
+
         // Theme Toggle Logic
-        const themeToggle = document.getElementById('theme-toggle');
         const html = document.documentElement;
         
         // Check local storage or system preference
-        if (localStorage.getItem('theme') === 'light' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+        const isCurrentlyDark = localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (!isCurrentlyDark) {
             html.classList.remove('dark');
         } else {
             html.classList.add('dark');
         }
-
-        themeToggle.addEventListener('click', () => {
-            if (html.classList.contains('dark')) {
+        
+        function toggleTheme() {
+            const isDark = html.classList.contains('dark');
+            if (isDark) {
                 html.classList.remove('dark');
                 localStorage.setItem('theme', 'light');
+                updateThemeIcons(false);
             } else {
                 html.classList.add('dark');
                 localStorage.setItem('theme', 'dark');
+                updateThemeIcons(true);
             }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const isDark = html.classList.contains('dark');
+            updateThemeIcons(isDark);
         });
     </script>
     @await RenderSectionAsync("Scripts", required: false)

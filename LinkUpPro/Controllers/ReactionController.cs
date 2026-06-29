@@ -9,11 +9,13 @@ namespace LinkUpPro.Controllers
     {
         private readonly IReactionService _reactionService;
         private readonly IUserService _userService;
+        private readonly LinkUpPro.Core.Domain.Interfaces.IReactionRepository _reactionRepository;
 
-        public ReactionController(IReactionService reactionService, IUserService userService)
+        public ReactionController(IReactionService reactionService, IUserService userService, LinkUpPro.Core.Domain.Interfaces.IReactionRepository reactionRepository)
         {
             _reactionService = reactionService;
             _userService = userService;
+            _reactionRepository = reactionRepository;
         }
 
         [HttpPost]
@@ -22,12 +24,17 @@ namespace LinkUpPro.Controllers
             var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
             await _reactionService.ReactAsync(postId, userId, isLike);
 
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return Ok();
-            }
+            var reactions = await _reactionRepository.GetByPostIdAsync(postId);
+            var likesCount = reactions.Count(r => r.IsLike);
+            var dislikesCount = reactions.Count(r => !r.IsLike);
+            var userReaction = reactions.FirstOrDefault(r => r.UserId == userId);
 
-            return Redirect(Request.Headers.Referer.ToString() ?? "/");
+            return Json(new { 
+                success = true, 
+                likesCount = likesCount, 
+                dislikesCount = dislikesCount, 
+                currentUserReaction = userReaction?.IsLike 
+            });
         }
     }
 }

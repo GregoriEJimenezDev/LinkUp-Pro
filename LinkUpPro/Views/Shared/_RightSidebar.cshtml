@@ -1,16 +1,20 @@
 @using LinkUpPro.Core.Application.Interfaces.Services
 @using LinkUpPro.Core.Application.Interfaces.IServices
 @inject IBattleshipService BattleshipService
+@inject IFriendRequestService FriendRequestService
 @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 @{
     var userId = HttpContextAccessor.HttpContext?.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
     int activeBattlesCount = 0;
     LinkUpPro.Core.Application.ViewModel.Game.BattleshipIndexViewModel? gameIndex = null;
+    LinkUpPro.Core.Application.ViewModel.Friend.SendFriendRequestViewModel? suggestedUsers = null;
     
     if (userId != null)
     {
         gameIndex = await BattleshipService.GetIndexAsync(userId);
         activeBattlesCount = gameIndex?.ActiveGames?.Count ?? 0;
+        
+        suggestedUsers = await FriendRequestService.GetAvailableUsersAsync(userId, null);
     }
 }
 <aside class="sticky top-0 hidden h-screen w-72 shrink-0 flex-col gap-4 overflow-y-auto py-5 pr-4 no-scrollbar lg:flex xl:w-80">
@@ -23,7 +27,37 @@
             </h3>
         </div>
         <div class="p-6 pt-0 flex flex-col gap-3">
-            <p class="text-sm text-muted-foreground text-center py-4">No hay sugerencias por el momento.</p>
+            @if (suggestedUsers == null || !suggestedUsers.AvailableUsers.Any())
+            {
+                <p class="text-sm text-muted-foreground text-center py-4">No hay sugerencias por el momento.</p>
+            }
+            else
+            {
+                <div class="flex flex-col gap-3">
+                    @foreach (var user in suggestedUsers.AvailableUsers.Take(3))
+                    {
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2 overflow-hidden">
+                                <img src="@(string.IsNullOrEmpty(user.ProfilePicture) ? "/images/default-avatar.png" : user.ProfilePicture)" alt="@user.Username" class="h-8 w-8 rounded-full object-cover" />
+                                <div class="flex flex-col truncate">
+                                    <span class="text-sm font-medium truncate">@user.Username</span>
+                                    <span class="text-xs text-muted-foreground truncate">@(user.MutualFriendsCount > 0 ? $"{user.MutualFriendsCount} amigos mutuos" : "Sugerencia")</span>
+                                </div>
+                            </div>
+                            <form action="/FriendRequest/Send" method="post" class="shrink-0">
+                                <input type="hidden" name="receiverId" value="@user.UserId" />
+                                <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-7 px-2">
+                                    <i data-lucide="plus" class="size-3 mr-1"></i> Añadir
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+                if (suggestedUsers.AvailableUsers.Count > 3)
+                {
+                    <a href="/FriendRequest/Add" class="text-xs text-center text-primary hover:underline mt-2">Ver más</a>
+                }
+            }
         </div>
     </div>
 
@@ -46,7 +80,10 @@
                     @foreach (var game in gameIndex!.ActiveGames!.Take(3))
                     {
                         var opponentName = game.Player1Id == userId ? game.Player2Username : game.Player1Username;
-                        <a href="/Battleship/Game?gameId=@game.Id" class="flex items-center justify-between rounded-lg border p-3 hover:bg-accent transition-colors">
+                        var gameUrl = (game.Status == LinkUpPro.Core.Domain.Enum.GameStatus.PlacingShips || (game.Status == LinkUpPro.Core.Domain.Enum.GameStatus.WaitingForOpponent && game.Player1Id == userId))
+                            ? $"/Battleship/SelectShip?gameId={game.Id}"
+                            : $"/Battleship/AttackBoard?gameId={game.Id}";
+                        <a href="@gameUrl" class="flex items-center justify-between rounded-lg border p-3 hover:bg-accent transition-colors">
                             <div class="flex items-center gap-2">
                                 <i data-lucide="swords" class="size-4 text-muted-foreground"></i>
                                 <div class="flex flex-col">

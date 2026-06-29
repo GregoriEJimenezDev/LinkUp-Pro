@@ -27,12 +27,17 @@ namespace LinkUpPro.Infrastructure.Identity.IoC
                 options.LoginPath = "/Auth/Index";
                 options.AccessDeniedPath = "/Auth/AccessDenied";
                 options.SlidingExpiration = true;
-                options.ExpireTimeSpan = TimeSpan.FromDays(7);
+                options.ExpireTimeSpan = TimeSpan.FromDays(30);
                 options.Events.OnSigningIn = context =>
                 {
                     if (context.Properties.IsPersistent)
                     {
-                        context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7);
+                        context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30);
+                    }
+                    else
+                    {
+                        context.Properties.ExpiresUtc = null;
+                        context.Properties.IsPersistent = false;
                     }
                     return Task.CompletedTask;
                 };

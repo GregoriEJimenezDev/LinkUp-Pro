@@ -22,7 +22,7 @@ namespace LinkUpPro.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return Redirect(Request.Headers.Referer.ToString() ?? "/");
+                return Json(new { success = false, message = "Datos inválidos" });
             }
 
             var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
@@ -30,10 +30,29 @@ namespace LinkUpPro.Controllers
 
             if (!result.Succeeded)
             {
-                TempData["Error"] = result.ErrorMessage;
+                return Json(new { success = false, message = result.ErrorMessage });
             }
 
-            return Redirect(Request.Headers.Referer.ToString() ?? "/");
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(SaveCommentViewModel vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                return Json(new { success = false, message = "Datos inválidos" });
+            }
+
+            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var result = await _commentService.UpdateAsync(vm, userId);
+
+            if (!result.Succeeded)
+            {
+                return Json(new { success = false, message = result.ErrorMessage });
+            }
+
+            return Json(new { success = true });
         }
 
         [HttpPost]
@@ -44,10 +63,10 @@ namespace LinkUpPro.Controllers
 
             if (!result.Succeeded)
             {
-                TempData["Error"] = result.ErrorMessage;
+                return Json(new { success = false, message = result.ErrorMessage });
             }
 
-            return Redirect(Request.Headers.Referer.ToString() ?? "/");
+            return Json(new { success = true });
         }
     }
 }

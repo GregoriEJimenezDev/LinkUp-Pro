@@ -88,7 +88,6 @@
                 <input type="hidden" name="shipType" value="@Model.ShipType" />
                 <input type="hidden" id="inputRow" name="row" value="" required />
                 <input type="hidden" id="inputCol" name="col" value="" required />
-                <input type="hidden" id="inputDir" name="direction" value="3" required /> <!-- 3 = Right, 1 = Down -->
 
                 <div class="flex flex-col gap-2">
                     <span class="text-sm font-medium">Coordenada seleccionada</span>
@@ -99,10 +98,15 @@
 
                 <div class="flex flex-col gap-2 mt-2">
                     <span class="text-sm font-medium">Orientación</span>
-                    <button type="button" id="btnRotate" onclick="toggleRotation()" class="flex h-11 w-full items-center justify-between rounded-lg border bg-secondary/50 px-4 text-sm font-medium transition-colors hover:bg-secondary">
-                        <span id="rotationLabel">Horizontal</span>
-                        <i data-lucide="rotate-cw" class="size-4"></i>
-                    </button>
+                    <div class="relative">
+                        <select id="inputDir" name="direction" onchange="updateDirectionHint()" class="flex h-11 w-full appearance-none items-center justify-between rounded-lg border bg-secondary/50 px-4 text-sm font-medium transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required>
+                            <option value="3">Derecha</option>
+                            <option value="1">Abajo</option>
+                            <option value="2">Izquierda</option>
+                            <option value="0">Arriba</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-4 top-1/2 -translate-y-1/2 size-4 pointer-events-none text-muted-foreground"></i>
+                    </div>
                     <p class="text-xs text-muted-foreground mt-1">La nave se extenderá hacia la <span id="directionHint" class="font-semibold text-foreground">derecha</span>.</p>
                 </div>
 
@@ -124,13 +128,11 @@
 @section Scripts {
     <script>
         const columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
-        let isHorizontal = true; // true = Right (3), false = Down (1)
         
-        function toggleRotation() {
-            isHorizontal = !isHorizontal;
-            document.getElementById('inputDir').value = isHorizontal ? '3' : '1';
-            document.getElementById('rotationLabel').textContent = isHorizontal ? 'Horizontal' : 'Vertical';
-            document.getElementById('directionHint').textContent = isHorizontal ? 'derecha' : 'abajo';
+        function updateDirectionHint() {
+            const select = document.getElementById('inputDir');
+            const hint = select.options[select.selectedIndex].text.toLowerCase();
+            document.getElementById('directionHint').textContent = hint;
             
             // Re-render preview si hay una celda seleccionada
             const r = document.getElementById('inputRow').value;

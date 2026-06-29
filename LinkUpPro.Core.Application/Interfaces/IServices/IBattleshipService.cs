@@ -17,7 +17,8 @@ namespace LinkUpPro.Core.Application.Interfaces.IServices
         Task<ServiceResult> AttackAsync(int gameId, string attackerId, int row, int col);
         Task<ServiceResult> SurrenderAsync(int gameId, string playerId);
         Task<GameResultViewModel> GetResultAsync(int gameId, string playerId);
-        Task CheckTimeoutsAsync();
         Task<GameStatsDto> GetStatsAsync(string userId);
+        Task<List<LeaderboardDto>> GetLeaderboardAsync();
+        Task CheckTimeoutsAsync();
     }
 }

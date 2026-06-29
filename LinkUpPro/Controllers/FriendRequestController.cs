@@ -64,6 +64,10 @@ namespace LinkUpPro.Controllers
             {
                 TempData["Error"] = result.ErrorMessage;
             }
+            else
+            {
+                TempData["Success"] = "Usuario agregado como amigo correctamente.";
+            }
 
             return RedirectToAction(nameof(Index));
         }

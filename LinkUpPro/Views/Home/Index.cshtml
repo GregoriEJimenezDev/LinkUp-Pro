@@ -80,11 +80,53 @@
         </form>
     </div>
 
-    <!-- Feed Search (Frontend simulated, but we could add a form) -->
-    <div class="relative">
-        <i data-lucide="search" class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"></i>
-        <input type="text" placeholder="Buscar publicaciones, personas o temas..." class="flex h-10 w-full border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 rounded-full bg-card pl-9" />
-    </div>
+    <!-- Feed Search -->
+    <form asp-controller="Home" asp-action="Index" method="get" class="mb-4 flex flex-col gap-3 p-4 bg-card rounded-2xl border shadow-sm">
+        <div class="relative">
+            <i data-lucide="search" class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"></i>
+            <input type="text" name="search" value="@Model.SearchQuery" placeholder="Buscar publicaciones..." class="flex h-10 w-full border border-input px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-full bg-background pl-9" />
+        </div>
+        <div class="flex flex-wrap gap-3 items-center">
+            <div class="flex items-center gap-2">
+                <label class="text-sm text-muted-foreground">Fecha:</label>
+                <input type="date" name="date" value="@Model.FilterDate?.ToString("yyyy-MM-dd")" class="h-8 rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+            </div>
+            <div class="flex items-center gap-2">
+                <label class="text-sm text-muted-foreground">Tipo:</label>
+                <select name="mediaType" class="h-8 rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                    <option value="">Todos</option>
+                    @if (Model.FilterMediaType == LinkUpPro.Core.Domain.Enum.MediaType.Image)
+                    {
+                        <option value="0" selected>Imagen</option>
+                    }
+                    else
+                    {
+                        <option value="0">Imagen</option>
+                    }
+                    
+                    @if (Model.FilterMediaType == LinkUpPro.Core.Domain.Enum.MediaType.Video)
+                    {
+                        <option value="1" selected>Video</option>
+                    }
+                    else
+                    {
+                        <option value="1">Video</option>
+                    }
+                </select>
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" name="isEdited" value="true" checked="@(Model.FilterIsEdited == true)" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                <label class="text-sm text-muted-foreground">Solo editados</label>
+            </div>
+            <div class="flex-1"></div>
+            <button type="submit" class="bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md px-4 text-xs font-medium transition-colors">
+                Filtrar
+            </button>
+            <a href="@Url.Action("Index", "Home")" class="bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 flex items-center rounded-md px-4 text-xs font-medium transition-colors">
+                Limpiar
+            </a>
+        </div>
+    </form>
 
     <!-- Posts Feed -->
     <div class="mt-4 flex flex-col gap-4">
@@ -102,7 +144,7 @@
                                 <div class="flex flex-col">
                                     <p class="text-sm font-semibold leading-none">@post.Username</p>
                                     <div class="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                                        <span>@post.CreatedAt.ToString("g")</span>
+                                        <span>@post.CreatedAt.ToLocalTime().ToString("g")</span>
                                         @if (post.UpdatedAt.HasValue)
                                         {
                                             <span class="text-[10px] ml-1">(Editado)</span>
@@ -162,15 +204,17 @@
                             <div class="flex items-center justify-center rounded-full bg-primary p-1">
                                 <i data-lucide="thumbs-up" class="size-3 text-primary-foreground fill-current"></i>
                             </div>
-                            <span class="font-medium mr-2">@post.LikesCount</span>
+                            <span class="font-medium mr-2" id="likes-count-@post.Id">@post.LikesCount</span>
                             
                             <div class="flex items-center justify-center rounded-full bg-destructive p-1">
                                 <i data-lucide="thumbs-down" class="size-3 text-destructive-foreground fill-current"></i>
                             </div>
-                            <span class="font-medium">@post.DislikesCount</span>
+                            <span class="font-medium" id="dislikes-count-@post.Id">@post.DislikesCount</span>
                         </div>
                         <div class="ml-auto flex items-center gap-3">
-                            <span>@post.Comments.Count comentarios</span>
+                            <button type="button" onclick="document.getElementById('comments-@post.Id').classList.toggle('hidden')" class="hover:underline cursor-pointer">
+                                <span id="comment-count-text-@post.Id">@post.CommentsCount comentarios</span>
+                            </button>
                         </div>
                     </div>
 
@@ -205,7 +249,7 @@
                     <div id="comments-@post.Id" class="hidden border-t border-border p-4 bg-muted/5">
                         @if (post.AllowComments)
                         {
-                            <form asp-controller="Comment" asp-action="Create" method="post" class="flex items-start gap-3 mb-4">
+                            <form asp-controller="Comment" asp-action="Create" method="post" class="flex items-start gap-3 mb-4" onsubmit="handleCommentSubmit(event, this)">
                                 <input type="hidden" name="PostId" value="@post.Id" />
                                 <div class="relative flex size-8 shrink-0 overflow-hidden rounded-full">
                                     <img class="aspect-square h-full w-full object-cover" src="@profilePic" alt="User" onerror="this.src='/placeholder.svg'" />
@@ -236,32 +280,56 @@
                                             <div class="flex-1 bg-muted/30 border rounded-lg p-3 group">
                                                 <div class="flex items-center justify-between">
                                                     <p class="text-sm font-semibold">@comment.Username</p>
-                                                    <div class="flex items-center gap-2">
-                                                        @if (comment.Username == User.Identity!.Name)
+                                                    <div class="flex items-center gap-1">
+                                                        @if (comment.Username == User.Identity!.Name && !comment.IsDeleted)
                                                         {
-                                                            <form asp-controller="Comment" asp-action="Delete" method="post" class="inline">
+                                                            <button type="button" onclick="document.getElementById('edit-form-@comment.Id').classList.toggle('hidden'); document.getElementById('comment-text-@comment.Id').classList.toggle('hidden');" class="px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors hover:text-primary">Editar</button>
+                                                            <form asp-controller="Comment" asp-action="Delete" method="post" class="inline" onsubmit="handleCommentSubmit(event, this)">
                                                                 <input type="hidden" name="id" value="@comment.Id" />
                                                                 <input type="hidden" name="postId" value="@post.Id" />
-                                                                <button type="submit" class="text-[10px] text-destructive hover:underline hidden group-hover:inline-block">Eliminar</button>
+                                                                <button type="submit" class="px-2 py-1 text-[11px] font-medium text-destructive hover:bg-muted rounded-md transition-colors">Eliminar</button>
                                                             </form>
                                                         }
                                                     </div>
                                                 </div>
-                                                <p class="text-sm mt-1 whitespace-pre-wrap">@comment.Content</p>
+                                                @if (comment.IsDeleted)
+                                                {
+                                                    <p class="text-sm mt-1 italic text-muted-foreground">Este comentario ha sido eliminado.</p>
+                                                }
+                                                else
+                                                {
+                                                    <p id="comment-text-@comment.Id" class="text-sm mt-1 whitespace-pre-wrap">@comment.Content</p>
+                                                    
+                                                    <form id="edit-form-@comment.Id" asp-controller="Comment" asp-action="Edit" method="post" class="hidden flex items-start gap-3 mt-1" onsubmit="handleCommentSubmit(event, this)">
+                                                    <input type="hidden" name="Id" value="@comment.Id" />
+                                                    <input type="hidden" name="PostId" value="@post.Id" />
+                                                    <input type="hidden" name="ParentCommentId" value="@comment.ParentCommentId" />
+                                                    <div class="flex-1 flex flex-col gap-2">
+                                                        <input type="text" name="Content" value="@comment.Content" class="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required />
+                                                        <div class="flex justify-end gap-2">
+                                                            <button type="button" onclick="document.getElementById('edit-form-@comment.Id').classList.add('hidden'); document.getElementById('comment-text-@comment.Id').classList.remove('hidden');" class="h-8 rounded-md px-3 text-xs font-medium text-muted-foreground hover:bg-accent">Cancelar</button>
+                                                            <button type="submit" class="shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md px-3 text-xs font-medium">Guardar</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                                }
                                                 <div class="flex items-center gap-3 mt-2">
-                                                    <p class="text-xs text-muted-foreground">@comment.CreatedAt.ToString("g")</p>
-                                                    <button type="button" onclick="document.getElementById('reply-form-@comment.Id').classList.toggle('hidden')" class="text-xs text-muted-foreground hover:text-primary font-medium">Responder</button>
+                                                    <p class="text-xs text-muted-foreground">@comment.CreatedAt.ToLocalTime().ToString("g")</p>
+                                                    @if (!comment.IsDeleted)
+                                                    {
+                                                        <button type="button" onclick="document.getElementById('reply-form-@comment.Id').classList.toggle('hidden')" class="px-2 py-1 text-xs text-muted-foreground hover:bg-muted rounded-md transition-colors hover:text-primary font-medium">Responder</button>
+                                                    }
                                                 </div>
                                             </div>
                                         </div>
                                         
                                         <!-- Reply form -->
-                                        <form id="reply-form-@comment.Id" asp-controller="Comment" asp-action="Create" method="post" class="hidden flex items-start gap-3 ml-11 mt-1">
+                                        <form id="reply-form-@comment.Id" asp-controller="Comment" asp-action="Create" method="post" class="hidden flex items-start gap-3 ml-11 mt-1" onsubmit="handleCommentSubmit(event, this)">
                                             <input type="hidden" name="PostId" value="@post.Id" />
                                             <input type="hidden" name="ParentCommentId" value="@comment.Id" />
                                             <div class="flex-1 flex flex-col gap-2">
                                                 <input type="text" name="Content" placeholder="Escribe una respuesta..." class="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required />
-                                                <button type="submit" class="self-end bg-primary text-primary-foreground hover:bg-primary/90 h-7 rounded-md px-3 text-[10px] font-medium">
+                                                <button type="submit" class="shrink-0 self-end bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md px-3 text-xs font-medium">
                                                     Responder
                                                 </button>
                                             </div>
@@ -279,17 +347,40 @@
                                                         <div class="flex-1 bg-muted/20 border rounded-lg p-2 group">
                                                             <div class="flex items-center justify-between">
                                                                 <p class="text-xs font-semibold">@reply.Username</p>
-                                                                @if (reply.Username == User.Identity!.Name)
+                                                                @if (reply.Username == User.Identity!.Name && !reply.IsDeleted)
                                                                 {
-                                                                    <form asp-controller="Comment" asp-action="Delete" method="post" class="inline">
-                                                                        <input type="hidden" name="id" value="@reply.Id" />
-                                                                        <input type="hidden" name="postId" value="@post.Id" />
-                                                                        <button type="submit" class="text-[10px] text-destructive hover:underline hidden group-hover:inline-block">Eliminar</button>
-                                                                    </form>
+                                                                    <div class="flex items-center gap-1">
+                                                                        <button type="button" onclick="document.getElementById('edit-form-@reply.Id').classList.toggle('hidden'); document.getElementById('reply-text-@reply.Id').classList.toggle('hidden');" class="px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors hover:text-primary">Editar</button>
+                                                                        <form asp-controller="Comment" asp-action="Delete" method="post" class="inline" onsubmit="handleCommentSubmit(event, this)">
+                                                                            <input type="hidden" name="id" value="@reply.Id" />
+                                                                            <input type="hidden" name="postId" value="@post.Id" />
+                                                                            <button type="submit" class="px-2 py-1 text-[11px] font-medium text-destructive hover:bg-muted rounded-md transition-colors">Eliminar</button>
+                                                                        </form>
+                                                                    </div>
                                                                 }
                                                             </div>
-                                                            <p class="text-xs mt-1 whitespace-pre-wrap">@reply.Content</p>
-                                                            <p class="text-[10px] text-muted-foreground mt-1">@reply.CreatedAt.ToString("g")</p>
+                                                            @if (reply.IsDeleted)
+                                                            {
+                                                                <p class="text-xs mt-1 italic text-muted-foreground">Este comentario ha sido eliminado.</p>
+                                                            }
+                                                            else
+                                                            {
+                                                                <p id="reply-text-@reply.Id" class="text-xs mt-1 whitespace-pre-wrap">@reply.Content</p>
+                                                                
+                                                                <form id="edit-form-@reply.Id" asp-controller="Comment" asp-action="Edit" method="post" class="hidden flex items-start gap-3 mt-1" onsubmit="handleCommentSubmit(event, this)">
+                                                                    <input type="hidden" name="Id" value="@reply.Id" />
+                                                                    <input type="hidden" name="PostId" value="@post.Id" />
+                                                                    <input type="hidden" name="ParentCommentId" value="@reply.ParentCommentId" />
+                                                                    <div class="flex-1 flex flex-col gap-2">
+                                                                        <input type="text" name="Content" value="@reply.Content" class="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required />
+                                                                        <div class="flex justify-end gap-2">
+                                                                            <button type="button" onclick="document.getElementById('edit-form-@reply.Id').classList.add('hidden'); document.getElementById('reply-text-@reply.Id').classList.remove('hidden');" class="h-8 rounded-md px-3 text-xs font-medium text-muted-foreground hover:bg-accent">Cancelar</button>
+                                                                            <button type="submit" class="shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md px-3 text-xs font-medium">Guardar</button>
+                                                                        </div>
+                                                                    </div>
+                                                                </form>
+                                                            }
+                                                            <p class="text-[10px] text-muted-foreground mt-1">@reply.CreatedAt.ToLocalTime().ToString("g")</p>
                                                         </div>
                                                     </div>
                                                 }
@@ -359,7 +450,7 @@
         }
 
         function extractYouTubeId(url) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
             const match = url.match(regExp);
             return (match && match[2].length === 11) ? match[2] : null;
         }
@@ -381,15 +472,22 @@
             event.preventDefault();
             
             const btn = form.querySelector('button');
-            const icon = btn.querySelector('i');
+            const icon = btn.querySelector('svg') || btn.querySelector('i');
             const isLike = form.querySelector('input[name="isLike"]').value === 'true';
             
+            const postId = form.querySelector('input[name="postId"]').value;
+
             // Find the other form's button to un-highlight if switching
             const parentDiv = form.parentElement;
             const otherFormIndex = isLike ? 1 : 0;
             const otherForm = parentDiv.querySelectorAll('form')[otherFormIndex];
             const otherBtn = otherForm.querySelector('button');
-            const otherIcon = otherBtn.querySelector('i');
+            const otherIcon = otherBtn.querySelector('svg') || otherBtn.querySelector('i');
+
+            const likesCountEl = document.getElementById(`likes-count-${postId}`);
+            const dislikesCountEl = document.getElementById(`dislikes-count-${postId}`);
+            let likesCount = parseInt(likesCountEl.innerText);
+            let dislikesCount = parseInt(dislikesCountEl.innerText);
 
             // Optimistic UI update
             const wasActive = isLike ? btn.classList.contains('text-primary') : btn.classList.contains('text-destructive');
@@ -398,14 +496,24 @@
                 // Remove active state
                 btn.classList.remove(isLike ? 'text-primary' : 'text-destructive');
                 icon.classList.remove('fill-current');
+                if (isLike) likesCount--; else dislikesCount--;
             } else {
                 // Set active state
                 btn.classList.add(isLike ? 'text-primary' : 'text-destructive');
                 icon.classList.add('fill-current');
+                if (isLike) likesCount++; else dislikesCount++;
+                
                 // Remove active from other
-                otherBtn.classList.remove(isLike ? 'text-destructive' : 'text-primary');
-                otherIcon.classList.remove('fill-current');
+                const otherWasActive = otherBtn.classList.contains(isLike ? 'text-destructive' : 'text-primary');
+                if (otherWasActive) {
+                    otherBtn.classList.remove(isLike ? 'text-destructive' : 'text-primary');
+                    otherIcon.classList.remove('fill-current');
+                    if (isLike) dislikesCount--; else likesCount--;
+                }
             }
+            
+            likesCountEl.innerText = likesCount;
+            dislikesCountEl.innerText = dislikesCount;
 
             const formData = new FormData(form);
             try {
@@ -418,6 +526,78 @@
                 });
             } catch (e) {
                 console.error('Error toggling reaction', e);
+            }
+        }
+
+        function disableSubmit(form) {
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Enviando...';
+                btn.classList.add('opacity-50', 'pointer-events-none');
+            }
+        }
+
+        async function handleCommentSubmit(event, form) {
+            event.preventDefault();
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn ? btn.innerText : '';
+            
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Enviando...';
+                btn.classList.add('opacity-50', 'pointer-events-none');
+            }
+
+            const formData = new FormData(form);
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                const data = await response.json();
+                if(data.success) {
+                    // Re-fetch the current page silently to update the comments DOM
+                    const pageRes = await fetch(window.location.href);
+                    const pageText = await pageRes.text();
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(pageText, 'text/html');
+                    
+                    const postIdInput = form.querySelector('input[name="PostId"]') || form.querySelector('input[name="postId"]');
+                    const postId = postIdInput.value;
+                    
+                    const newCommentsSection = doc.getElementById('comments-' + postId);
+                    const currentCommentsSection = document.getElementById('comments-' + postId);
+                    
+                    if(newCommentsSection && currentCommentsSection) {
+                        currentCommentsSection.innerHTML = newCommentsSection.innerHTML;
+                    }
+                    
+                    // Also update the comment count text
+                    const newCommentCount = doc.getElementById('comment-count-text-' + postId);
+                    const currentCommentCount = document.getElementById('comment-count-text-' + postId);
+                    if(newCommentCount && currentCommentCount) {
+                        currentCommentCount.innerText = newCommentCount.innerText;
+                    }
+                } else {
+                    alert(data.message || 'Error al procesar la solicitud');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerText = originalText;
+                        btn.classList.remove('opacity-50', 'pointer-events-none');
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                    btn.classList.remove('opacity-50', 'pointer-events-none');
+                }
             }
         }
     </script>
