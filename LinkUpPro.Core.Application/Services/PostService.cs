@@ -6,17 +6,19 @@ using LinkUpPro.Core.Application.ViewModel.Save;
 using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Core.Domain.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
-namespace LinkUpPro.Core.Application.Interfaces.Services
+namespace LinkUpPro.Core.Application.Services
 {
     public class PostService(IPostRepository postRepository, IReactionRepository reactionRepository,
-        IFriendshipRepository friendshipRepository, IUserService userService, IFileStorageService fileStorageService) : IPostService
+        IFriendshipRepository friendshipRepository, IUserService userService, IFileStorageService fileStorageService, Microsoft.Extensions.Caching.Memory.IMemoryCache memoryCache) : IPostService
     {
         private readonly IPostRepository _postRepository = postRepository;
         private readonly IReactionRepository _reactionRepository = reactionRepository;
         private readonly IFriendshipRepository _friendshipRepository = friendshipRepository;
         private readonly IUserService _userService = userService;
         private readonly IFileStorageService _fileStorageService = fileStorageService;
+        private readonly Microsoft.Extensions.Caching.Memory.IMemoryCache _cache = memoryCache;
 
         public async Task<ServiceResult> CreateAsync(SavePostViewModel vm, string userId)
         {
@@ -75,8 +77,15 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             return ServiceResult.Success();
         }
 
-        public async Task<List<PostViewModel>> GetByFriendsAsync(string userId)
+        public async Task<List<PostViewModel>> GetByFriendsAsync(string userId, bool includeGlobalPublic = false)
         {
+            var cacheKey = $"FeedPosts_{userId}_{includeGlobalPublic}";
+            
+            if (_cache.TryGetValue(cacheKey, out List<PostViewModel>? cachedPosts))
+            {
+                return cachedPosts ?? new List<PostViewModel>();
+            }
+
             var friendships = await _friendshipRepository.GetFriendsByUserIdAsync(userId);
             var friendIds = friendships.Select(f => f.FirstUserId == userId ? f.SecondUserId : f.FirstUserId)
                 .Where(id => id != null).ToList();
@@ -86,8 +95,8 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             var feedPosts = allposts.Where(p => 
                 !p.IsDeleted &&
                 (p.UserId == userId || 
-                p.Privacy == PostPrivacy.Public || 
-                (p.Privacy == PostPrivacy.FriendsOnly && friendIds.Contains(p.UserId)))
+                (friendIds.Contains(p.UserId) && p.Privacy != PostPrivacy.OnlyMe) ||
+                (includeGlobalPublic && p.Privacy == PostPrivacy.Public))
             ).DistinctBy(p => p.Id).OrderByDescending(p => p.CreatedAt).ToList();
 
             var result = new List<PostViewModel>();
@@ -99,13 +108,16 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 result.Add(vm);
             }
 
+            // Cache for 30 seconds
+            _cache.Set(cacheKey, result, TimeSpan.FromSeconds(30));
+
             return result;
         }
 
-        public async Task<SavePostViewModel> GetByIdForEditAsync(int postId)
+        public async Task<SavePostViewModel?> GetByIdForEditAsync(int postId, string userId)
         {
             var post = await _postRepository.GetByIdAsync(postId);
-            if (post == null) return new SavePostViewModel();
+            if (post == null || post.UserId != userId) return null;
 
             return new SavePostViewModel
             {
@@ -122,6 +134,17 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
         {
             var posts = await _postRepository.GetByUserIdAsync(targetUserId);
             var activePosts = posts.Where(p => !p.IsDeleted).ToList();
+
+            if (targetUserId != currentUserId)
+            {
+                var friendship = await _friendshipRepository.GetByUsersAsync(targetUserId, currentUserId);
+                bool areFriends = friendship != null;
+
+                activePosts = activePosts.Where(p => 
+                    p.Privacy == PostPrivacy.Public || 
+                    (p.Privacy == PostPrivacy.FriendsOnly && areFriends)).ToList();
+            }
+
             var userInfo = await _userService.GetUserBasicInfoAsync(targetUserId);
             return await MapToViewModels(activePosts, currentUserId, userInfo);
         }
@@ -228,9 +251,15 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 LikesCount = reactions.Count(r => r.IsLike),
                 DislikesCount = reactions.Count(r => !r.IsLike),
                 CurrentUserReaction = userReaction?.IsLike,
-                CommentsCount = post.Comments?.Count(c => !c.IsDeleted) ?? 0,
+                CommentsCount = CountCommentsRecursively(comment),
                 Comments = comment
             };
+        }
+
+        private int CountCommentsRecursively(IEnumerable<CommentDto> comments)
+        {
+            if (comments == null) return 0;
+            return comments.Sum(c => (c.IsDeleted ? 0 : 1) + CountCommentsRecursively(c.Replies));
         }
 
         private async Task<CommentDto> MapCommentWhitUser(Comment comment, UserBasicDto userInfo)

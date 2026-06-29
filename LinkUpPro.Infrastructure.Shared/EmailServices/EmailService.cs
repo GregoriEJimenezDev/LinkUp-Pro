@@ -39,7 +39,6 @@ namespace LinkUpPro.Infrastructure.Shared.EmailServices
                 email.Body = builder.ToMessageBody();
 
                 using var smtp = new SmtpClient();
-                smtp.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
                 await smtp.ConnectAsync(_settings.SmtpHost, _settings.SmtpPort, _settings.UseSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls );
 

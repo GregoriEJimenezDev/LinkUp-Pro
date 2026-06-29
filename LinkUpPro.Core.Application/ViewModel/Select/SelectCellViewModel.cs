@@ -1,4 +1,4 @@
-﻿namespace LinkUpPro.Core.Application.ViewModel.Select
+namespace LinkUpPro.Core.Application.ViewModel.Select
 {
     public class SelectCellViewModel
     {

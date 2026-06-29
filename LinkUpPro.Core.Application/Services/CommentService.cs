@@ -4,18 +4,32 @@ using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Core.Domain.Interfaces;
 
-namespace LinkUpPro.Core.Application.Interfaces.Services
+namespace LinkUpPro.Core.Application.Services
 {
     public class CommentService(ICommentRepository commentRepo, INotificationService notificationService,
-        IPostRepository postRepository, IUserService userService) : ICommentService
+        IPostRepository postRepository, IUserService userService, IFriendshipRepository friendshipRepo) : ICommentService
     {
         private readonly ICommentRepository _commentRepo = commentRepo;
         private readonly INotificationService _notificationService = notificationService;
         private readonly IPostRepository _postRepository = postRepository;
         private readonly IUserService _userService = userService;
+        private readonly IFriendshipRepository _friendshipRepo = friendshipRepo;
 
         public async Task<ServiceResult> AddAsync(SaveCommentViewModel vm, string userId)
         {
+            var post = await _postRepository.GetByIdAsync(vm.PostId);
+            if (post == null) return ServiceResult.Failure("Publicación no encontrada.");
+            
+            if (!post.AllowComments)
+                return ServiceResult.Failure("Esta publicación no permite comentarios.");
+
+            if (post.UserId != userId && post.Privacy == PostPrivacy.FriendsOnly)
+            {
+                var friendship = await _friendshipRepo.GetByUsersAsync(userId, post.UserId!);
+                if (friendship == null)
+                    return ServiceResult.Failure("No estás autorizado para comentar en esta publicación.");
+            }
+
             var comment = new Comment
             {
                 Content = vm.Content,
@@ -27,7 +41,6 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
 
             await _commentRepo.AddAsync(comment);
 
-            var post = await _postRepository.GetByIdAsync(vm.PostId);
             var commenterInfo = await _userService.GetUserBasicInfoAsync(userId);
 
             if (vm.ParentCommentId.HasValue)

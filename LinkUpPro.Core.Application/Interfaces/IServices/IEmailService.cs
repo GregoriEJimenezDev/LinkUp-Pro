@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Domain.Entities;
+using LinkUpPro.Core.Domain.Entities;
 
 namespace LinkUpPro.Core.Application.Interfaces.IServices
 {

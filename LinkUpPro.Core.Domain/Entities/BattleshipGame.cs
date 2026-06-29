@@ -17,8 +17,6 @@ namespace LinkUpPro.Core.Domain.Entities
         public string WinnerId { get; set; } = string.Empty;
 
         public byte[] ConcurrencyStamp { get; set; } = [];
-
-        // Navigation properties
         public ICollection<Ship> Ships { get; set; } = [];
         public ICollection<Attack> Attacks { get; set; } = [];
 

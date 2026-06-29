@@ -1,4 +1,4 @@
-﻿namespace LinkUpPro.Core.Domain.Entities
+namespace LinkUpPro.Core.Domain.Entities
 {
     public class EmailRequest
     {

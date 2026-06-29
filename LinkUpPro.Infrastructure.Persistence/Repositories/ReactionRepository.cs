@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using LinkUpPro.Infrastructure.Persistence.Repositories.Generic;
 using LinkUpPro.Infrastructure.Persistence.Context;
 using LinkUpPro.Core.Domain.Entities;

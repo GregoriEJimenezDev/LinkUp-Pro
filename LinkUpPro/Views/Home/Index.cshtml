@@ -1,14 +1,10 @@
 @using LinkUpPro.Core.Application.ViewModel.Post
 @using LinkUpPro.Core.Domain.Enum
-@using Microsoft.AspNetCore.Identity
-@using LinkUpPro.Infrastructure.Identity.Entities
-@inject UserManager<ApplicationUser> UserManager
 @model HomeViewModel
 
 @{
     ViewData["Title"] = "Inicio";
-    var currentUser = await UserManager.GetUserAsync(User);
-    var profilePic = currentUser?.ProfilePicturePath ?? "/placeholder.svg";
+    var profilePic = Model.CurrentUserProfilePicture ?? "/placeholder.svg";
 }
 
 <div class="flex flex-col gap-4">
@@ -218,7 +214,7 @@
                         </div>
                     </div>
 
-                    <div class="my-0 h-[1px] w-full shrink-0 bg-border mx-4"></div>
+                    <div class="my-0 h-[1px] bg-border mx-6"></div>
 
                     <div class="flex items-center justify-between gap-1 p-2">
                         <form asp-controller="Reaction" asp-action="Toggle" method="post" class="flex-1 flex" onsubmit="handleReaction(event, this); return false;">
@@ -255,7 +251,7 @@
                                     <img class="aspect-square h-full w-full object-cover" src="@profilePic" alt="User" onerror="this.src='/placeholder.svg'" />
                                 </div>
                                 <div class="flex-1 flex flex-col gap-2">
-                                    <input type="text" name="Content" placeholder="Escribe un comentario..." class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required />
+                                    <input type="text" name="Content" placeholder="Escribe un comentario..." class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required />
                                     <button type="submit" class="self-end bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md px-3 text-xs font-medium">
                                         Publicar
                                     </button>
@@ -283,11 +279,11 @@
                                                     <div class="flex items-center gap-1">
                                                         @if (comment.Username == User.Identity!.Name && !comment.IsDeleted)
                                                         {
-                                                            <button type="button" onclick="document.getElementById('edit-form-@comment.Id').classList.toggle('hidden'); document.getElementById('comment-text-@comment.Id').classList.toggle('hidden');" class="px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors hover:text-primary">Editar</button>
+                                                            <button type="button" onclick="document.getElementById('edit-form-@comment.Id').classList.toggle('hidden'); document.getElementById('comment-text-@comment.Id').classList.toggle('hidden');" class="px-2 py-1 text-xs px-2 py-1.5 font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors hover:text-primary">Editar</button>
                                                             <form asp-controller="Comment" asp-action="Delete" method="post" class="inline" onsubmit="handleCommentSubmit(event, this)">
                                                                 <input type="hidden" name="id" value="@comment.Id" />
                                                                 <input type="hidden" name="postId" value="@post.Id" />
-                                                                <button type="submit" class="px-2 py-1 text-[11px] font-medium text-destructive hover:bg-muted rounded-md transition-colors">Eliminar</button>
+                                                                <button type="submit" class="px-2 py-1 text-xs px-2 py-1.5 font-medium text-destructive hover:bg-muted rounded-md transition-colors">Eliminar</button>
                                                             </form>
                                                         }
                                                     </div>
@@ -298,14 +294,14 @@
                                                 }
                                                 else
                                                 {
-                                                    <p id="comment-text-@comment.Id" class="text-sm mt-1 whitespace-pre-wrap">@comment.Content</p>
+                                                    <p id="comment-text-@comment.Id" class="text-sm mt-1 whitespace-pre-wrap break-words overflow-hidden">@comment.Content</p>
                                                     
                                                     <form id="edit-form-@comment.Id" asp-controller="Comment" asp-action="Edit" method="post" class="hidden flex items-start gap-3 mt-1" onsubmit="handleCommentSubmit(event, this)">
                                                     <input type="hidden" name="Id" value="@comment.Id" />
                                                     <input type="hidden" name="PostId" value="@post.Id" />
                                                     <input type="hidden" name="ParentCommentId" value="@comment.ParentCommentId" />
                                                     <div class="flex-1 flex flex-col gap-2">
-                                                        <input type="text" name="Content" value="@comment.Content" class="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required />
+                                                        <input type="text" name="Content" value="@comment.Content" class="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required />
                                                         <div class="flex justify-end gap-2">
                                                             <button type="button" onclick="document.getElementById('edit-form-@comment.Id').classList.add('hidden'); document.getElementById('comment-text-@comment.Id').classList.remove('hidden');" class="h-8 rounded-md px-3 text-xs font-medium text-muted-foreground hover:bg-accent">Cancelar</button>
                                                             <button type="submit" class="shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md px-3 text-xs font-medium">Guardar</button>
@@ -328,7 +324,7 @@
                                             <input type="hidden" name="PostId" value="@post.Id" />
                                             <input type="hidden" name="ParentCommentId" value="@comment.Id" />
                                             <div class="flex-1 flex flex-col gap-2">
-                                                <input type="text" name="Content" placeholder="Escribe una respuesta..." class="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required />
+                                                <input type="text" name="Content" placeholder="Escribe una respuesta..." class="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required />
                                                 <button type="submit" class="shrink-0 self-end bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md px-3 text-xs font-medium">
                                                     Responder
                                                 </button>
@@ -350,11 +346,11 @@
                                                                 @if (reply.Username == User.Identity!.Name && !reply.IsDeleted)
                                                                 {
                                                                     <div class="flex items-center gap-1">
-                                                                        <button type="button" onclick="document.getElementById('edit-form-@reply.Id').classList.toggle('hidden'); document.getElementById('reply-text-@reply.Id').classList.toggle('hidden');" class="px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors hover:text-primary">Editar</button>
+                                                                        <button type="button" onclick="document.getElementById('edit-form-@reply.Id').classList.toggle('hidden'); document.getElementById('reply-text-@reply.Id').classList.toggle('hidden');" class="px-2 py-1 text-xs px-2 py-1.5 font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors hover:text-primary">Editar</button>
                                                                         <form asp-controller="Comment" asp-action="Delete" method="post" class="inline" onsubmit="handleCommentSubmit(event, this)">
                                                                             <input type="hidden" name="id" value="@reply.Id" />
                                                                             <input type="hidden" name="postId" value="@post.Id" />
-                                                                            <button type="submit" class="px-2 py-1 text-[11px] font-medium text-destructive hover:bg-muted rounded-md transition-colors">Eliminar</button>
+                                                                            <button type="submit" class="px-2 py-1 text-xs px-2 py-1.5 font-medium text-destructive hover:bg-muted rounded-md transition-colors">Eliminar</button>
                                                                         </form>
                                                                     </div>
                                                                 }
@@ -365,14 +361,14 @@
                                                             }
                                                             else
                                                             {
-                                                                <p id="reply-text-@reply.Id" class="text-xs mt-1 whitespace-pre-wrap">@reply.Content</p>
+                                                                <p id="reply-text-@reply.Id" class="text-xs mt-1 whitespace-pre-wrap break-words overflow-hidden">@reply.Content</p>
                                                                 
                                                                 <form id="edit-form-@reply.Id" asp-controller="Comment" asp-action="Edit" method="post" class="hidden flex items-start gap-3 mt-1" onsubmit="handleCommentSubmit(event, this)">
                                                                     <input type="hidden" name="Id" value="@reply.Id" />
                                                                     <input type="hidden" name="PostId" value="@post.Id" />
                                                                     <input type="hidden" name="ParentCommentId" value="@reply.ParentCommentId" />
                                                                     <div class="flex-1 flex flex-col gap-2">
-                                                                        <input type="text" name="Content" value="@reply.Content" class="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required />
+                                                                        <input type="text" name="Content" value="@reply.Content" class="flex h-8 w-full rounded-md border border-input bg-background px-3 py-1 text-xs shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required />
                                                                         <div class="flex justify-end gap-2">
                                                                             <button type="button" onclick="document.getElementById('edit-form-@reply.Id').classList.add('hidden'); document.getElementById('reply-text-@reply.Id').classList.remove('hidden');" class="h-8 rounded-md px-3 text-xs font-medium text-muted-foreground hover:bg-accent">Cancelar</button>
                                                                             <button type="submit" class="shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md px-3 text-xs font-medium">Guardar</button>
@@ -545,7 +541,8 @@
             
             if (btn) {
                 btn.disabled = true;
-                btn.innerText = 'Enviando...';
+                const isDelete = form.action.includes('Delete');
+                btn.innerText = isDelete ? 'Eliminando...' : 'Enviando...';
                 btn.classList.add('opacity-50', 'pointer-events-none');
             }
 

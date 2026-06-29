@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Domain.Enum;
+using LinkUpPro.Core.Domain.Enum;
 
 namespace LinkUpPro.Core.Application.DTOs.Battleship
 {

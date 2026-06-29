@@ -9,5 +9,6 @@ namespace LinkUpPro.Core.Application.ViewModel.Post
         public MediaType? FilterMediaType { get; set; }
         public DateTime? FilterDate { get; set; }
         public bool? FilterIsEdited { get; set; }
+        public string? CurrentUserProfilePicture { get; set; }
     }
 }

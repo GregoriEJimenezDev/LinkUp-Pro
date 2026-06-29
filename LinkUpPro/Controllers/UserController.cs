@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class UserController : Controller
+    public class UserController : BaseController
     {
         private readonly IUserService _userService;
 
@@ -18,7 +18,7 @@ namespace LinkUpPro.Controllers
 
         public async Task<IActionResult> Profile()
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var profile = await _userService.GetProfileAsync(userId);
             var userInfo = await _userService.GetUserBasicInfoAsync(userId);
 
@@ -49,14 +49,14 @@ namespace LinkUpPro.Controllers
 
             if (!ModelState.IsValid)
             {
-                var uid = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+                var uid = UserId;
                 var userInfo = await _userService.GetUserBasicInfoAsync(uid);
                 ViewBag.Username = User.Identity!.Name;
                 ViewBag.Email = userInfo.Email;
                 return View(vm);
             }
 
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
 
             if (File != null)
             {
@@ -76,8 +76,6 @@ namespace LinkUpPro.Controllers
                 ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Error al actualizar perfil");
                 return View(vm);
             }
-
-            // Si el usuario cambió la contraseña, lo cerramos de sesión
             if (!string.IsNullOrEmpty(vm.Password))
             {
                 TempData["Success"] = "Su perfil y contraseña fueron actualizados correctamente. Inicie sesión nuevamente.";
@@ -89,3 +87,4 @@ namespace LinkUpPro.Controllers
         }
     }
 }
+

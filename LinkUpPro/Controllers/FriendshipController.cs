@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class FriendshipController : Controller
+    public class FriendshipController : BaseController
     {
         private readonly IFriendshipService _friendshipService;
         private readonly IPostService _postService;
@@ -25,7 +25,7 @@ namespace LinkUpPro.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             
             var vm = new FriendIndexViewModel
             {
@@ -39,7 +39,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> Remove(int id)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _friendshipService.RemoveAsync(id, userId);
 
             if (!result.Succeeded)
@@ -51,3 +51,4 @@ namespace LinkUpPro.Controllers
         }
     }
 }
+

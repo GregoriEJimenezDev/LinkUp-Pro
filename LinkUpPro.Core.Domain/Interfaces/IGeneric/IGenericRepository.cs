@@ -1,8 +1,8 @@
-﻿namespace LinkUpPro.Core.Domain.Interfaces.IGeneric
+namespace LinkUpPro.Core.Domain.Interfaces.IGeneric
 {
     public interface IGenericRepository<Entity> where Entity : class
     {
-        Task<Entity> GetByIdAsync(int id);
+        Task<Entity?> GetByIdAsync(int id);
         Task<IEnumerable<Entity>> GetAllAsync();
         Task AddAsync(Entity entity);
         Task AddRangeAsync(IEnumerable<Entity> entities);

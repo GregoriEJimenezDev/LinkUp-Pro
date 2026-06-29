@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Application.DTOs.Battleship;
+using LinkUpPro.Core.Application.DTOs.Battleship;
 
 namespace LinkUpPro.Core.Application.ViewModel.Game
 {

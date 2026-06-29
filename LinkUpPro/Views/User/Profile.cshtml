@@ -18,7 +18,10 @@
     }
 
     <form asp-action="Profile" method="post" enctype="multipart/form-data" class="flex flex-col gap-8">
-        <div asp-validation-summary="All" class="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"></div>
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div asp-validation-summary="All" class="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"></div>
+        }
 
         <!-- Información de Cuenta (Solo lectura) -->
         <div class="rounded-2xl border bg-card shadow-sm overflow-hidden">

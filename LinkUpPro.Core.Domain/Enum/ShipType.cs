@@ -1,4 +1,4 @@
-﻿namespace LinkUpPro.Core.Domain.Enum
+namespace LinkUpPro.Core.Domain.Enum
 {
     public enum ShipType
     {

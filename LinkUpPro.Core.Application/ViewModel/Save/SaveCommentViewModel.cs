@@ -1,11 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace LinkUpPro.Core.Application.ViewModel.Save
 {
     public class SaveCommentViewModel
     {
         public int Id { get; set; }
-        [Required(ErrorMessage = "El comentario no puede estar vacío.")]
+        [Required(ErrorMessage = "El comentario no puede estar vac�o.")]
         public string Content { get; set; } = string.Empty;
         [Required]
         public int PostId { get; set; }

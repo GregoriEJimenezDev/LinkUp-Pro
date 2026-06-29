@@ -57,4 +57,68 @@
             }
         </div>
     </div>
+
+    <!-- Friends Posts Feed -->
+    <div class="w-full max-w-3xl mx-auto flex flex-col gap-6">
+        <div class="flex items-center justify-between">
+            <h2 class="text-2xl font-bold tracking-tight text-foreground">Publicaciones de Amigos</h2>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            @if (Model.FriendsPosts != null && Model.FriendsPosts.Any())
+            {
+                foreach (var post in Model.FriendsPosts)
+                {
+                    <div class="rounded-2xl border bg-card text-card-foreground shadow-sm">
+                        <div class="p-6 pb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="relative flex size-10 shrink-0 overflow-hidden rounded-full">
+                                    <img class="aspect-square h-full w-full object-cover" src="@post.UserProfilePicture" alt="@post.Username" onerror="this.src='/placeholder.svg'" />
+                                </div>
+                                <div class="flex flex-col">
+                                    <p class="text-sm font-semibold leading-none">@post.Username</p>
+                                    <div class="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                        <span>@post.CreatedAt.ToLocalTime().ToString("g")</span>
+                                        @if (post.UpdatedAt.HasValue)
+                                        {
+                                            <span class="text-[10px] ml-1">(Editado)</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="px-6 pb-4">
+                            <p class="text-sm text-foreground whitespace-pre-wrap">@post.Content</p>
+                        </div>
+
+                        @if (post.MediaType == LinkUpPro.Core.Domain.Enum.MediaType.Image && !string.IsNullOrEmpty(post.MediaUrl))
+                        {
+                            <div class="px-6 pb-4">
+                                <div class="relative overflow-hidden rounded-xl border bg-muted/30">
+                                    <img src="@post.MediaUrl" alt="Post image" class="w-full object-cover" loading="lazy" />
+                                </div>
+                            </div>
+                        }
+                        else if (post.MediaType == LinkUpPro.Core.Domain.Enum.MediaType.Video && !string.IsNullOrEmpty(post.MediaUrl))
+                        {
+                            <div class="px-6 pb-4">
+                                <div class="relative overflow-hidden rounded-xl border bg-muted/30 aspect-video">
+                                    <iframe src="@post.MediaUrl" class="w-full h-full" frameborder="0" allowfullscreen></iframe>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="flex flex-col items-center justify-center rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground bg-card/50">
+                    <i data-lucide="image" class="mb-3 size-8 opacity-20"></i>
+                    <p class="font-medium text-foreground">No hay publicaciones recientes</p>
+                    <p class="mt-1">Tus amigos aún no han publicado nada.</p>
+                </div>
+            }
+        </div>
+    </div>
 </div>

@@ -3,25 +3,28 @@ using LinkUpPro.Core.Application.ViewModel.Post;
 using LinkUpPro.Core.Domain.Enum;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
         private readonly IPostService _postService;
         private readonly IUserService _userService;
+        private readonly IMemoryCache _cache;
 
-        public HomeController(IPostService postService, IUserService userService)
+        public HomeController(IPostService postService, IUserService userService, IMemoryCache cache)
         {
             _postService = postService;
             _userService = userService;
+            _cache = cache;
         }
 
-        public async Task<IActionResult> Index(string? search, int? mediaType)
+        public async Task<IActionResult> Index(string? search, int? mediaType, DateTime? date, bool? isEdited)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
-            var posts = await _postService.GetByFriendsAsync(userId);
+            var userId = UserId;
+            var posts = await _postService.GetByFriendsAsync(userId, includeGlobalPublic: true);
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -37,16 +40,32 @@ namespace LinkUpPro.Controllers
                 posts = posts.Where(p => p.MediaType == filterMediaType.Value).ToList();
             }
 
+            if (date.HasValue)
+            {
+                posts = posts.Where(p => p.CreatedAt.Date == date.Value.Date).ToList();
+            }
+
+            if (isEdited.HasValue && isEdited.Value)
+            {
+                posts = posts.Where(p => p.UpdatedAt.HasValue).ToList();
+            }
+
             ViewBag.CurrentUserId = userId;
+
+            var userInfo = await _userService.GetUserBasicInfoAsync(userId);
 
             var vm = new HomeViewModel
             {
                 Posts = posts,
                 SearchQuery = search,
-                FilterMediaType = filterMediaType
+                FilterMediaType = filterMediaType,
+                FilterDate = date,
+                FilterIsEdited = isEdited,
+                CurrentUserProfilePicture = userInfo.ProfilePictureUrl
             };
 
             return View(vm);
         }
     }
 }
+

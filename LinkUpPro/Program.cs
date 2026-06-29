@@ -7,14 +7,19 @@ using LinkUpPro.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute());
+}).AddRazorRuntimeCompilation();
 
 builder.Services.AddApplicationLayer(builder.Configuration);
-builder.Services.AddPersistenceInfrastructure(builder.Configuration);
-builder.Services.AddIdentityInfrastructure(builder.Configuration);
+builder.Services.AddPersistenceInfrastructure(builder.Configuration, builder.Environment.IsDevelopment());
+builder.Services.AddIdentityInfrastructure(builder.Configuration, builder.Environment.IsDevelopment());
 builder.Services.AddSharedInfrastructure(builder.Configuration);
 
 builder.Services.AddHostedService<BattleshipBackgroundService>();
+
+builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 

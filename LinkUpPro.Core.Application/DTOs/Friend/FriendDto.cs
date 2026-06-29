@@ -1,4 +1,4 @@
-﻿namespace LinkUpPro.Core.Application.DTOs.Friend
+namespace LinkUpPro.Core.Application.DTOs.Friend
 {
     public class FriendDto
     {

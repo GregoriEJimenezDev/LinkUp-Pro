@@ -1,6 +1,5 @@
-using LinkUpPro.Core.Application.Interfaces.Services;
+using LinkUpPro.Core.Application.Services;
 using LinkUpPro.Core.Application.Interfaces.Repositories;
-using LinkUpPro.Core.Domain.DomainServices;
 using LinkUpPro.Core.Domain.Interfaces;
 using LinkUpPro.Core.Domain.Interfaces.IGeneric;
 using LinkUpPro.Infrastructure.Persistence.Context;
@@ -15,13 +14,13 @@ namespace LinkUpPro.Infrastructure.Persistence.IoC
 {
     public static class ServiceRegistration
     {
-        public static void AddPersistenceInfrastructure(this IServiceCollection services, IConfiguration config)
+        public static void AddPersistenceInfrastructure(this IServiceCollection services, IConfiguration config, bool enableSensitiveDataLogging)
         {
-            GeneralConfiguration(services, config);
+            GeneralConfiguration(services, config, enableSensitiveDataLogging);
         }
 
         #region private methods
-        private static void GeneralConfiguration(IServiceCollection services, IConfiguration config)
+        private static void GeneralConfiguration(IServiceCollection services, IConfiguration config, bool enableSensitiveDataLogging)
         {
             #region Context
             bool useInMemory = config["UseInMemoryDatabase"] == "True";
@@ -41,7 +40,11 @@ namespace LinkUpPro.Infrastructure.Persistence.IoC
 
                 services.AddDbContext<LinkUpProDbContext>(opt =>
                 {
-                    opt.EnableSensitiveDataLogging();
+                    if (enableSensitiveDataLogging)
+                    {
+                        opt.EnableSensitiveDataLogging();
+                    }
+
                     opt.UseNpgsql(connectionString, m => m.MigrationsAssembly(typeof(LinkUpProDbContext).Assembly.FullName));
                 },
                 contextLifetime: ServiceLifetime.Scoped,
@@ -61,8 +64,6 @@ namespace LinkUpPro.Infrastructure.Persistence.IoC
             services.AddScoped<IAttackRepository, AttackRepository>();
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IUnitOfWork, EFUnitOfWork>();
-            services.AddScoped<IShipPlacementDomainService, ShipPlacementDomainService>();
-            services.AddScoped<IAttackDomainService, AttackDomainService>();
             #endregion
         }
         #endregion

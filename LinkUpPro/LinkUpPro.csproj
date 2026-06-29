@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>02817169-dd92-4f23-a76d-70cae8891a35</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,6 +21,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.9" />
   </ItemGroup>
 
 </Project>

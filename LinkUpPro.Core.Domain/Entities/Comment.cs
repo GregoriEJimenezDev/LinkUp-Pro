@@ -15,8 +15,6 @@ namespace LinkUpPro.Core.Domain.Entities
         public int? ParentCommentId { get; set; }
         public Comment? ParentComment { get; set; }
         public bool IsDeleted { get; set; } = false;
-
-        //navigation property
         public ICollection<Comment> Replies { get; set; } = [];
 
     }

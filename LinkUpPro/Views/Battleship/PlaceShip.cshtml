@@ -64,7 +64,7 @@
                             {
                                 bool isOccupied = occupied.Contains($"{r},{c}");
                                 <button type="button" 
-                                        class="board-cell size-7 sm:size-8 md:size-10 rounded-sm transition-all flex items-center justify-center text-xs @(isOccupied ? "bg-primary/40 cursor-not-allowed" : "bg-secondary hover:bg-primary/20 cursor-pointer") border border-transparent"
+                                        class="board-cell size-7 sm:size-8 md:size-10 rounded-sm transition-all flex items-center justify-center text-xs @(isOccupied ? "bg-primary/40 cursor-not-allowed" : "bg-secondary hover:bg-primary/20 cursor-pointer") border border-border/80"
                                         data-row="@r" 
                                         data-col="@c"
                                         @(isOccupied ? "disabled" : "")
@@ -99,13 +99,12 @@
                 <div class="flex flex-col gap-2 mt-2">
                     <span class="text-sm font-medium">Orientación</span>
                     <div class="relative">
-                        <select id="inputDir" name="direction" onchange="updateDirectionHint()" class="flex h-11 w-full appearance-none items-center justify-between rounded-lg border bg-secondary/50 px-4 text-sm font-medium transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required>
+                        <select id="inputDir" name="direction" onchange="updateDirectionHint()" class="block h-11 w-full rounded-lg border bg-secondary/50 px-4 text-sm font-medium transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required>
                             <option value="3">Derecha</option>
                             <option value="1">Abajo</option>
                             <option value="2">Izquierda</option>
                             <option value="0">Arriba</option>
                         </select>
-                        <i data-lucide="chevron-down" class="absolute right-4 top-1/2 -translate-y-1/2 size-4 pointer-events-none text-muted-foreground"></i>
                     </div>
                     <p class="text-xs text-muted-foreground mt-1">La nave se extenderá hacia la <span id="directionHint" class="font-semibold text-foreground">derecha</span>.</p>
                 </div>

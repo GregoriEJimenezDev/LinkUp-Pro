@@ -3,7 +3,7 @@ using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Core.Domain.Interfaces;
 
-namespace LinkUpPro.Core.Application.Interfaces.Services
+namespace LinkUpPro.Core.Application.Services
 {
     public class ReactionService(IReactionRepository reactionRepository, INotificationService notificationService,
         IPostRepository postRepository, IUserService userService) : IReactionService
@@ -51,7 +51,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                         post.UserId!,
                         "Nueva reacción",
                         $"{reactorInfo.Username} {action} tu publicación.",
-                        "/", // Optionally could link directly to post if we have post detail view
+                        "/", 
                         NotificationType.PostReaction
                     );
                 }

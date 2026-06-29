@@ -10,12 +10,13 @@ using LinkUpPro.Core.Domain.Exceptions;
 using LinkUpPro.Core.Domain.Interfaces;
 using LinkUpPro.Core.Application.Interfaces.Repositories;
 
-namespace LinkUpPro.Core.Application.Interfaces.Services
+namespace LinkUpPro.Core.Application.Services
 {
     public class BattleshipService(
         IBattleshipGameRepository gameRepo,
         IShipRepository shipRepo,
         IAttackRepository attackRepo,
+        IFriendshipRepository friendshipRepo,
         IUserService userService,
         IMapper mapper,
         IUnitOfWork unitOfWork,
@@ -26,6 +27,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
         private readonly IBattleshipGameRepository _gameRepo = gameRepo;
         private readonly IShipRepository _shipRepo = shipRepo;
         private readonly IAttackRepository _attackRepo = attackRepo;
+        private readonly IFriendshipRepository _friendshipRepo = friendshipRepo;
         private readonly IUserService _userService = userService;
         private readonly IMapper _mapper = mapper;
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
@@ -143,6 +145,10 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
             if (player1Id == player2Id)
                 return ServiceResult<int>.Failure("No puedes crear un juego contigo mismo.");
 
+            var friendship = await _friendshipRepo.GetByUsersAsync(player1Id, player2Id);
+            if (friendship == null)
+                return ServiceResult<int>.Failure("Debes ser amigo de este usuario para jugar.");
+
             var hasActive = await _gameRepo.HasActiveGameWithFriendAsync(player1Id, player2Id);
             if (hasActive)
                 return ServiceResult<int>.Failure("Ya tienes un juego activo con este jugador.");
@@ -152,7 +158,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 FirstPlayerId = player1Id,
                 SecondPlayerId = player2Id,
                 CurrentTurnPlayerId = player1Id,
-                Status = GameStatus.PlacingShips,
+                Status = GameStatus.WaitingForOpponent,
                 StartedAt = DateTime.UtcNow
             };
 
@@ -174,6 +180,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
         public async Task<SelectShipViewModel> GetPendingShipsAsync(int gameId, string playerId)
         {
             var game = await _gameRepo.GetWithDetailsAsync(gameId);
+            ValidatePlayerInGame(game, playerId);
             var playerShips = game.Ships.Where(s => s.PlayerId == playerId).ToList();
 
             var allShipTypes = new[] { ShipType.size2, ShipType.size3A, ShipType.size3B, ShipType.size4, ShipType.size5 };
@@ -198,6 +205,10 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 throw new ArgumentException("Tipo de barco inválido.");
 
             var existingShips = await _shipRepo.GetByGameAndPlayerAsync(gameId, playerId);
+            
+            var game = await _gameRepo.GetWithDetailsAsync(gameId);
+            ValidatePlayerInGame(game, playerId);
+
             var occupiedCells = existingShips.SelectMany(s => s.Cells)
                 .Select(c => (c.Row, c.Column)).ToList();
 
@@ -212,10 +223,12 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
 
         public async Task<ServiceResult> PlaceShipAsync(int gameId, string playerId, string shipType, int row, int col, ShipDirection direction)
         {
+            var game = await _gameRepo.GetByIdAsync(gameId);
+            if (game == null) return ServiceResult.Failure("Partida no encontrada.");
+            ValidatePlayerInGame(game, playerId);
+
             if (!Enum.TryParse<ShipType>(shipType, out var st))
                 return ServiceResult.Failure("Tipo de barco inválido.");
-
-            var game = await _gameRepo.GetByIdAsync(gameId);
 
             if (game.Status != GameStatus.PlacingShips)
                 return ServiceResult.Failure("El juego no está en fase de colocación.");
@@ -261,6 +274,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
         public async Task<AttackBoardViewModel> GetAttackBoardAsync(int gameId, string playerId)
         {
             var game = await _gameRepo.GetWithDetailsAsync(gameId);
+            ValidatePlayerInGame(game, playerId);
             
             if (game.Status == GameStatus.InProgress && game.CheckTimeout(48))
             {
@@ -297,7 +311,9 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
 
         public async Task<ServiceResult> AttackAsync(int gameId, string attackerId, int row, int col)
         {
-            var game = await _gameRepo.GetByIdAsync(gameId);
+            var game = await _gameRepo.GetWithDetailsAsync(gameId);
+            if (game == null) return ServiceResult.Failure("Partida no encontrada.");
+            ValidatePlayerInGame(game, attackerId);
 
             if (game.Status == GameStatus.InProgress && game.CheckTimeout(48))
             {
@@ -370,6 +386,8 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
         public async Task<ServiceResult> SurrenderAsync(int gameId, string playerId)
         {
             var game = await _gameRepo.GetByIdAsync(gameId);
+            if (game == null) return ServiceResult.Failure("Partida no encontrada.");
+            ValidatePlayerInGame(game, playerId);
 
             if (game.Status == GameStatus.Finished)
                 return ServiceResult.Failure("El juego ya ha finalizado.");
@@ -385,6 +403,7 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
         public async Task<GameResultViewModel> GetResultAsync(int gameId, string playerId)
         {
             var game = await _gameRepo.GetWithDetailsAsync(gameId);
+            ValidatePlayerInGame(game, playerId);
 
             var opponentId = game.FirstPlayerId == playerId ? game.SecondPlayerId : game.FirstPlayerId;
             var opponent = await _userService.GetUserBasicInfoAsync(opponentId);
@@ -452,6 +471,15 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 dtos.Add(dto);
             }
             return dtos;
+        }
+
+        private void ValidatePlayerInGame(BattleshipGame game, string playerId)
+        {
+            if (game == null) throw new ArgumentNullException(nameof(game));
+            if (game.FirstPlayerId != playerId && game.SecondPlayerId != playerId)
+            {
+                throw new UnauthorizedAccessException("No eres participante de esta partida.");
+            }
         }
     }
 }

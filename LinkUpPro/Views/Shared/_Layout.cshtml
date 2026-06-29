@@ -29,7 +29,7 @@
     {
         <div class="mx-auto flex min-h-screen w-full max-w-[1440px]">
             <!-- App Sidebar -->
-            <partial name="_AppSidebar" />
+            @await Component.InvokeAsync("AppSidebar")
             
             <div class="flex min-w-0 flex-1 flex-col">
                 <!-- Mobile Header -->
@@ -41,7 +41,7 @@
             </div>
             
             <!-- Right Sidebar -->
-            <partial name="_RightSidebar" />
+            @await Component.InvokeAsync("RightSidebar")
             
             <!-- Mobile Nav -->
             <partial name="_MobileNav" />

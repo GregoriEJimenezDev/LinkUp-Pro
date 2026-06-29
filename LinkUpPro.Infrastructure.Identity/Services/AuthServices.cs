@@ -1,6 +1,6 @@
 using LinkUpPro.Core.Application.DTOs.User;
 using LinkUpPro.Core.Application.Interfaces.IServices;
-using LinkUpPro.Core.Application.Interfaces.Services;
+using LinkUpPro.Core.Application.Services;
 using LinkUpPro.Core.Application.ViewModel.Users;
 using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Infrastructure.Identity.Entities;
@@ -39,9 +39,6 @@ namespace LinkUpPro.Infrastructure.Identity.Services
 
             if (!result.Succeeded)
                 return ServiceResult.Failure(result.Errors.First().Description);
-
-            user.IsActive = true;
-            await _userManager.UpdateAsync(user);
 
             return ServiceResult.Success();
         }

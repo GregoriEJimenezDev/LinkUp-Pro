@@ -1,28 +1,34 @@
 using LinkUpPro.Core.Application.Interfaces.IServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class ReactionController : Controller
+    public class ReactionController : BaseController
     {
         private readonly IReactionService _reactionService;
         private readonly IUserService _userService;
         private readonly LinkUpPro.Core.Domain.Interfaces.IReactionRepository _reactionRepository;
+        private readonly IMemoryCache _cache;
 
-        public ReactionController(IReactionService reactionService, IUserService userService, LinkUpPro.Core.Domain.Interfaces.IReactionRepository reactionRepository)
+        public ReactionController(IReactionService reactionService, IUserService userService, LinkUpPro.Core.Domain.Interfaces.IReactionRepository reactionRepository, IMemoryCache cache)
         {
             _reactionService = reactionService;
             _userService = userService;
             _reactionRepository = reactionRepository;
+            _cache = cache;
         }
 
         [HttpPost]
         public async Task<IActionResult> Toggle(int postId, bool isLike)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             await _reactionService.ReactAsync(postId, userId, isLike);
+
+            _cache.Remove($"FeedPosts_{userId}_True");
+            _cache.Remove($"FeedPosts_{userId}_False");
 
             var reactions = await _reactionRepository.GetByPostIdAsync(postId);
             var likesCount = reactions.Count(r => r.IsLike);
@@ -38,3 +44,4 @@ namespace LinkUpPro.Controllers
         }
     }
 }
+

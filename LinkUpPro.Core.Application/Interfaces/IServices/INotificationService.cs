@@ -1,5 +1,5 @@
 using LinkUpPro.Core.Application.DTOs.Notification;
-using LinkUpPro.Core.Application.Interfaces.Services;
+using LinkUpPro.Core.Application.Services;
 using LinkUpPro.Core.Domain.Enum;
 
 namespace LinkUpPro.Core.Application.Interfaces.IServices

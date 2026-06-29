@@ -2,7 +2,7 @@ using LinkUpPro.Core.Application.DTOs.Friend;
 using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Domain.Interfaces;
 
-namespace LinkUpPro.Core.Application.Interfaces.Services
+namespace LinkUpPro.Core.Application.Services
 {
     public class FriendshipService(IFriendshipRepository friendshipRepository, IUserService userService) : IFriendshipService
     {

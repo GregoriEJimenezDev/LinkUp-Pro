@@ -1,5 +1,5 @@
-﻿
-using LinkUpPro.Core.Application.Interfaces.Services;
+
+using LinkUpPro.Core.Application.Services;
 
 namespace LinkUpPro.Core.Application.Interfaces.IServices
 {

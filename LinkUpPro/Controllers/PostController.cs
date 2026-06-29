@@ -2,19 +2,22 @@ using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Application.ViewModel.Save;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class PostController : Controller
+    public class PostController : BaseController
     {
         private readonly IPostService _postService;
         private readonly IUserService _userService;
+        private readonly IMemoryCache _cache;
 
-        public PostController(IPostService postService, IUserService userService)
+        public PostController(IPostService postService, IUserService userService, IMemoryCache cache)
         {
             _postService = postService;
             _userService = userService;
+            _cache = cache;
         }
 
         [HttpPost]
@@ -34,7 +37,7 @@ namespace LinkUpPro.Controllers
                 vm.ImageFile = ms.ToArray();
             }
 
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _postService.CreateAsync(vm, userId);
 
             if (!result.Succeeded)
@@ -43,6 +46,8 @@ namespace LinkUpPro.Controllers
             }
             else 
             {
+                _cache.Remove($"FeedPosts_{userId}_True");
+                _cache.Remove($"FeedPosts_{userId}_False");
                 TempData["Success"] = "¡Publicación creada exitosamente!";
             }
 
@@ -52,7 +57,15 @@ namespace LinkUpPro.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var vm = await _postService.GetByIdForEditAsync(id);
+            var userId = UserId;
+            var vm = await _postService.GetByIdForEditAsync(id, userId);
+            
+            if (vm == null)
+            {
+                TempData["Error"] = "No se encontró la publicación o no estás autorizado para editarla.";
+                return RedirectToAction("Index", "Home");
+            }
+            
             return View(vm);
         }
 
@@ -71,7 +84,7 @@ namespace LinkUpPro.Controllers
                 vm.ImageFile = ms.ToArray();
             }
 
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _postService.UpdateAsync(vm, userId);
 
             if (!result.Succeeded)
@@ -80,18 +93,25 @@ namespace LinkUpPro.Controllers
                 return View(vm);
             }
 
+            _cache.Remove($"FeedPosts_{userId}_True");
+            _cache.Remove($"FeedPosts_{userId}_False");
             return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _postService.DeleteAsync(id, userId);
 
             if (!result.Succeeded)
             {
                 TempData["Error"] = result.ErrorMessage;
+            }
+            else
+            {
+                _cache.Remove($"FeedPosts_{userId}_True");
+                _cache.Remove($"FeedPosts_{userId}_False");
             }
 
             return RedirectToAction("Index", "Home");

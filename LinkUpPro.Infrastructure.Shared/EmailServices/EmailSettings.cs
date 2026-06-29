@@ -1,4 +1,4 @@
-﻿namespace LinkUpPro.Infrastructure.Shared.EmailServices
+namespace LinkUpPro.Infrastructure.Shared.EmailServices
 {
     public class EmailSettings
     {
