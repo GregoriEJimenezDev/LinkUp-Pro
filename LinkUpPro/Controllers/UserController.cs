@@ -76,8 +76,6 @@ namespace LinkUpPro.Controllers
                 ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Error al actualizar perfil");
                 return View(vm);
             }
-
-            // Si el usuario cambió la contraseña, lo cerramos de sesión
             if (!string.IsNullOrEmpty(vm.Password))
             {
                 TempData["Success"] = "Su perfil y contraseña fueron actualizados correctamente. Inicie sesión nuevamente.";

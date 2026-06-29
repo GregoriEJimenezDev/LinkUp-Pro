@@ -29,7 +29,6 @@ namespace LinkUpPro.Infrastructure.Shared.Services
         {
             var uri = new Uri(fileUrl);
             var pathAndQuery = uri.PathAndQuery;
-            // The public URL looks like: https://.../storage/v1/object/public/bucketName/fileName
             var pathSegments = pathAndQuery.Split('/');
             var fileName = pathSegments.Last();
 

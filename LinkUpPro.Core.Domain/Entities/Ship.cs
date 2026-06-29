@@ -21,8 +21,6 @@ namespace LinkUpPro.Core.Domain.Entities
         public int GameId { get; set; }
         public BattleshipGame? Game { get; set; }
         public string? PlayerId { get; set; }
-
-        //navigation property
         public ICollection<ShipCell> Cells { get; set; } = [];
 
         public bool IsCellPartOfShip(int row, int col) =>
