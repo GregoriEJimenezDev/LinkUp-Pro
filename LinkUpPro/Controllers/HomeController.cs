@@ -24,15 +24,7 @@ namespace LinkUpPro.Controllers
         public async Task<IActionResult> Index(string? search, int? mediaType, DateTime? date, bool? isEdited)
         {
             var userId = UserId;
-            var cacheKey = $"FeedPosts_{userId}";
-
-            if (!_cache.TryGetValue(cacheKey, out List<PostViewModel>? posts) || posts == null)
-            {
-                posts = await _postService.GetByFriendsAsync(userId);
-                var cacheOptions = new MemoryCacheEntryOptions()
-                    .SetAbsoluteExpiration(TimeSpan.FromSeconds(30));
-                _cache.Set(cacheKey, posts, cacheOptions);
-            }
+            var posts = await _postService.GetByFriendsAsync(userId, includeGlobalPublic: true);
 
             if (!string.IsNullOrWhiteSpace(search))
             {

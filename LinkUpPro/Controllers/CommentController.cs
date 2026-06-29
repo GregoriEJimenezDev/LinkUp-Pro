@@ -36,7 +36,8 @@ namespace LinkUpPro.Controllers
                 return Json(new { success = false, message = result.ErrorMessage });
             }
 
-            _cache.Remove($"FeedPosts_{userId}");
+            _cache.Remove($"FeedPosts_{userId}_True");
+            _cache.Remove($"FeedPosts_{userId}_False");
             return Json(new { success = true });
         }
 
@@ -56,7 +57,8 @@ namespace LinkUpPro.Controllers
                 return Json(new { success = false, message = result.ErrorMessage });
             }
 
-            _cache.Remove($"FeedPosts_{userId}");
+            _cache.Remove($"FeedPosts_{userId}_True");
+            _cache.Remove($"FeedPosts_{userId}_False");
             return Json(new { success = true });
         }
 
@@ -71,7 +73,8 @@ namespace LinkUpPro.Controllers
                 return Json(new { success = false, message = result.ErrorMessage });
             }
 
-            _cache.Remove($"FeedPosts_{userId}");
+            _cache.Remove($"FeedPosts_{userId}_True");
+            _cache.Remove($"FeedPosts_{userId}_False");
             return Json(new { success = true });
         }
     }

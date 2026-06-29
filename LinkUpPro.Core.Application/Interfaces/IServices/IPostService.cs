@@ -7,7 +7,7 @@ namespace LinkUpPro.Core.Application.Interfaces.IServices
     public interface IPostService
     {
         Task<List<PostViewModel>> GetByUserAsync(string targetUserId, string currentUserId);
-        Task<List<PostViewModel>> GetByFriendsAsync(string userId);
+        Task<List<PostViewModel>> GetByFriendsAsync(string userId, bool includeGlobalPublic = false);
         Task<ServiceResult> CreateAsync(SavePostViewModel vm, string userId);
         Task<ServiceResult> UpdateAsync(SavePostViewModel vm, string userId);
         Task<ServiceResult> DeleteAsync(int postId, string userId);

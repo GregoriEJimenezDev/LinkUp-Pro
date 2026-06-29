@@ -46,7 +46,8 @@ namespace LinkUpPro.Controllers
             }
             else 
             {
-                _cache.Remove($"FeedPosts_{userId}");
+                _cache.Remove($"FeedPosts_{userId}_True");
+                _cache.Remove($"FeedPosts_{userId}_False");
                 TempData["Success"] = "¡Publicación creada exitosamente!";
             }
 
@@ -92,7 +93,8 @@ namespace LinkUpPro.Controllers
                 return View(vm);
             }
 
-            _cache.Remove($"FeedPosts_{userId}");
+            _cache.Remove($"FeedPosts_{userId}_True");
+            _cache.Remove($"FeedPosts_{userId}_False");
             return RedirectToAction("Index", "Home");
         }
 
@@ -108,7 +110,8 @@ namespace LinkUpPro.Controllers
             }
             else
             {
-                _cache.Remove($"FeedPosts_{userId}");
+                _cache.Remove($"FeedPosts_{userId}_True");
+                _cache.Remove($"FeedPosts_{userId}_False");
             }
 
             return RedirectToAction("Index", "Home");

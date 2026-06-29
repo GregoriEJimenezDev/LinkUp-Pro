@@ -77,9 +77,9 @@ namespace LinkUpPro.Core.Application.Services
             return ServiceResult.Success();
         }
 
-        public async Task<List<PostViewModel>> GetByFriendsAsync(string userId)
+        public async Task<List<PostViewModel>> GetByFriendsAsync(string userId, bool includeGlobalPublic = false)
         {
-            var cacheKey = $"FeedPosts_{userId}";
+            var cacheKey = $"FeedPosts_{userId}_{includeGlobalPublic}";
             
             if (_cache.TryGetValue(cacheKey, out List<PostViewModel>? cachedPosts))
             {
@@ -95,7 +95,8 @@ namespace LinkUpPro.Core.Application.Services
             var feedPosts = allposts.Where(p => 
                 !p.IsDeleted &&
                 (p.UserId == userId || 
-                (friendIds.Contains(p.UserId) && p.Privacy != PostPrivacy.OnlyMe))
+                (friendIds.Contains(p.UserId) && p.Privacy != PostPrivacy.OnlyMe) ||
+                (includeGlobalPublic && p.Privacy == PostPrivacy.Public))
             ).DistinctBy(p => p.Id).OrderByDescending(p => p.CreatedAt).ToList();
 
             var result = new List<PostViewModel>();

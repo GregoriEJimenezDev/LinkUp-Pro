@@ -27,7 +27,8 @@ namespace LinkUpPro.Controllers
             var userId = UserId;
             await _reactionService.ReactAsync(postId, userId, isLike);
 
-            _cache.Remove($"FeedPosts_{userId}");
+            _cache.Remove($"FeedPosts_{userId}_True");
+            _cache.Remove($"FeedPosts_{userId}_False");
 
             var reactions = await _reactionRepository.GetByPostIdAsync(postId);
             var likesCount = reactions.Count(r => r.IsLike);
