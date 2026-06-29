@@ -234,6 +234,30 @@ namespace LinkUpPro.Infrastructure.Identity.Services
             return user?.Id ?? string.Empty;
         }
 
+        public async Task<Dictionary<string, UserBasicDto>> GetUsersBasicInfoAsync(IEnumerable<string> userIds)
+        {
+            var distinctIds = userIds.Distinct().ToList();
+            if (!distinctIds.Any()) return new Dictionary<string, UserBasicDto>();
+
+            var users = await _userManager.Users
+                .Where(u => distinctIds.Contains(u.Id))
+                .ToListAsync();
+
+            return users.ToDictionary(
+                u => u.Id,
+                u => new UserBasicDto
+                {
+                    Id = u.Id,
+                    Username = u.UserName!,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    ProfilePictureUrl = u.ProfilePicturePath,
+                    Email = u.Email!,
+                    IsActive = u.IsActive
+                }
+            );
+        }
+
         public async Task<UserBasicDto> GetUserBasicInfoAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);

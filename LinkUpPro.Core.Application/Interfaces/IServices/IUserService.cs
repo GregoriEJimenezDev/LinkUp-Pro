@@ -15,6 +15,7 @@ namespace LinkUpPro.Core.Application.Interfaces.IServices
         Task<ServiceResult> ResetPasswordAsync(ResetPasswordViewModel vm);
         Task<ServiceResult> UpdateProfileAsync(EditProfileViewModel vm, string userId);
         Task<UserBasicDto> GetUserBasicInfoAsync(string userId);
+        Task<Dictionary<string, UserBasicDto>> GetUsersBasicInfoAsync(IEnumerable<string> userIds);
         Task<string> GetUserIdByUsernameAsync(string username);
         Task<EditProfileViewModel> GetProfileAsync(string userId);
         Task<IEnumerable<UserBasicDto>> GetAllActiveUsersAsync();

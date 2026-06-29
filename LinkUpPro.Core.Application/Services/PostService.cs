@@ -90,21 +90,36 @@ namespace LinkUpPro.Core.Application.Services
             var friendIds = friendships.Select(f => f.FirstUserId == userId ? f.SecondUserId : f.FirstUserId)
                 .Where(id => id != null).ToList();
 
-            var allposts = await _postRepository.GetAllPostWithDetailsAsync();
+            var feedPosts = await _postRepository.GetFeedPostsAsync(userId, friendIds!, includeGlobalPublic);
 
-            var feedPosts = allposts.Where(p => 
-                !p.IsDeleted &&
-                (p.UserId == userId || 
-                (friendIds.Contains(p.UserId) && p.Privacy != PostPrivacy.OnlyMe) ||
-                (includeGlobalPublic && p.Privacy == PostPrivacy.Public))
-            ).DistinctBy(p => p.Id).OrderByDescending(p => p.CreatedAt).ToList();
+            var userIdsToFetch = new HashSet<string>();
+            foreach (var post in feedPosts)
+            {
+                userIdsToFetch.Add(post.UserId!);
+                if (post.Comments != null)
+                {
+                    foreach(var comment in post.Comments)
+                    {
+                        userIdsToFetch.Add(comment.UserId!);
+                        if(comment.Replies != null)
+                        {
+                            foreach(var reply in comment.Replies)
+                            {
+                                userIdsToFetch.Add(reply.UserId!);
+                            }
+                        }
+                    }
+                }
+            }
+
+            var usersInfo = await _userService.GetUsersBasicInfoAsync(userIdsToFetch);
 
             var result = new List<PostViewModel>();
 
             foreach (var post in feedPosts)
             {
-                var authorInfo = await _userService.GetUserBasicInfoAsync(post.UserId!);
-                var vm = await MapSinglePost(post, userId, authorInfo);
+                var authorInfo = usersInfo.TryGetValue(post.UserId!, out var u) ? u : new UserBasicDto();
+                var vm = MapSinglePostSync(post, userId, authorInfo, usersInfo);
                 result.Add(vm);
             }
 
@@ -145,8 +160,30 @@ namespace LinkUpPro.Core.Application.Services
                     (p.Privacy == PostPrivacy.FriendsOnly && areFriends)).ToList();
             }
 
+            var userIdsToFetch = new HashSet<string>();
+            foreach (var post in activePosts)
+            {
+                userIdsToFetch.Add(post.UserId!);
+                if (post.Comments != null)
+                {
+                    foreach(var comment in post.Comments)
+                    {
+                        userIdsToFetch.Add(comment.UserId!);
+                        if(comment.Replies != null)
+                        {
+                            foreach(var reply in comment.Replies)
+                            {
+                                userIdsToFetch.Add(reply.UserId!);
+                            }
+                        }
+                    }
+                }
+            }
+
+            var usersInfo = await _userService.GetUsersBasicInfoAsync(userIdsToFetch);
             var userInfo = await _userService.GetUserBasicInfoAsync(targetUserId);
-            return await MapToViewModels(activePosts, currentUserId, userInfo);
+            
+            return MapToViewModelsSync(activePosts, currentUserId, userInfo, usersInfo);
         }
 
         public async Task<ServiceResult> UpdateAsync(SavePostViewModel vm, string userId)
@@ -209,28 +246,27 @@ namespace LinkUpPro.Core.Application.Services
         }
 
         #region Private Helpers
-        private async Task<List<PostViewModel>> MapToViewModels(IEnumerable<Post> posts, string currentUserId, UserBasicDto authorInfo)
+        private List<PostViewModel> MapToViewModelsSync(IEnumerable<Post> posts, string currentUserId, UserBasicDto authorInfo, Dictionary<string, UserBasicDto> usersInfo)
         {
             var result = new List<PostViewModel>();
             foreach (var post in posts)
             {
-                var vm = await MapSinglePost(post, currentUserId, authorInfo);
+                var vm = MapSinglePostSync(post, currentUserId, authorInfo, usersInfo);
                 result.Add(vm);
             }
             return result;
         }
 
-        private async Task<PostViewModel> MapSinglePost(Post post, string currentUserId, UserBasicDto authorInfo)
+        private PostViewModel MapSinglePostSync(Post post, string currentUserId, UserBasicDto authorInfo, Dictionary<string, UserBasicDto> usersInfo)
         {
-            var reactions = await _reactionRepository.GetByPostIdAsync(post.Id);
-            var userReaction = reactions.FirstOrDefault(r => r.UserId == currentUserId);
+            var userReaction = post.Reactions?.FirstOrDefault(r => r.UserId == currentUserId);
             var comment = new List<CommentDto>();
             if (post.Comments != null)
             {
                 foreach (var cm in post.Comments.Where(c => c.ParentCommentId == null).DistinctBy(c => c.Id).OrderBy(c => c.CreatedAt))
                 {
-                    var commentUserInfo = await _userService.GetUserBasicInfoAsync(cm.UserId!);
-                    var dto = await MapCommentWhitUser(cm, commentUserInfo);
+                    var commentUserInfo = usersInfo.TryGetValue(cm.UserId!, out var cu) ? cu : new UserBasicDto();
+                    var dto = MapCommentWhitUserSync(cm, commentUserInfo, usersInfo);
                     comment.Add(dto);
                 }
             }
@@ -248,8 +284,8 @@ namespace LinkUpPro.Core.Application.Services
                 UserId = post.UserId!,
                 Username = authorInfo.Username,
                 UserProfilePicture = authorInfo.ProfilePictureUrl,
-                LikesCount = reactions.Count(r => r.IsLike),
-                DislikesCount = reactions.Count(r => !r.IsLike),
+                LikesCount = post.Reactions?.Count(r => r.IsLike) ?? 0,
+                DislikesCount = post.Reactions?.Count(r => !r.IsLike) ?? 0,
                 CurrentUserReaction = userReaction?.IsLike,
                 CommentsCount = CountCommentsRecursively(comment),
                 Comments = comment
@@ -262,15 +298,15 @@ namespace LinkUpPro.Core.Application.Services
             return comments.Sum(c => (c.IsDeleted ? 0 : 1) + CountCommentsRecursively(c.Replies));
         }
 
-        private async Task<CommentDto> MapCommentWhitUser(Comment comment, UserBasicDto userInfo)
+        private CommentDto MapCommentWhitUserSync(Comment comment, UserBasicDto userInfo, Dictionary<string, UserBasicDto> usersInfo)
         {
             var replies = new List<CommentDto>();
             if (comment.Replies != null)
             {
                 foreach (var reply in comment.Replies.DistinctBy(r => r.Id).OrderBy(r => r.CreatedAt))
                 {
-                    var replyUserInfo = await _userService.GetUserBasicInfoAsync(reply.UserId!);
-                    var replyDto = await MapCommentWhitUser(reply, replyUserInfo);
+                    var replyUserInfo = usersInfo.TryGetValue(reply.UserId!, out var ru) ? ru : new UserBasicDto();
+                    var replyDto = MapCommentWhitUserSync(reply, replyUserInfo, usersInfo);
                     replies.Add(replyDto);
                 }
             }
