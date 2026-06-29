@@ -7,7 +7,7 @@ using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Core.Domain.Interfaces;
 
-namespace LinkUpPro.Core.Application.Interfaces.Services
+namespace LinkUpPro.Core.Application.Services
 {
     public class PostService(IPostRepository postRepository, IReactionRepository reactionRepository,
         IFriendshipRepository friendshipRepository, IUserService userService, IFileStorageService fileStorageService) : IPostService
@@ -228,9 +228,15 @@ namespace LinkUpPro.Core.Application.Interfaces.Services
                 LikesCount = reactions.Count(r => r.IsLike),
                 DislikesCount = reactions.Count(r => !r.IsLike),
                 CurrentUserReaction = userReaction?.IsLike,
-                CommentsCount = post.Comments?.Count(c => !c.IsDeleted) ?? 0,
+                CommentsCount = CountCommentsRecursively(comment),
                 Comments = comment
             };
+        }
+
+        private int CountCommentsRecursively(IEnumerable<CommentDto> comments)
+        {
+            if (comments == null) return 0;
+            return comments.Sum(c => (c.IsDeleted ? 0 : 1) + CountCommentsRecursively(c.Replies));
         }
 
         private async Task<CommentDto> MapCommentWhitUser(Comment comment, UserBasicDto userInfo)

@@ -4,7 +4,7 @@ using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Core.Domain.Interfaces;
 
-namespace LinkUpPro.Core.Application.Interfaces.Services
+namespace LinkUpPro.Core.Application.Services
 {
     public class CommentService(ICommentRepository commentRepo, INotificationService notificationService,
         IPostRepository postRepository, IUserService userService) : ICommentService

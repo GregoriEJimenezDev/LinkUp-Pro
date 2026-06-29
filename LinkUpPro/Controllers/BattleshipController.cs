@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class BattleshipController : Controller
+    public class BattleshipController : BaseController
     {
         private readonly IBattleshipService _battleshipService;
         private readonly IUserService _userService;
@@ -138,3 +138,4 @@ namespace LinkUpPro.Controllers
         }
     }
 }
+

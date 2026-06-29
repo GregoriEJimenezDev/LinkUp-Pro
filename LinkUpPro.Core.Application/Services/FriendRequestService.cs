@@ -5,7 +5,7 @@ using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Core.Domain.Interfaces;
 
-namespace LinkUpPro.Core.Application.Interfaces.Services
+namespace LinkUpPro.Core.Application.Services
 {
     public class FriendRequestService(IFriendRequestRepository friendRequestRepository,
         IFriendshipRepository friendshipRepository, IUserService userService, INotificationService notificationService) : IFriendRequestService

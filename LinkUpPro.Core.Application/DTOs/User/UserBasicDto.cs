@@ -1,4 +1,4 @@
-﻿namespace LinkUpPro.Core.Application.DTOs.User
+namespace LinkUpPro.Core.Application.DTOs.User
 {
     public class UserBasicDto
     {

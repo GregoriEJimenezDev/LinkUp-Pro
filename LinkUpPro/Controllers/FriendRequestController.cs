@@ -6,7 +6,7 @@ using System.Security.Claims;
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class FriendRequestController : Controller
+    public class FriendRequestController : BaseController
     {
         private readonly IFriendRequestService _friendRequestService;
         private readonly IUserService _userService;
@@ -124,3 +124,4 @@ namespace LinkUpPro.Controllers
         }
     }
 }
+

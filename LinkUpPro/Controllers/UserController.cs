@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class UserController : Controller
+    public class UserController : BaseController
     {
         private readonly IUserService _userService;
 
@@ -89,3 +89,4 @@ namespace LinkUpPro.Controllers
         }
     }
 }
+

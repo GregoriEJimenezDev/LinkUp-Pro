@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Domain.Entities;
+using LinkUpPro.Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace LinkUpPro.Infrastructure.Persistence.Configuration

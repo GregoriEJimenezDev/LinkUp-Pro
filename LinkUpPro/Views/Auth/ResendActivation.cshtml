@@ -1,5 +1,5 @@
-锘緻{
-    ViewData["Title"] = "Reenviar Activaci贸n";
+@{
+    ViewData["Title"] = "Reenviar Activaci髇";
     Layout = "_AuthLayout";
 }
 
@@ -11,8 +11,8 @@
             </div>
             <span>Reenviar correo</span>
         </div>
-        <h1 class="text-3xl font-bold tracking-tight text-foreground">驴No recibiste el correo?</h1>
-        <p class="text-muted-foreground font-medium">Ingresa tu usuario o correo electr贸nico y te enviaremos un nuevo enlace de activaci贸n.</p>
+        <h1 class="text-3xl font-bold tracking-tight text-foreground">縉o recibiste el correo?</h1>
+        <p class="text-muted-foreground font-medium">Ingresa tu usuario o correo electr髇ico y te enviaremos un nuevo enlace de activaci髇.</p>
     </div>
 
     <form asp-controller="Auth" asp-action="ResendActivation" method="post" class="flex flex-col gap-5 mt-2">
@@ -20,7 +20,7 @@
         <div asp-validation-summary="ModelOnly" class="text-destructive text-sm font-semibold"></div>
 
         <div class="grid gap-2">
-            <label for="username" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Usuario o Correo electr贸nico</label>
+            <label for="username" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Usuario o Correo electr髇ico</label>
             <div class="relative">
                 <i data-lucide="user" class="absolute left-3 top-2.5 size-5 text-muted-foreground"></i>
                 <input id="username" name="username" placeholder="tunombre o correo@ejemplo.com" required class="pl-10 h-11 bg-muted/40 border-transparent focus-visible:bg-transparent flex w-full rounded-md border border-input px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
@@ -36,7 +36,7 @@
     <p class="text-center text-sm text-muted-foreground mt-4">
         <a href="/Auth/Index" class="font-bold text-primary hover:underline inline-flex items-center">
             <i data-lucide="arrow-left" class="size-4 mr-1"></i>
-            Volver a iniciar sesi贸n
+            Volver a iniciar sesi髇
         </a>
     </p>
 </div>

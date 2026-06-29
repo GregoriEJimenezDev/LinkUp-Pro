@@ -4,7 +4,7 @@ using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Interfaces;
 
-namespace LinkUpPro.Core.Application.Interfaces.Services
+namespace LinkUpPro.Core.Application.Services
 {
     public class NotificationService(INotificationRepository notificationRepo) : INotificationService
     {

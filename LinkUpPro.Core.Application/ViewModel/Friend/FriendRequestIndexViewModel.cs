@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Application.DTOs.Friend;
+using LinkUpPro.Core.Application.DTOs.Friend;
 
 namespace LinkUpPro.Core.Application.ViewModel.Friend
 {

@@ -283,11 +283,11 @@
                                                     <div class="flex items-center gap-1">
                                                         @if (comment.Username == User.Identity!.Name && !comment.IsDeleted)
                                                         {
-                                                            <button type="button" onclick="document.getElementById('edit-form-@comment.Id').classList.toggle('hidden'); document.getElementById('comment-text-@comment.Id').classList.toggle('hidden');" class="px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors hover:text-primary">Editar</button>
+                                                            <button type="button" onclick="document.getElementById('edit-form-@comment.Id').classList.toggle('hidden'); document.getElementById('comment-text-@comment.Id').classList.toggle('hidden');" class="px-2 py-1 text-xs px-2 py-1.5 font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors hover:text-primary">Editar</button>
                                                             <form asp-controller="Comment" asp-action="Delete" method="post" class="inline" onsubmit="handleCommentSubmit(event, this)">
                                                                 <input type="hidden" name="id" value="@comment.Id" />
                                                                 <input type="hidden" name="postId" value="@post.Id" />
-                                                                <button type="submit" class="px-2 py-1 text-[11px] font-medium text-destructive hover:bg-muted rounded-md transition-colors">Eliminar</button>
+                                                                <button type="submit" class="px-2 py-1 text-xs px-2 py-1.5 font-medium text-destructive hover:bg-muted rounded-md transition-colors">Eliminar</button>
                                                             </form>
                                                         }
                                                     </div>
@@ -350,11 +350,11 @@
                                                                 @if (reply.Username == User.Identity!.Name && !reply.IsDeleted)
                                                                 {
                                                                     <div class="flex items-center gap-1">
-                                                                        <button type="button" onclick="document.getElementById('edit-form-@reply.Id').classList.toggle('hidden'); document.getElementById('reply-text-@reply.Id').classList.toggle('hidden');" class="px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors hover:text-primary">Editar</button>
+                                                                        <button type="button" onclick="document.getElementById('edit-form-@reply.Id').classList.toggle('hidden'); document.getElementById('reply-text-@reply.Id').classList.toggle('hidden');" class="px-2 py-1 text-xs px-2 py-1.5 font-medium text-muted-foreground hover:bg-muted rounded-md transition-colors hover:text-primary">Editar</button>
                                                                         <form asp-controller="Comment" asp-action="Delete" method="post" class="inline" onsubmit="handleCommentSubmit(event, this)">
                                                                             <input type="hidden" name="id" value="@reply.Id" />
                                                                             <input type="hidden" name="postId" value="@post.Id" />
-                                                                            <button type="submit" class="px-2 py-1 text-[11px] font-medium text-destructive hover:bg-muted rounded-md transition-colors">Eliminar</button>
+                                                                            <button type="submit" class="px-2 py-1 text-xs px-2 py-1.5 font-medium text-destructive hover:bg-muted rounded-md transition-colors">Eliminar</button>
                                                                         </form>
                                                                     </div>
                                                                 }
@@ -545,7 +545,8 @@
             
             if (btn) {
                 btn.disabled = true;
-                btn.innerText = 'Enviando...';
+                const isDelete = form.action.includes('Delete');
+                btn.innerText = isDelete ? 'Eliminando...' : 'Enviando...';
                 btn.classList.add('opacity-50', 'pointer-events-none');
             }
 

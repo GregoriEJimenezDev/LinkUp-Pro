@@ -6,7 +6,7 @@ using System.Security.Claims;
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class NotificationController : Controller
+    public class NotificationController : BaseController
     {
         private readonly INotificationService _notificationService;
         private readonly IUserService _userService;
@@ -57,3 +57,4 @@ namespace LinkUpPro.Controllers
         }
     }
 }
+

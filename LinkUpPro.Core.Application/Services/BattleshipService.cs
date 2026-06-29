@@ -10,7 +10,7 @@ using LinkUpPro.Core.Domain.Exceptions;
 using LinkUpPro.Core.Domain.Interfaces;
 using LinkUpPro.Core.Application.Interfaces.Repositories;
 
-namespace LinkUpPro.Core.Application.Interfaces.Services
+namespace LinkUpPro.Core.Application.Services
 {
     public class BattleshipService(
         IBattleshipGameRepository gameRepo,

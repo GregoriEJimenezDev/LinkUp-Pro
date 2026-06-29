@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Core.Application.Interfaces.Services;
+using LinkUpPro.Core.Application.Services;
 using LinkUpPro.Core.Application.ViewModel.Post;
 using LinkUpPro.Core.Application.ViewModel.Save;
 

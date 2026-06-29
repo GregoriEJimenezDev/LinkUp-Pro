@@ -2,19 +2,22 @@ using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Application.ViewModel.Save;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class PostController : Controller
+    public class PostController : BaseController
     {
         private readonly IPostService _postService;
         private readonly IUserService _userService;
+        private readonly IMemoryCache _cache;
 
-        public PostController(IPostService postService, IUserService userService)
+        public PostController(IPostService postService, IUserService userService, IMemoryCache cache)
         {
             _postService = postService;
             _userService = userService;
+            _cache = cache;
         }
 
         [HttpPost]
@@ -43,6 +46,7 @@ namespace LinkUpPro.Controllers
             }
             else 
             {
+                _cache.Remove($"FeedPosts_{userId}");
                 TempData["Success"] = "¡Publicación creada exitosamente!";
             }
 
@@ -80,6 +84,7 @@ namespace LinkUpPro.Controllers
                 return View(vm);
             }
 
+            _cache.Remove($"FeedPosts_{userId}");
             return RedirectToAction("Index", "Home");
         }
 
@@ -92,6 +97,10 @@ namespace LinkUpPro.Controllers
             if (!result.Succeeded)
             {
                 TempData["Error"] = result.ErrorMessage;
+            }
+            else
+            {
+                _cache.Remove($"FeedPosts_{userId}");
             }
 
             return RedirectToAction("Index", "Home");

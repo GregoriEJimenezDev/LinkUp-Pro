@@ -1,4 +1,4 @@
-﻿using LinkUpPro.Infrastructure.Identity.Entities;
+using LinkUpPro.Infrastructure.Identity.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;

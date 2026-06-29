@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using LinkUpPro.Core.Application.DTOs.Battleship;
 using LinkUpPro.Core.Application.DTOs.Comment;
 using LinkUpPro.Core.Application.DTOs.Friend;

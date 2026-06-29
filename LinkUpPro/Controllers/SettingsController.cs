@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class SettingsController : Controller
+    public class SettingsController : BaseController
     {
         public IActionResult Index()
         {
@@ -12,3 +12,4 @@ namespace LinkUpPro.Controllers
         }
     }
 }
+

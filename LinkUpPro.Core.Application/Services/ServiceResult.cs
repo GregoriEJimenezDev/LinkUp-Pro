@@ -1,4 +1,4 @@
-﻿namespace LinkUpPro.Core.Application.Interfaces.Services
+namespace LinkUpPro.Core.Application.Services
 {
     public class ServiceResult
     {

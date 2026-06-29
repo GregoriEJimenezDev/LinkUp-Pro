@@ -1,4 +1,4 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace LinkUpPro.Core.Application.ViewModel.Users
 {
@@ -10,14 +10,14 @@ namespace LinkUpPro.Core.Application.ViewModel.Users
         [Required]
         public string Token { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "La contraseÃ±a es obligatoria.")]
+        [Required(ErrorMessage = "La contraseña es obligatoria.")]
         [DataType(DataType.Password)]
-        [MinLength(8, ErrorMessage = "La contraseÃ±a debe tener al menos 8 caracteres.")]
+        [MinLength(8, ErrorMessage = "La contraseña debe tener al menos 8 caracteres.")]
         public string Password { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "La confirmaciÃ³n de la contraseÃ±a tambiÃ©n es obligatoria.")]
-        [MinLength(8, ErrorMessage = "La confirmaciÃ³n de la contraseÃ±a debe tener al menos 8 caracteres.")]
-        [Compare("Password", ErrorMessage = "Las contraseÃ±as no coinciden.")]
+        [Required(ErrorMessage = "La confirmación de la contraseña también es obligatoria.")]
+        [MinLength(8, ErrorMessage = "La confirmación de la contraseña debe tener al menos 8 caracteres.")]
+        [Compare("Password", ErrorMessage = "Las contraseñas no coinciden.")]
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; } = string.Empty;
     }

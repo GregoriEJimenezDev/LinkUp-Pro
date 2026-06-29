@@ -2,19 +2,22 @@ using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Application.ViewModel.Save;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class CommentController : Controller
+    public class CommentController : BaseController
     {
         private readonly ICommentService _commentService;
         private readonly IUserService _userService;
+        private readonly IMemoryCache _cache;
 
-        public CommentController(ICommentService commentService, IUserService userService)
+        public CommentController(ICommentService commentService, IUserService userService, IMemoryCache cache)
         {
             _commentService = commentService;
             _userService = userService;
+            _cache = cache;
         }
 
         [HttpPost]
@@ -33,6 +36,7 @@ namespace LinkUpPro.Controllers
                 return Json(new { success = false, message = result.ErrorMessage });
             }
 
+            _cache.Remove($"FeedPosts_{userId}");
             return Json(new { success = true });
         }
 
@@ -52,6 +56,7 @@ namespace LinkUpPro.Controllers
                 return Json(new { success = false, message = result.ErrorMessage });
             }
 
+            _cache.Remove($"FeedPosts_{userId}");
             return Json(new { success = true });
         }
 
@@ -66,7 +71,9 @@ namespace LinkUpPro.Controllers
                 return Json(new { success = false, message = result.ErrorMessage });
             }
 
+            _cache.Remove($"FeedPosts_{userId}");
             return Json(new { success = true });
         }
     }
 }
+
