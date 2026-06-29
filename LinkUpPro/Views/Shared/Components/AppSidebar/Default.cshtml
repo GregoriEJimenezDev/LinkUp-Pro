@@ -1,27 +1,12 @@
-@using Microsoft.AspNetCore.Identity
-@using LinkUpPro.Infrastructure.Identity.Entities
-@using LinkUpPro.Core.Application.Interfaces.IServices
-@using System.Security.Claims
-@inject UserManager<ApplicationUser> UserManager
-@inject INotificationService NotificationService
-@inject IFriendRequestService FriendRequestService
+@model LinkUpPro.ViewComponents.AppSidebarViewModel
+
 @{
     var currentUrl = ViewContext.HttpContext.Request.Path.ToString().ToLower();
-    var currentUser = await UserManager.GetUserAsync(User);
-    var profilePic = currentUser?.ProfilePicturePath ?? "/placeholder.svg";
-    
-    var unreadCount = 0;
-    var pendingRequestsCount = 0;
-    if (User.Identity != null && User.Identity.IsAuthenticated)
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId != null)
-        {
-            unreadCount = await NotificationService.GetUnreadCountAsync(userId);
-            pendingRequestsCount = await FriendRequestService.GetPendingCountAsync(userId);
-        }
-    }
+    var profilePic = Model.CurrentUser?.ProfilePicturePath ?? "/placeholder.svg";
+    var unreadCount = Model.UnreadNotificationsCount;
+    var pendingRequestsCount = Model.PendingFriendRequestsCount;
 }
+
 <aside class="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-sidebar px-4 py-5 md:flex xl:w-72">
     <a href="/" class="mb-6 flex items-center gap-2 px-2">
         <div class="flex items-center justify-center rounded-lg bg-primary p-1.5 text-primary-foreground">

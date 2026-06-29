@@ -24,11 +24,11 @@ namespace LinkUpPro.Controllers
         }
 
         private string CurrentUserId =>
-            _userService.GetUserIdByUsernameAsync(User.Identity!.Name!).GetAwaiter().GetResult();
+            UserId;
 
         public async Task<IActionResult> Index()
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var vm = await _battleshipService.GetIndexAsync(userId);
             ViewBag.Stats = await _battleshipService.GetStatsAsync(userId);
             return View(vm);
@@ -36,7 +36,7 @@ namespace LinkUpPro.Controllers
 
         public async Task<IActionResult> Create()
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var friends = await _friendshipService.GetFriendsAsync(userId);
             return View(friends);
         }
@@ -44,7 +44,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(string friendId)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _battleshipService.CreateGameAsync(userId, friendId);
 
             if (!result.Succeeded)
@@ -58,14 +58,14 @@ namespace LinkUpPro.Controllers
 
         public async Task<IActionResult> SelectShip(int gameId)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var vm = await _battleshipService.GetPendingShipsAsync(gameId, userId);
             return View(vm);
         }
 
         public async Task<IActionResult> PlaceShip(int gameId, string shipType)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var vm = await _battleshipService.GetBoardForPlacementAsync(gameId, userId, shipType);
             return View(vm);
         }
@@ -73,7 +73,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> PlaceShip(SelectDirectionViewModel vm)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _battleshipService.PlaceShipAsync(vm.GameId, userId, vm.ShipType, vm.Row, vm.Col, vm.Direction);
 
             if (!result.Succeeded)
@@ -87,7 +87,7 @@ namespace LinkUpPro.Controllers
 
         public async Task<IActionResult> AttackBoard(int gameId)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var vm = await _battleshipService.GetAttackBoardAsync(gameId, userId);
             return View(vm);
         }
@@ -95,7 +95,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> Attack(int gameId, int row, int col)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _battleshipService.AttackAsync(gameId, userId, row, col);
 
             if (!result.Succeeded)
@@ -115,7 +115,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> Surrender(int gameId)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _battleshipService.SurrenderAsync(gameId, userId);
 
             if (!result.Succeeded)
@@ -126,7 +126,7 @@ namespace LinkUpPro.Controllers
 
         public async Task<IActionResult> Result(int gameId)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var vm = await _battleshipService.GetResultAsync(gameId, userId);
             return View(vm);
         }

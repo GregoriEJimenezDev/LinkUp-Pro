@@ -11,9 +11,9 @@ namespace LinkUpPro.Infrastructure.Identity.IoC
 {
     public static class ServiceRegistration
     {
-        public static void AddIdentityInfrastructure(this IServiceCollection services, IConfiguration config)
+        public static void AddIdentityInfrastructure(this IServiceCollection services, IConfiguration config, bool enableSensitiveDataLogging)
         {
-            GeneralConfiguration(services, config);
+            GeneralConfiguration(services, config, enableSensitiveDataLogging);
 
             #region Authentication & Cookies
             services.AddAuthentication(options =>
@@ -27,12 +27,12 @@ namespace LinkUpPro.Infrastructure.Identity.IoC
                 options.LoginPath = "/Auth/Index";
                 options.AccessDeniedPath = "/Auth/AccessDenied";
                 options.SlidingExpiration = true;
-                options.ExpireTimeSpan = TimeSpan.FromDays(30);
+                options.ExpireTimeSpan = TimeSpan.FromDays(7);
                 options.Events.OnSigningIn = context =>
                 {
                     if (context.Properties.IsPersistent)
                     {
-                        context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30);
+                        context.Properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7);
                     }
                     else
                     {
@@ -49,7 +49,7 @@ namespace LinkUpPro.Infrastructure.Identity.IoC
             {
                 opts.Password.RequireDigit = true;
                 opts.Password.RequiredLength = 8;
-                opts.Password.RequireNonAlphanumeric = false;
+                opts.Password.RequireNonAlphanumeric = true;
                 opts.Password.RequireUppercase = true;
                 opts.Password.RequireLowercase = true;
                 opts.User.RequireUniqueEmail = true;
@@ -70,7 +70,7 @@ namespace LinkUpPro.Infrastructure.Identity.IoC
         }
 
         #region private methods
-        private static void GeneralConfiguration(IServiceCollection services, IConfiguration config)
+        private static void GeneralConfiguration(IServiceCollection services, IConfiguration config, bool enableSensitiveDataLogging)
         {
             #region Context
             bool useInMemory = config["UseInMemoryDatabase"] == "True";
@@ -89,7 +89,10 @@ namespace LinkUpPro.Infrastructure.Identity.IoC
 
                 services.AddDbContext<IdentityProContext>(opt =>
                 {
-                    opt.EnableSensitiveDataLogging();
+                    if (enableSensitiveDataLogging)
+                    {
+                        opt.EnableSensitiveDataLogging();
+                    }
                     opt.UseNpgsql(connectionString, m => m.MigrationsAssembly(typeof(IdentityProContext).Assembly.FullName));
                 },
                 contextLifetime: ServiceLifetime.Scoped,

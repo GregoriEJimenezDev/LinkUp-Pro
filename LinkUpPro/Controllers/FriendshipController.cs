@@ -25,7 +25,7 @@ namespace LinkUpPro.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             
             var vm = new FriendIndexViewModel
             {
@@ -39,7 +39,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> Remove(int id)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _friendshipService.RemoveAsync(id, userId);
 
             if (!result.Succeeded)

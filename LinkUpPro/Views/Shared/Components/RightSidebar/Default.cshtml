@@ -1,21 +1,9 @@
-@using LinkUpPro.Core.Application.Services
-@using LinkUpPro.Core.Application.Interfaces.IServices
-@inject IBattleshipService BattleshipService
-@inject IFriendRequestService FriendRequestService
-@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@using LinkUpPro.Core.Domain.Enum
+@model LinkUpPro.ViewComponents.RightSidebarViewModel
+
 @{
-    var userId = HttpContextAccessor.HttpContext?.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-    int activeBattlesCount = 0;
-    LinkUpPro.Core.Application.ViewModel.Game.BattleshipIndexViewModel? gameIndex = null;
-    LinkUpPro.Core.Application.ViewModel.Friend.SendFriendRequestViewModel? suggestedUsers = null;
-    
-    if (userId != null)
-    {
-        gameIndex = await BattleshipService.GetIndexAsync(userId);
-        activeBattlesCount = gameIndex?.ActiveGames?.Count ?? 0;
-        
-        suggestedUsers = await FriendRequestService.GetAvailableUsersAsync(userId, null);
-    }
+    var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    int activeBattlesCount = Model.ActiveGames.Count;
 }
 <aside class="sticky top-0 hidden h-screen w-72 shrink-0 flex-col gap-4 overflow-y-auto py-5 pr-4 no-scrollbar lg:flex xl:w-80">
     <!-- Suggestions Card -->
@@ -27,14 +15,14 @@
             </h3>
         </div>
         <div class="p-6 pt-0 flex flex-col gap-3">
-            @if (suggestedUsers == null || !suggestedUsers.AvailableUsers.Any())
+            @if (Model.SuggestedUsers == null || !Model.SuggestedUsers.Any())
             {
                 <p class="text-sm text-muted-foreground text-center py-4">No hay sugerencias por el momento.</p>
             }
             else
             {
                 <div class="flex flex-col gap-3">
-                    @foreach (var user in suggestedUsers.AvailableUsers.Take(3))
+                    @foreach (var user in Model.SuggestedUsers)
                     {
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2 overflow-hidden">
@@ -53,10 +41,7 @@
                         </div>
                     }
                 </div>
-                if (suggestedUsers.AvailableUsers.Count > 3)
-                {
-                    <a href="/FriendRequest/Add" class="text-xs text-center text-primary hover:underline mt-2">Ver más</a>
-                }
+                <a href="/FriendRequest/Add" class="text-xs text-center text-primary hover:underline mt-2">Ver más</a>
             }
         </div>
     </div>
@@ -77,10 +62,10 @@
             else
             {
                 <div class="flex flex-col gap-2">
-                    @foreach (var game in gameIndex!.ActiveGames!.Take(3))
+                    @foreach (var game in Model.ActiveGames)
                     {
                         var opponentName = game.Player1Id == userId ? game.Player2Username : game.Player1Username;
-                        var gameUrl = (game.Status == LinkUpPro.Core.Domain.Enum.GameStatus.PlacingShips || (game.Status == LinkUpPro.Core.Domain.Enum.GameStatus.WaitingForOpponent && game.Player1Id == userId))
+                        var gameUrl = (game.Status == GameStatus.PlacingShips || (game.Status == GameStatus.WaitingForOpponent && game.Player1Id == userId))
                             ? $"/Battleship/SelectShip?gameId={game.Id}"
                             : $"/Battleship/AttackBoard?gameId={game.Id}";
                         <a href="@gameUrl" class="flex items-center justify-between rounded-lg border p-3 hover:bg-accent transition-colors">
@@ -89,17 +74,14 @@
                                 <div class="flex flex-col">
                                     <span class="text-sm font-semibold truncate max-w-[120px]">vs @opponentName</span>
                                     <span class="text-xs text-muted-foreground">
-                                        @(game.Status == LinkUpPro.Core.Domain.Enum.GameStatus.PlacingShips ? "Fase de preparación" : "En progreso")
+                                        @(game.Status == GameStatus.PlacingShips ? "Fase de preparación" : "En progreso")
                                     </span>
                                 </div>
                             </div>
                         </a>
                     }
                 </div>
-                if (activeBattlesCount > 3)
-                {
-                    <a href="/Battleship/Index" class="text-xs text-center text-primary hover:underline mt-2">Ver todas</a>
-                }
+                <a href="/Battleship/Index" class="text-xs text-center text-primary hover:underline mt-2">Ver todas</a>
             }
         </div>
     </div>

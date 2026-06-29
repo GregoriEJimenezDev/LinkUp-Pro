@@ -14,13 +14,13 @@ namespace LinkUpPro.Infrastructure.Persistence.IoC
 {
     public static class ServiceRegistration
     {
-        public static void AddPersistenceInfrastructure(this IServiceCollection services, IConfiguration config)
+        public static void AddPersistenceInfrastructure(this IServiceCollection services, IConfiguration config, bool enableSensitiveDataLogging)
         {
-            GeneralConfiguration(services, config);
+            GeneralConfiguration(services, config, enableSensitiveDataLogging);
         }
 
         #region private methods
-        private static void GeneralConfiguration(IServiceCollection services, IConfiguration config)
+        private static void GeneralConfiguration(IServiceCollection services, IConfiguration config, bool enableSensitiveDataLogging)
         {
             #region Context
             bool useInMemory = config["UseInMemoryDatabase"] == "True";
@@ -40,7 +40,11 @@ namespace LinkUpPro.Infrastructure.Persistence.IoC
 
                 services.AddDbContext<LinkUpProDbContext>(opt =>
                 {
-                    opt.EnableSensitiveDataLogging();
+                    if (enableSensitiveDataLogging)
+                    {
+                        opt.EnableSensitiveDataLogging();
+                    }
+
                     opt.UseNpgsql(connectionString, m => m.MigrationsAssembly(typeof(LinkUpProDbContext).Assembly.FullName));
                 },
                 contextLifetime: ServiceLifetime.Scoped,

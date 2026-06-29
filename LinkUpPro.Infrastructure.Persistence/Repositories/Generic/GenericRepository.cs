@@ -20,10 +20,10 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories.Generic
              _dbSet.AddRange(entities);
         }
 
-        public async Task<Entity> GetByIdAsync(int id)
+        public async Task<Entity?> GetByIdAsync(int id)
         {
             var entity = await _dbSet.FindAsync(id);
-            return entity ?? throw new KeyNotFoundException($"Entity with id {id} not found.");
+            return entity;
         }
 
         public async Task<IEnumerable<Entity>> GetAllAsync() =>

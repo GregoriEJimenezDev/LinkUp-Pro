@@ -18,7 +18,7 @@ namespace LinkUpPro.Controllers
 
         public async Task<IActionResult> Profile()
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var profile = await _userService.GetProfileAsync(userId);
             var userInfo = await _userService.GetUserBasicInfoAsync(userId);
 
@@ -49,14 +49,14 @@ namespace LinkUpPro.Controllers
 
             if (!ModelState.IsValid)
             {
-                var uid = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+                var uid = UserId;
                 var userInfo = await _userService.GetUserBasicInfoAsync(uid);
                 ViewBag.Username = User.Identity!.Name;
                 ViewBag.Email = userInfo.Email;
                 return View(vm);
             }
 
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
 
             if (File != null)
             {

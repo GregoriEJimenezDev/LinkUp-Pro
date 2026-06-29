@@ -11,6 +11,6 @@ namespace LinkUpPro.Core.Application.Interfaces.IServices
         Task<ServiceResult> CreateAsync(SavePostViewModel vm, string userId);
         Task<ServiceResult> UpdateAsync(SavePostViewModel vm, string userId);
         Task<ServiceResult> DeleteAsync(int postId, string userId);
-        Task<SavePostViewModel> GetByIdForEditAsync(int postId);
+        Task<SavePostViewModel?> GetByIdForEditAsync(int postId, string userId);
     }
 }

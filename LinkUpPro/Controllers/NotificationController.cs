@@ -21,7 +21,7 @@ namespace LinkUpPro.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var notifications = await _notificationService.GetNotificationsAsync(userId);
             return View(notifications);
         }
@@ -29,7 +29,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> MarkAsRead(int id, string? returnUrl)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             await _notificationService.MarkAsReadAsync(id, userId);
 
             if (!string.IsNullOrEmpty(returnUrl))
@@ -43,7 +43,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> MarkAllAsRead()
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var notifications = await _notificationService.GetNotificationsAsync(userId);
             var unread = notifications.Where(n => !n.IsRead).ToList();
 

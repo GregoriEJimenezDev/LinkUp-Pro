@@ -21,9 +21,9 @@ namespace LinkUpPro.Controllers
             _cache = cache;
         }
 
-        public async Task<IActionResult> Index(string? search, int? mediaType)
+        public async Task<IActionResult> Index(string? search, int? mediaType, DateTime? date, bool? isEdited)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var cacheKey = $"FeedPosts_{userId}";
 
             if (!_cache.TryGetValue(cacheKey, out List<PostViewModel>? posts) || posts == null)
@@ -48,13 +48,28 @@ namespace LinkUpPro.Controllers
                 posts = posts.Where(p => p.MediaType == filterMediaType.Value).ToList();
             }
 
+            if (date.HasValue)
+            {
+                posts = posts.Where(p => p.CreatedAt.Date == date.Value.Date).ToList();
+            }
+
+            if (isEdited.HasValue && isEdited.Value)
+            {
+                posts = posts.Where(p => p.UpdatedAt.HasValue).ToList();
+            }
+
             ViewBag.CurrentUserId = userId;
+
+            var userInfo = await _userService.GetUserBasicInfoAsync(userId);
 
             var vm = new HomeViewModel
             {
                 Posts = posts,
                 SearchQuery = search,
-                FilterMediaType = filterMediaType
+                FilterMediaType = filterMediaType,
+                FilterDate = date,
+                FilterIsEdited = isEdited,
+                CurrentUserProfilePicture = userInfo.ProfilePictureUrl
             };
 
             return View(vm);

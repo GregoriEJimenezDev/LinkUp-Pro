@@ -37,7 +37,7 @@ namespace LinkUpPro.Controllers
                 vm.ImageFile = ms.ToArray();
             }
 
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _postService.CreateAsync(vm, userId);
 
             if (!result.Succeeded)
@@ -56,7 +56,15 @@ namespace LinkUpPro.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var vm = await _postService.GetByIdForEditAsync(id);
+            var userId = UserId;
+            var vm = await _postService.GetByIdForEditAsync(id, userId);
+            
+            if (vm == null)
+            {
+                TempData["Error"] = "No se encontró la publicación o no estás autorizado para editarla.";
+                return RedirectToAction("Index", "Home");
+            }
+            
             return View(vm);
         }
 
@@ -75,7 +83,7 @@ namespace LinkUpPro.Controllers
                 vm.ImageFile = ms.ToArray();
             }
 
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _postService.UpdateAsync(vm, userId);
 
             if (!result.Succeeded)
@@ -91,7 +99,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _postService.DeleteAsync(id, userId);
 
             if (!result.Succeeded)

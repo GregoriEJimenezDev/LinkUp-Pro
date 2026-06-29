@@ -28,7 +28,7 @@ namespace LinkUpPro.Controllers
                 return Json(new { success = false, message = "Datos inválidos" });
             }
 
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _commentService.AddAsync(vm, userId);
 
             if (!result.Succeeded)
@@ -48,7 +48,7 @@ namespace LinkUpPro.Controllers
                 return Json(new { success = false, message = "Datos inválidos" });
             }
 
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _commentService.UpdateAsync(vm, userId);
 
             if (!result.Succeeded)
@@ -63,7 +63,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(int id, int postId)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _commentService.DeleteAsync(id, userId);
 
             if (!result.Succeeded)

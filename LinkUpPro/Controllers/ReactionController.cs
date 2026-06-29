@@ -24,7 +24,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> Toggle(int postId, bool isLike)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             await _reactionService.ReactAsync(postId, userId, isLike);
 
             _cache.Remove($"FeedPosts_{userId}");

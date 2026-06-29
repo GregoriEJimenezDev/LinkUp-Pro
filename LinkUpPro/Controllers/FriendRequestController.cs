@@ -21,14 +21,14 @@ namespace LinkUpPro.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var vm = await _friendRequestService.GetRequestsAsync(userId);
             return View(vm);
         }
 
         public async Task<IActionResult> Add(string? search)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var vm = await _friendRequestService.GetAvailableUsersAsync(userId, search);
             return View(vm);
         }
@@ -36,7 +36,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> Send(string receiverId)
         {
-            var senderId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var senderId = UserId;
             var result = await _friendRequestService.SendAsync(senderId, receiverId);
 
             if (!result.Succeeded)
@@ -57,7 +57,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> Accept(int id)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _friendRequestService.AcceptAsync(id, userId);
 
             if (!result.Succeeded)
@@ -78,7 +78,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> Reject(int id)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _friendRequestService.RejectAsync(id, userId);
 
             if (!result.Succeeded)
@@ -95,7 +95,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _friendRequestService.DeleteAsync(id, userId);
 
             if (!result.Succeeded)
@@ -112,7 +112,7 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> RemoveFromHistory(int id)
         {
-            var userId = await _userService.GetUserIdByUsernameAsync(User.Identity!.Name!);
+            var userId = UserId;
             var result = await _friendRequestService.RemoveFromHistoryAsync(id, userId);
 
             if (!result.Succeeded)

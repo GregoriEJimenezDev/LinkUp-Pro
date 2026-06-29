@@ -16,6 +16,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Configuration
             #region properties
             builder.Property(p => p.Content).IsRequired().HasMaxLength(2000);
             builder.Property(p => p.UserId).IsRequired();
+            builder.HasQueryFilter(p => !p.IsDeleted);
             #endregion
 
             #region conexions
