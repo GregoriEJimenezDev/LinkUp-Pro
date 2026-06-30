@@ -373,6 +373,7 @@ namespace LinkUpPro.Core.Application.Services
 
             try
             {
+                await _gameRepo.UpdateAsync(game);
                 await _unitOfWork.SaveChangesAsync();
             }
             catch (ConcurrencyException)
