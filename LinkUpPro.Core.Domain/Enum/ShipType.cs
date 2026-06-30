@@ -4,7 +4,7 @@ namespace LinkUpPro.Core.Domain.Enum
     {
         size2 = 0,
         size3A = 1,
-        size1 = 2,
+        size3B = 2,
         size4 = 3,
         size5 = 4
     }

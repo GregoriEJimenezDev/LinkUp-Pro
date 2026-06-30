@@ -8,7 +8,7 @@ namespace LinkUpPro.Core.Domain.Entities
         {
             { ShipType.size2, 2 },
             { ShipType.size3A, 3 },
-            { ShipType.size1, 1 },
+            { ShipType.size3B, 3 },
             { ShipType.size4, 4 },
             { ShipType.size5, 5 }
         };
