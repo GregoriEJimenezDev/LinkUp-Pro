@@ -8,6 +8,7 @@ namespace LinkUpPro.Core.Domain.Interfaces
         Task<IEnumerable<BattleshipGame>> GetActiveByUserIdAsync(string userId);
         Task<IEnumerable<BattleshipGame>> GetFinishedByUserIdAsync(string userId);
         Task<BattleshipGame> GetWithDetailsAsync(int gameId);
+        Task<BattleshipGame> GetWithDetailsForUpdateAsync(int gameId);
         Task<bool> HasActiveGameWithFriendAsync(string userId, string friendId);
         Task<IEnumerable<BattleshipGame>> GetAllActiveAsync();
         Task<IEnumerable<BattleshipGame>> GetByPlayerAsync(string userId);
