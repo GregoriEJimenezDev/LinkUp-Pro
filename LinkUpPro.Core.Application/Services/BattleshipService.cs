@@ -375,6 +375,17 @@ namespace LinkUpPro.Core.Application.Services
             {
                 await _gameRepo.UpdateAsync(game);
                 await _unitOfWork.SaveChangesAsync();
+
+                if (!isVictory)
+                {
+                    await _notificationService.CreateNotificationAsync(
+                        game.CurrentTurnPlayerId,
+                        "Batalla Naval",
+                        "Es tu turno de jugar.",
+                        $"/Battleship/AttackBoard?gameId={game.Id}",
+                        NotificationType.GameTurn
+                    );
+                }
             }
             catch (ConcurrencyException)
             {
@@ -412,6 +423,7 @@ namespace LinkUpPro.Core.Application.Services
             var myAttacks = game.Attacks.Where(a => a.AttackerId == playerId).ToList();
             var oppAttacks = game.Attacks.Where(a => a.AttackerId == opponentId).ToList();
             var myShips = game.Ships.Where(s => s.PlayerId == playerId).ToList();
+            var oppShips = game.Ships.Where(s => s.PlayerId == opponentId).ToList();
 
             return new GameResultViewModel
             {
@@ -422,7 +434,8 @@ namespace LinkUpPro.Core.Application.Services
                 FinishedAt = game.FinishedAt,
                 MyAttacks = myAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList(),
                 OpponentAttacks = oppAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList(),
-                MyShips = myShips.Select(s => _mapper.Map<ShipDto>(s)).ToList()
+                MyShips = myShips.Select(s => _mapper.Map<ShipDto>(s)).ToList(),
+                EnemyShipsSunk = oppShips.Count(s => s.IsSunk)
             };
         }
 

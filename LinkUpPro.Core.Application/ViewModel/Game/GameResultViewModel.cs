@@ -14,5 +14,6 @@ namespace LinkUpPro.Core.Application.ViewModel.Game
         public List<AttackDto> MyAttacks { get; set; } = [];
         public List<AttackDto> OpponentAttacks { get; set; } = [];
         public List<ShipDto> MyShips { get; set; } = [];
+        public int EnemyShipsSunk { get; set; }
     }
 }

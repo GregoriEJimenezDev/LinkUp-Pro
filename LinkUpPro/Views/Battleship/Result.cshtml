@@ -6,6 +6,10 @@
     var duration = Model.FinishedAt.HasValue 
         ? Model.FinishedAt.Value.Subtract(Model.StartedAt) 
         : TimeSpan.Zero;
+        
+    string durationStr = duration.TotalHours >= 1 
+        ? $"{(int)duration.TotalHours} h {duration.Minutes:00} min" 
+        : $"{(int)duration.TotalMinutes} min {duration.Seconds:00} s";
 }
 
 <div class="flex flex-col gap-6 w-full max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -48,11 +52,15 @@
                 </div>
                 <div class="flex items-center justify-between py-2 border-b border-border/50">
                     <span class="text-sm text-muted-foreground">Duración</span>
-                    <span class="text-sm font-semibold">@((int)duration.TotalMinutes) min @duration.Seconds.ToString("00") s</span>
+                    <span class="text-sm font-semibold">@durationStr</span>
                 </div>
                 <div class="flex items-center justify-between py-2 border-b border-border/50">
                     <span class="text-sm text-muted-foreground">Movimientos</span>
                     <span class="text-sm font-semibold">@Model.MyAttacks.Count</span>
+                </div>
+                <div class="flex items-center justify-between py-2 border-b border-border/50">
+                    <span class="text-sm text-muted-foreground">Barcos hundidos</span>
+                    <span class="text-sm font-semibold text-destructive">@Model.EnemyShipsSunk / 5</span>
                 </div>
                 <div class="flex items-center justify-between py-2">
                     <span class="text-sm text-muted-foreground">Fecha</span>
