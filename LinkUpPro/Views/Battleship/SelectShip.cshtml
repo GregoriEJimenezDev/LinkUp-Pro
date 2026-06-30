@@ -37,11 +37,11 @@
                                     <div class="flex size-10 items-center justify-center rounded-md bg-primary/10">
                                         @if(ship.ShipType == LinkUpPro.Core.Domain.Enum.ShipType.size2)
                                         {
-                                            <i data-lucide="sailboat" class="size-5 text-primary"></i>
+                                            <i data-lucide="ferry" class="size-4 opacity-50"></i>
                                         }
                                         else if(ship.ShipType == LinkUpPro.Core.Domain.Enum.ShipType.size3A)
                                         {
-                                            <i data-lucide="waves" class="size-5 text-primary"></i>
+                                            <i data-lucide="sailboat" class="size-4 opacity-50"></i>
                                         }
                                         else if(ship.ShipType == LinkUpPro.Core.Domain.Enum.ShipType.size5)
                                         {
@@ -58,7 +58,7 @@
                                             {
                                                 case LinkUpPro.Core.Domain.Enum.ShipType.size2: <text>Patrulla</text> break;
                                                 case LinkUpPro.Core.Domain.Enum.ShipType.size3A: <text>Submarino</text> break;
-                                                case LinkUpPro.Core.Domain.Enum.ShipType.size3B: <text>Destructor</text> break;
+                                                case LinkUpPro.Core.Domain.Enum.ShipType.size1: <text>Bote</text> break;
                                                 case LinkUpPro.Core.Domain.Enum.ShipType.size4: <text>Acorazado</text> break;
                                                 case LinkUpPro.Core.Domain.Enum.ShipType.size5: <text>Portaaviones</text> break;
                                             }
@@ -122,7 +122,7 @@
                                     {
                                         case LinkUpPro.Core.Domain.Enum.ShipType.size2: <text>Patrulla</text> break;
                                         case LinkUpPro.Core.Domain.Enum.ShipType.size3A: <text>Submarino</text> break;
-                                        case LinkUpPro.Core.Domain.Enum.ShipType.size3B: <text>Destructor</text> break;
+                                        case LinkUpPro.Core.Domain.Enum.ShipType.size1: <text>Bote</text> break;
                                         case LinkUpPro.Core.Domain.Enum.ShipType.size4: <text>Acorazado</text> break;
                                         case LinkUpPro.Core.Domain.Enum.ShipType.size5: <text>Portaaviones</text> break;
                                     }

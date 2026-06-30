@@ -183,7 +183,7 @@ namespace LinkUpPro.Core.Application.Services
             ValidatePlayerInGame(game, playerId);
             var playerShips = game.Ships.Where(s => s.PlayerId == playerId).ToList();
 
-            var allShipTypes = new[] { ShipType.size2, ShipType.size3A, ShipType.size3B, ShipType.size4, ShipType.size5 };
+            var allShipTypes = new[] { ShipType.size2, ShipType.size3A, ShipType.size1, ShipType.size4, ShipType.size5 };
             var placedTypes = playerShips.Select(s => s.ShipType).ToHashSet();
             var pendingTypes = allShipTypes.Where(t => !placedTypes.Contains(t)).ToList();
 
