@@ -5,7 +5,7 @@ using LinkUpPro.Infrastructure.Shared.IoC;
 using LinkUpPro.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddJsonFile("credentials.json", optional: true, reloadOnChange: true);
+
 
 
 builder.Services.AddControllersWithViews(options =>
