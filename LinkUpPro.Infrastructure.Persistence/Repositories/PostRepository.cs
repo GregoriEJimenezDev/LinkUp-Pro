@@ -44,5 +44,28 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
                 .AsNoTracking()
                 .AsSplitQuery()
                 .ToListAsync();
+
+        public async Task<IEnumerable<Post>> GetFeedPostsAsync(string userId, IEnumerable<string> friendIds, bool includeGlobalPublic)
+        {
+            var fIds = friendIds.ToList();
+            
+            var query = _context.Posts.Where(p => !p.IsDeleted);
+
+            // Using standard OR logic compatible with EF Core translation
+            query = query.Where(p => 
+                p.UserId == userId || 
+                (fIds.Contains(p.UserId) && p.Privacy != LinkUpPro.Core.Domain.Enum.PostPrivacy.OnlyMe) || 
+                (includeGlobalPublic && p.Privacy == LinkUpPro.Core.Domain.Enum.PostPrivacy.Public)
+            );
+
+            return await query
+                .OrderByDescending(p => p.CreatedAt)
+                .Include(p => p.Comments)
+                    .ThenInclude(c => c.Replies)
+                .Include(p => p.Reactions)
+                .AsNoTracking()
+                .AsSplitQuery()
+                .ToListAsync();
+        }
     }
 }
