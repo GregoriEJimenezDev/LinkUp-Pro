@@ -311,7 +311,7 @@ namespace LinkUpPro.Core.Application.Services
 
         public async Task<ServiceResult> AttackAsync(int gameId, string attackerId, int row, int col)
         {
-            var game = await _gameRepo.GetWithDetailsAsync(gameId);
+            var game = await _gameRepo.GetWithDetailsForUpdateAsync(gameId);
             if (game == null) return ServiceResult.Failure("Partida no encontrada.");
             ValidatePlayerInGame(game, attackerId);
 
@@ -329,12 +329,12 @@ namespace LinkUpPro.Core.Application.Services
             if (!turnValidation.Succeeded)
                 return ServiceResult.Failure(turnValidation.ErrorMessage);
 
-            var existingAttacks = await _attackRepo.GetByGameAndAttackerAsync(gameId, attackerId);
+            var existingAttacks = game.Attacks.Where(a => a.AttackerId == attackerId);
             if (_attackDomainService.IsDuplicateAttack(existingAttacks, row, col))
                 return ServiceResult.Failure("Ya atacaste esta celda.");
 
             var opponentId = game.FirstPlayerId == attackerId ? game.SecondPlayerId : game.FirstPlayerId;
-            var opponentShips = (await _shipRepo.GetWithCellsByGameAndPlayerAsync(gameId, opponentId)).ToList();
+            var opponentShips = game.Ships.Where(s => s.PlayerId == opponentId).ToList();
 
             var impact = _attackDomainService.EvaluateImpact(opponentShips, row, col);
 
@@ -348,7 +348,7 @@ namespace LinkUpPro.Core.Application.Services
                 AttackedAt = DateTime.UtcNow
             };
 
-            await _attackRepo.AddAsync(attack);
+            game.Attacks.Add(attack);
 
             if (impact.IsHit && impact.HitCell != null)
                 impact.HitCell.WasAttacked = true;

@@ -35,6 +35,14 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(g => g.Id == gameId)
             ?? throw new Exception($"Details not found.");
 
+        public async Task<BattleshipGame> GetWithDetailsForUpdateAsync(int gameId) =>
+            await _context.BattleshipGames
+                .Include(g => g.Ships).ThenInclude(s => s.Cells)
+                .Include(g => g.Attacks)
+                .AsSplitQuery()
+                .FirstOrDefaultAsync(g => g.Id == gameId)
+            ?? throw new Exception($"Details not found.");
+
         public async Task<bool> HasActiveGameWithFriendAsync(string userId, string friendId) =>
             await _context.BattleshipGames.AsNoTracking()
                 .AnyAsync(g => g.Status != GameStatus.Finished && ((g.FirstPlayerId == userId && g.SecondPlayerId == friendId) || 
