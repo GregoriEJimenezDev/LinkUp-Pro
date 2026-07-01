@@ -177,6 +177,24 @@ namespace LinkUpPro.Core.Application.Services
             return ServiceResult<int>.Success(game.Id);
         }
 
+        public async Task<ServiceResult> AcceptGameAsync(int gameId, string playerId)
+        {
+            var game = await _gameRepo.GetByIdAsync(gameId);
+            if (game == null) return ServiceResult.Failure("Partida no encontrada.");
+            
+            if (game.SecondPlayerId != playerId)
+                return ServiceResult.Failure("No eres el invitado de esta partida.");
+                
+            if (game.Status != GameStatus.WaitingForOpponent)
+                return ServiceResult.Failure("La partida ya fue aceptada o no está disponible.");
+
+            game.Status = GameStatus.PlacingShips;
+            await _gameRepo.UpdateAsync(game);
+            await _unitOfWork.SaveChangesAsync();
+
+            return ServiceResult.Success();
+        }
+
         public async Task<SelectShipViewModel> GetPendingShipsAsync(int gameId, string playerId)
         {
             var game = await _gameRepo.GetWithDetailsAsync(gameId);
@@ -230,7 +248,7 @@ namespace LinkUpPro.Core.Application.Services
             if (!Enum.TryParse<ShipType>(shipType, out var st))
                 return ServiceResult.Failure("Tipo de barco inválido.");
 
-            if (game.Status != GameStatus.PlacingShips)
+            if (game.Status != GameStatus.PlacingShips && game.Status != GameStatus.WaitingForOpponent)
                 return ServiceResult.Failure("El juego no está en fase de colocación.");
 
             var existingShips = await _shipRepo.GetByGameAndPlayerAsync(gameId, playerId);
@@ -409,6 +427,16 @@ namespace LinkUpPro.Core.Application.Services
             await _gameRepo.UpdateAsync(game);
             await _unitOfWork.SaveChangesAsync();
 
+            var opponentId = game.FirstPlayerId == playerId ? game.SecondPlayerId : game.FirstPlayerId;
+            var surrenderingPlayer = await _userService.GetUserBasicInfoAsync(playerId);
+            await _notificationService.CreateNotificationAsync(
+                opponentId,
+                "Partida terminada",
+                $"{surrenderingPlayer.Username} se ha rendido. ¡Has ganado la partida!",
+                $"/Battleship/Result?gameId={gameId}",
+                NotificationType.GameFinished
+            );
+
             return ServiceResult.Success();
         }
 
@@ -435,7 +463,8 @@ namespace LinkUpPro.Core.Application.Services
                 MyAttacks = myAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList(),
                 OpponentAttacks = oppAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList(),
                 MyShips = myShips.Select(s => _mapper.Map<ShipDto>(s)).ToList(),
-                EnemyShipsSunk = oppShips.Count(s => s.IsSunk)
+                EnemyShipsSunk = oppShips.Count(s => s.IsSunk),
+                WonBySurrender = !string.IsNullOrEmpty(game.SurrenderedById) && game.WinnerId == playerId
             };
         }
 

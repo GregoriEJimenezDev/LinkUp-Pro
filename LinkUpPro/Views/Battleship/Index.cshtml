@@ -56,9 +56,12 @@
                             <p class="text-sm font-medium"><span class="font-bold text-foreground">@game.Player1Username</span> te invitó a jugar</p>
                         </div>
                         <div class="flex items-center gap-2">
-                            <a href="/Battleship/SelectShip?gameId=@game.Id" class="inline-flex items-center justify-center h-8 px-3 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors">
-                                Aceptar
-                            </a>
+                            <form asp-controller="Battleship" asp-action="AcceptGame" method="post" class="m-0">
+                                <input type="hidden" name="gameId" value="@game.Id" />
+                                <button type="submit" class="inline-flex items-center justify-center h-8 px-3 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors">
+                                    Aceptar
+                                </button>
+                            </form>
                             <form asp-action="Reject" method="post" class="m-0">
                                 <input type="hidden" name="gameId" value="@game.Id" />
                                 <button type="submit" class="inline-flex items-center justify-center h-8 px-3 rounded-md bg-secondary text-secondary-foreground text-xs font-medium hover:bg-secondary/80 transition-colors">

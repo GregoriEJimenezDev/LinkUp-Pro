@@ -40,7 +40,14 @@
                         @(Model.IWon ? "¡Has Ganado!" : "Derrota")
                     </h2>
                     <p class="text-sm text-muted-foreground">
-                        @(Model.IWon ? "Destruiste la flota enemiga." : "Tu flota fue hundida.")
+                        @if (Model.WonBySurrender)
+                        {
+                            @("El rival se ha rendido.")
+                        }
+                        else
+                        {
+                            @(Model.IWon ? "Destruiste la flota enemiga." : "Tu flota fue hundida.")
+                        }
                     </p>
                 </div>
             </div>

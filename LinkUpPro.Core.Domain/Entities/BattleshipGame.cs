@@ -15,6 +15,7 @@ namespace LinkUpPro.Core.Domain.Entities
         public string FirstPlayerId { get; set; } = string.Empty;
         public string SecondPlayerId { get; set; } = string.Empty;
         public string WinnerId { get; set; } = string.Empty;
+        public string? SurrenderedById { get; set; }
 
         public byte[] ConcurrencyStamp { get; set; } = [];
         public ICollection<Ship> Ships { get; set; } = [];
@@ -36,8 +37,9 @@ namespace LinkUpPro.Core.Domain.Entities
         public void SetSurrender(string playerId)
         {
             Status = GameStatus.Finished;
-            WinnerId = FirstPlayerId == playerId ? SecondPlayerId : FirstPlayerId;
             FinishedAt = DateTime.UtcNow;
+            SurrenderedById = playerId;
+            WinnerId = FirstPlayerId == playerId ? SecondPlayerId : FirstPlayerId;
         }
 
         public bool CheckTimeout(int hours = 48)
