@@ -44,6 +44,10 @@
                         {
                             @("El rival se ha rendido.")
                         }
+                        else if (Model.LostBySurrender)
+                        {
+                            @("Te has rendido.")
+                        }
                         else
                         {
                             @(Model.IWon ? "Destruiste la flota enemiga." : "Tu flota fue hundida.")

@@ -482,7 +482,8 @@ namespace LinkUpPro.Core.Application.Services
                 OpponentAttacks = oppAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList(),
                 MyShips = myShips.Select(s => _mapper.Map<ShipDto>(s)).ToList(),
                 EnemyShipsSunk = oppShips.Count(s => s.IsSunk),
-                WonBySurrender = !string.IsNullOrEmpty(game.SurrenderedById) && game.WinnerId == playerId
+                WonBySurrender = !string.IsNullOrEmpty(game.SurrenderedById) && game.WinnerId == playerId,
+                LostBySurrender = game.SurrenderedById == playerId
             };
         }
 

@@ -16,5 +16,6 @@ namespace LinkUpPro.Core.Application.ViewModel.Game
         public List<ShipDto> MyShips { get; set; } = new();
         public int EnemyShipsSunk { get; set; }
         public bool WonBySurrender { get; set; }
+        public bool LostBySurrender { get; set; }
     }
 }
