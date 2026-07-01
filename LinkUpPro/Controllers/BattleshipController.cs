@@ -71,6 +71,20 @@ namespace LinkUpPro.Controllers
             return RedirectToAction(nameof(SelectShip), new { gameId });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Reject(int gameId)
+        {
+            var userId = UserId;
+            var result = await _battleshipService.RejectGameAsync(gameId, userId);
+
+            if (!result.Succeeded)
+            {
+                TempData["Error"] = result.ErrorMessage;
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
         public async Task<IActionResult> SelectShip(int gameId)
         {
             var userId = UserId;

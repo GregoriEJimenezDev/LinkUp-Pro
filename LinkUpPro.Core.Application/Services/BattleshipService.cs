@@ -195,6 +195,24 @@ namespace LinkUpPro.Core.Application.Services
             return ServiceResult.Success();
         }
 
+        public async Task<ServiceResult> RejectGameAsync(int gameId, string playerId)
+        {
+            var game = await _gameRepo.GetByIdAsync(gameId);
+            if (game == null) return ServiceResult.Failure("Partida no encontrada.");
+            
+            if (game.SecondPlayerId != playerId)
+                return ServiceResult.Failure("No eres el invitado de esta partida.");
+                
+            if (game.Status != GameStatus.WaitingForOpponent)
+                return ServiceResult.Failure("La partida ya fue aceptada o no está disponible.");
+
+            game.Status = GameStatus.Abandoned;
+            await _gameRepo.UpdateAsync(game);
+            await _unitOfWork.SaveChangesAsync();
+
+            return ServiceResult.Success();
+        }
+
         public async Task<SelectShipViewModel> GetPendingShipsAsync(int gameId, string playerId)
         {
             var game = await _gameRepo.GetWithDetailsAsync(gameId);

@@ -11,6 +11,7 @@ namespace LinkUpPro.Core.Application.Interfaces.IServices
         Task<BattleshipIndexViewModel> GetIndexAsync(string userId);
         Task<ServiceResult<int>> CreateGameAsync(string player1Id, string player2Id);
         Task<ServiceResult> AcceptGameAsync(int gameId, string playerId);
+        Task<ServiceResult> RejectGameAsync(int gameId, string playerId);
         Task<SelectShipViewModel> GetPendingShipsAsync(int gameId, string playerId);
         Task<SelectCellViewModel> GetBoardForPlacementAsync(int gameId, string playerId, string shipType);
         Task<ServiceResult> PlaceShipAsync(int gameId, string playerId, string shipType, int row, int col, ShipDirection direction);
