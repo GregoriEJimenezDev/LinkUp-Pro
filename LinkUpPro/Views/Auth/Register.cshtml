@@ -1,4 +1,4 @@
-@model LinkUpPro.Core.Application.ViewModel.Users.RegisterViewModel
+@model RegisterViewModel
 
 @{ Layout = "_AuthLayout"; 
     ViewData["Title"] = "Crear cuenta";
@@ -77,7 +77,6 @@
                     </button>
                 </div>
                 <span asp-validation-for="Password" class="text-destructive text-sm"></span>
-                <!-- Password Strength Indicator -->
                 <div id="strengthContainer" class="hidden space-y-1.5 pt-1">
                     <div class="flex gap-1">
                         <div id="bar1" class="h-1 flex-1 rounded-full bg-muted transition-colors duration-300"></div>
@@ -169,7 +168,6 @@
             return true;
         }
 
-        // Password strength checker
         function checkPasswordStrength(password) {
             const container = document.getElementById('strengthContainer');
             const bar1 = document.getElementById('bar1');
@@ -198,7 +196,6 @@
             let label = '';
             let color = '';
 
-            // Débil: <= 2. Media: 3 o 4. Fuerte: 5
             if (score <= 2) {
                 level = 1; label = 'Débil'; color = 'bg-red-500';
             } else if (score === 3 || score === 4) {

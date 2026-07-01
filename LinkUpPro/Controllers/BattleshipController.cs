@@ -1,27 +1,16 @@
 using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Application.ViewModel.Select;
-using LinkUpPro.Core.Domain.Enum;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class BattleshipController : BaseController
+    public class BattleshipController( IBattleshipService battleshipService, IUserService userService, IFriendshipService friendshipService) : BaseController
     {
-        private readonly IBattleshipService _battleshipService;
-        private readonly IUserService _userService;
-        private readonly IFriendshipService _friendshipService;
-
-        public BattleshipController(
-            IBattleshipService battleshipService,
-            IUserService userService,
-            IFriendshipService friendshipService)
-        {
-            _battleshipService = battleshipService;
-            _userService = userService;
-            _friendshipService = friendshipService;
-        }
+        private readonly IBattleshipService _battleshipService = battleshipService;
+        private readonly IUserService _userService = userService;
+        private readonly IFriendshipService _friendshipService = friendshipService;
 
         private string CurrentUserId =>
             UserId;

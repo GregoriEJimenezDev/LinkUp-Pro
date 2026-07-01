@@ -1,12 +1,9 @@
-@using LinkUpPro.Core.Application.DTOs.Battleship
-@using LinkUpPro.Core.Domain.Enum
-@model LinkUpPro.Core.Application.ViewModel.Game.AttackBoardViewModel
+@model AttackBoardViewModel
 
 @{
     ViewData["Title"] = "Tablero de Combate";
-    
-    // Diccionarios para acceso rápido
-    var myAttacks = new Dictionary<string, bool>(); // Row,Col -> IsHit
+
+    var myAttacks = new Dictionary<string, bool>();
     if (Model.MyAttacks != null)
     {
         foreach (var attack in Model.MyAttacks)
@@ -59,8 +56,7 @@
     }
 
     string[] cols = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L" };
-    
-    // Obtener el último movimiento para el log
+
     var myLast = Model.MyAttacks?.LastOrDefault();
     var oppLast = Model.OpponentAttacks?.LastOrDefault();
     
@@ -79,7 +75,6 @@
 }
 
 <div class="flex flex-col gap-6 w-full max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <!-- Encabezado -->
     <div class="flex flex-col md:flex-row items-center justify-between rounded-xl bg-card border shadow-sm p-6 gap-4">
         <div class="flex items-center gap-4">
             <a href="/Battleship/Index" class="inline-flex items-center justify-center rounded-full bg-secondary h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-colors">
@@ -100,17 +95,17 @@
                     }
                     else if (Model.IsMyTurn)
                     {
-                        <span class="rounded-md bg-green-500/20 px-3 py-1 text-sm font-bold text-green-500 animate-pulse border border-green-500/30 flex items-center gap-2">
-                            <div class="size-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></div>
+                        <div class="rounded-md bg-green-500/20 px-3 py-1 text-sm font-bold text-green-500 animate-pulse border border-green-500/30 flex items-center gap-2">
+                            <span class="size-3 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></span>
                             TU TURNO
-                        </span>
+                        </div>
                     }
                     else
                     {
-                        <span class="rounded-md bg-yellow-500/20 px-3 py-1 text-sm font-bold text-yellow-500 border border-yellow-500/30 flex items-center gap-2">
-                            <div class="size-3 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.8)] animate-pulse"></div>
+                        <div class="rounded-md bg-yellow-500/20 px-3 py-1 text-sm font-bold text-yellow-500 border border-yellow-500/30 flex items-center gap-2">
+                            <span class="size-3 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.8)] animate-pulse"></span>
                             ESPERANDO OPONENTE
-                        </span>
+                        </div>
                     }
                 </div>
             </div>
@@ -143,8 +138,6 @@
             }
         </div>
     </div>
-    
-    <!-- Info panel -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-card border rounded-lg p-3 flex flex-col justify-center items-center shadow-sm">
             <span class="text-xs text-muted-foreground uppercase font-semibold">Tu Turno</span>
@@ -173,10 +166,7 @@
         </div>
     }
 
-    <!-- Contenedor Principal (2 Tableros + Barcos Hundidos) -->
     <div class="grid gap-8 lg:grid-cols-2">
-        
-        <!-- TU TABLERO -->
         <div class="flex flex-col gap-4 rounded-xl border bg-card p-6 shadow-sm">
             <h2 class="text-center font-bold tracking-widest text-muted-foreground uppercase text-sm mb-2 flex items-center justify-center gap-2">
                 <i data-lucide="shield-half" class="size-4"></i> Tu Tablero
@@ -206,7 +196,7 @@
                                 bool isSunk = sunkCells.Contains(key);
                                 bool hasBeenAttacked = oppAttacks.ContainsKey(key);
                                 
-                                string cellClass = "bg-secondary border border-border/80"; // Agua normal (niebla)
+                                string cellClass = "bg-secondary border border-border/80";
                                 if (hasBeenAttacked)
                                 {
                                     if (isMyShip)
@@ -215,12 +205,12 @@
                                     }
                                     else
                                     {
-                                        cellClass = "bg-primary/20 border border-primary/30"; // Agua disparada
+                                        cellClass = "bg-primary/20 border border-primary/30";
                                     }
                                 }
                                 else if (isMyShip)
                                 {
-                                    cellClass = "bg-accent border border-muted-foreground/30"; // Barco intacto
+                                    cellClass = "bg-accent border border-muted-foreground/30";
                                 }
 
                                 <div class="size-6 sm:size-8 rounded-sm transition-all flex items-center justify-center text-xs @cellClass">
@@ -240,7 +230,6 @@
             </div>
         </div>
 
-        <!-- TABLERO ENEMIGO -->
         <div class="flex flex-col gap-4 rounded-xl border bg-card p-6 shadow-sm relative overflow-hidden">
             <h2 class="text-center font-bold tracking-widest text-primary uppercase text-sm mb-2 flex items-center justify-center gap-2">
                 <i data-lucide="swords" class="size-4"></i> Tablero Enemigo
@@ -308,10 +297,7 @@
         
     </div>
 
-    <!-- Paneles Inferiores: Leyenda y Barcos hundidos -->
     <div class="grid gap-6 lg:grid-cols-3">
-        
-        <!-- Leyenda -->
         <div class="bg-card rounded-xl border p-5 shadow-sm lg:col-span-2">
             <h3 class="font-semibold text-muted-foreground mb-4">Leyenda del Mapa</h3>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -341,8 +327,6 @@
                 }
             </div>
         </div>
-
-        <!-- Barcos hundidos -->
         <div class="bg-card rounded-xl border p-5 shadow-sm">
             <h3 class="font-semibold text-muted-foreground mb-4">Registro de Daños</h3>
             

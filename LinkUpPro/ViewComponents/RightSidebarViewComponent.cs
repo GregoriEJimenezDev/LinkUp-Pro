@@ -5,18 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LinkUpPro.ViewComponents
 {
-    public class RightSidebarViewComponent : ViewComponent
+    public class RightSidebarViewComponent( IBattleshipService battleshipService, IFriendRequestService friendRequestService) : ViewComponent
     {
-        private readonly IBattleshipService _battleshipService;
-        private readonly IFriendRequestService _friendRequestService;
-
-        public RightSidebarViewComponent(
-            IBattleshipService battleshipService,
-            IFriendRequestService friendRequestService)
-        {
-            _battleshipService = battleshipService;
-            _friendRequestService = friendRequestService;
-        }
+        private readonly IBattleshipService _battleshipService = battleshipService;
+        private readonly IFriendRequestService _friendRequestService = friendRequestService;
 
         public async Task<IViewComponentResult> InvokeAsync()
         {

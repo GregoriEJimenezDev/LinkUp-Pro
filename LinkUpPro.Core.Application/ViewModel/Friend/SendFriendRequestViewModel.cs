@@ -4,8 +4,6 @@ namespace LinkUpPro.Core.Application.ViewModel.Friend
 {
     public class SendFriendRequestViewModel
     {
-        [Required(ErrorMessage = "Por favor, selecciona un usuario para enviarle la solicitud de amistad.")]
-        public string SelectedUserId { get; set; } = string.Empty;
         public string? SearchUsername { get; set; }
         public List<UserToAddViewModel> AvailableUsers { get; set; } = [];
     }

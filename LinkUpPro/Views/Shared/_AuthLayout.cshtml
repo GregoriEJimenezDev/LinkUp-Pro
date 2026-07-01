@@ -16,16 +16,13 @@
         </button>
       </div>
 
-      <!-- Left Column - Visual/Brand -->
       <div class="hidden lg:flex flex-col justify-center relative overflow-hidden bg-zinc-900">
-        <!-- Background Image with Overlay -->
         <div 
           class="absolute inset-0 z-0 bg-cover bg-center" 
           style="background-image: url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2938&auto=format&fit=crop');"
         ></div>
         <div class="absolute inset-0 z-10 bg-gradient-to-br from-primary/90 via-primary/80 to-purple-900/90 mix-blend-multiply"></div>
         
-        <!-- Content -->
         <div class="relative z-20 flex flex-col justify-center h-full px-12 xl:px-20 text-white animate-in fade-in slide-in-from-left-8 duration-700">
           <div class="mb-8 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium backdrop-blur-md w-fit">
             <i data-lucide="sparkles" class="size-4 text-yellow-300"></i>
@@ -40,7 +37,6 @@
             LinkUp es el lugar donde las conexiones digitales se transforman en aventuras reales. Conecta, juega y vive.
           </p>
           
-          <!-- Glass Cards -->
           <div class="mt-12 grid grid-cols-2 gap-4 max-w-md">
             <div class="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-md transition-colors hover:bg-white/20">
               <i data-lucide="users" class="size-6 text-white"></i>
@@ -54,7 +50,6 @@
         </div>
       </div>
 
-      <!-- Right Column - Forms -->
       <main class="flex items-center justify-center p-6 sm:p-12 min-h-screen bg-background">
         <div class="w-full max-w-[400px]">
           @RenderBody()
@@ -70,10 +65,8 @@
             document.querySelectorAll('.theme-icon-moon').forEach(el => el.style.display = isDark ? 'none' : 'inline-flex');
         }
 
-        // Theme Toggle Logic
         const html = document.documentElement;
         
-        // Check local storage or system preference
         const isCurrentlyDark = localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
         if (!isCurrentlyDark) {
             html.classList.remove('dark');

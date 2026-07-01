@@ -1,4 +1,4 @@
-@model LinkUpPro.Core.Application.ViewModel.Friend.FriendIndexViewModel
+@model FriendIndexViewModel
 
 @{
     ViewData["Title"] = "Mis Amigos";
@@ -58,7 +58,6 @@
         </div>
     </div>
 
-    <!-- Friends Posts Feed -->
     <div class="w-full max-w-3xl mx-auto flex flex-col gap-6">
         <div class="flex items-center justify-between">
             <h2 class="text-2xl font-bold tracking-tight text-foreground">Publicaciones de Amigos</h2>
@@ -92,7 +91,7 @@
                             <p class="text-sm text-foreground whitespace-pre-wrap">@post.Content</p>
                         </div>
 
-                        @if (post.MediaType == LinkUpPro.Core.Domain.Enum.MediaType.Image && !string.IsNullOrEmpty(post.MediaUrl))
+                        @if (post.MediaType == MediaType.Image && !string.IsNullOrEmpty(post.MediaUrl))
                         {
                             <div class="px-6 pb-4">
                                 <div class="relative overflow-hidden rounded-xl border bg-muted/30">
@@ -100,7 +99,7 @@
                                 </div>
                             </div>
                         }
-                        else if (post.MediaType == LinkUpPro.Core.Domain.Enum.MediaType.Video && !string.IsNullOrEmpty(post.MediaUrl))
+                        else if (post.MediaType == MediaType.Video && !string.IsNullOrEmpty(post.MediaUrl))
                         {
                             <div class="px-6 pb-4">
                                 <div class="relative overflow-hidden rounded-xl border bg-muted/30 aspect-video">

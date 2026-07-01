@@ -5,21 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LinkUpPro.ViewComponents
 {
-    public class AppSidebarViewComponent : ViewComponent
+    public class AppSidebarViewComponent(
+        UserManager<ApplicationUser> userManager,
+        INotificationService notificationService,
+        IFriendRequestService friendRequestService) : ViewComponent
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly INotificationService _notificationService;
-        private readonly IFriendRequestService _friendRequestService;
-
-        public AppSidebarViewComponent(
-            UserManager<ApplicationUser> userManager,
-            INotificationService notificationService,
-            IFriendRequestService friendRequestService)
-        {
-            _userManager = userManager;
-            _notificationService = notificationService;
-            _friendRequestService = friendRequestService;
-        }
+        private readonly UserManager<ApplicationUser> _userManager = userManager;
+        private readonly INotificationService _notificationService = notificationService;
+        private readonly IFriendRequestService _friendRequestService = friendRequestService;
 
         public async Task<IViewComponentResult> InvokeAsync()
         {

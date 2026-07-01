@@ -6,7 +6,5 @@ namespace LinkUpPro.Core.Application.ViewModel.Select
         public string ShipType { get; set; } = string.Empty;
         public int ShipSize { get; set; }
         public List<(int Row, int Col)> OccupiedCells { get; set; } = [];
-        public int? SelectedRow { get; set; }
-        public int? SelectedCol { get; set; }
     }
 }

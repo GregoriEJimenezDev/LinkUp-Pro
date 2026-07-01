@@ -24,7 +24,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
 
         public async Task<FriendRequest> GetBySenderAndReceiverAsync(string senderId, string receiverId) =>
             await _context.FriendRequests.AsNoTracking().FirstOrDefaultAsync(f => f.SenderId == senderId && f.ReceiverId == receiverId)
-            ?? throw new Exception($"Sender and Receiver not found - friendRequestRepository");
+            ?? throw new Exception($"No se encontro el remitente ni el destinatario - friendRequestRepository");
 
         public async Task<bool> HasPendingRequestAsync(string senderId, string receiverId) =>
             await _context.FriendRequests.AnyAsync(f =>

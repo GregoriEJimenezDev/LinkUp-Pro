@@ -7,18 +7,11 @@ using Microsoft.Extensions.Caching.Memory;
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class CommentController : BaseController
+    public class CommentController(ICommentService commentService, IUserService userService, IMemoryCache cache) : BaseController
     {
-        private readonly ICommentService _commentService;
-        private readonly IUserService _userService;
-        private readonly IMemoryCache _cache;
-
-        public CommentController(ICommentService commentService, IUserService userService, IMemoryCache cache)
-        {
-            _commentService = commentService;
-            _userService = userService;
-            _cache = cache;
-        }
+        private readonly ICommentService _commentService = commentService;
+        private readonly IUserService _userService = userService;
+        private readonly IMemoryCache _cache = cache;
 
         [HttpPost]
         public async Task<IActionResult> Create(SaveCommentViewModel vm)

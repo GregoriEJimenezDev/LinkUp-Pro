@@ -1,24 +1,17 @@
-@using LinkUpPro.Core.Domain.Enum
-@using LinkUpPro.Core.Application.DTOs.Battleship
-@using System.Security.Claims
-@model LinkUpPro.Core.Application.ViewModel.Game.BattleshipIndexViewModel
+
+@model BattleshipIndexViewModel
 
 @{
     ViewData["Title"] = "Battleship";
     var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    
-    // Separate invitations from active games
-    var pendingInvitations = Model.ActiveGames
-        .Where(g => g.Status == GameStatus.WaitingForOpponent && g.Player2Id == currentUserId)
+    var pendingInvitations = Model.ActiveGames.Where(g => g.Status == GameStatus.WaitingForOpponent && g.Player2Id == currentUserId)
         .ToList();
         
-    var activeGames = Model.ActiveGames
-        .Except(pendingInvitations)
+    var activeGames = Model.ActiveGames.Except(pendingInvitations)
         .ToList();
 }
 
 <div class="flex flex-col gap-8 w-full max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <!-- Encabezado -->
     <div class="flex items-center justify-between rounded-xl bg-card border shadow-sm p-6">
         <div class="flex flex-col gap-1">
             <h1 class="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -39,8 +32,6 @@
             @TempData["Error"]
         </div>
     }
-
-    <!-- Invitaciones pendientes -->
     @if (pendingInvitations.Any())
     {
         <div class="flex flex-col gap-3">
@@ -76,7 +67,6 @@
     }
 
     <div class="grid gap-8 md:grid-cols-[2fr_1fr]">
-        <!-- Partidas Activas -->
         <div class="flex flex-col gap-3">
             <h2 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Partidas activas</h2>
             
@@ -142,7 +132,6 @@
             </div>
         </div>
 
-        <!-- Historial reciente -->
         <div class="flex flex-col gap-3">
             <h2 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Historial reciente</h2>
             

@@ -1,4 +1,4 @@
-@model LinkUpPro.Core.Application.ViewModel.Select.SelectShipViewModel
+@model SelectShipViewModel
 
 @{
     ViewData["Title"] = "Fase de preparación";
@@ -23,7 +23,6 @@
     }
 
     <div class="grid gap-6 md:grid-cols-[1fr_300px]">
-        <!-- Lista de Naves -->
         <div class="flex flex-col gap-6">
             @if (Model.PendingShips.Any())
             {
@@ -35,15 +34,15 @@
                             <a href="/Battleship/PlaceShip?gameId=@Model.GameId&shipType=@ship.ShipType" class="group flex items-center justify-between rounded-lg border bg-card p-4 hover:bg-accent/50 transition-colors">
                                 <div class="flex items-center gap-4">
                                     <div class="flex size-10 items-center justify-center rounded-md bg-primary/10">
-                                        @if(ship.ShipType == LinkUpPro.Core.Domain.Enum.ShipType.size2)
+                                        @if(ship.ShipType == ShipType.size2)
                                         {
                                             <i data-lucide="sailboat" class="size-5 text-primary"></i>
                                         }
-                                        else if(ship.ShipType == LinkUpPro.Core.Domain.Enum.ShipType.size3A)
+                                        else if(ship.ShipType == ShipType.size3A)
                                         {
                                             <i data-lucide="waves" class="size-5 text-primary"></i>
                                         }
-                                        else if(ship.ShipType == LinkUpPro.Core.Domain.Enum.ShipType.size5)
+                                        else if(ship.ShipType == ShipType.size5)
                                         {
                                             <i data-lucide="ship" class="size-5 text-primary"></i>
                                         }
@@ -56,11 +55,11 @@
                                         <span class="font-semibold text-sm">
                                             @switch (ship.ShipType)
                                             {
-                                                case LinkUpPro.Core.Domain.Enum.ShipType.size2: <text>Patrulla</text> break;
-                                                case LinkUpPro.Core.Domain.Enum.ShipType.size3A: <text>Submarino</text> break;
-                                                case LinkUpPro.Core.Domain.Enum.ShipType.size3B: <text>Destructor</text> break;
-                                                case LinkUpPro.Core.Domain.Enum.ShipType.size4: <text>Acorazado</text> break;
-                                                case LinkUpPro.Core.Domain.Enum.ShipType.size5: <text>Portaaviones</text> break;
+                                                case ShipType.size2: <text>Patrulla</text> break;
+                                                case ShipType.size3A: <text>Submarino</text> break;
+                                                case ShipType.size3B: <text>Destructor</text> break;
+                                                case ShipType.size4: <text>Acorazado</text> break;
+                                                case ShipType.size5: <text>Portaaviones</text> break;
                                             }
                                         </span>
                                         <div class="flex items-center gap-1">
@@ -94,8 +93,6 @@
                 </div>
             }
         </div>
-
-        <!-- Panel de Estado -->
         <div class="flex flex-col gap-4">
             <h2 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Estado del Tablero</h2>
             <div class="flex flex-col gap-2 rounded-lg border bg-card p-4">
@@ -120,11 +117,11 @@
                                 <span>
                                     @switch (ship.ShipType)
                                     {
-                                        case LinkUpPro.Core.Domain.Enum.ShipType.size2: <text>Patrulla</text> break;
-                                        case LinkUpPro.Core.Domain.Enum.ShipType.size3A: <text>Submarino</text> break;
-                                        case LinkUpPro.Core.Domain.Enum.ShipType.size3B: <text>Destructor</text> break;
-                                        case LinkUpPro.Core.Domain.Enum.ShipType.size4: <text>Acorazado</text> break;
-                                        case LinkUpPro.Core.Domain.Enum.ShipType.size5: <text>Portaaviones</text> break;
+                                        case ShipType.size2: <text>Patrulla</text> break;
+                                        case ShipType.size3A: <text>Submarino</text> break;
+                                        case ShipType.size3B: <text>Destructor</text> break;
+                                        case ShipType.size4: <text>Acorazado</text> break;
+                                        case ShipType.size5: <text>Portaaviones</text> break;
                                     }
                                 </span>
                             </div>

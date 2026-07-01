@@ -1,4 +1,3 @@
-using LinkUpPro.Core.Application.Services;
 using LinkUpPro.Core.Application.Interfaces.Repositories;
 using LinkUpPro.Core.Domain.Exceptions;
 using LinkUpPro.Infrastructure.Persistence.Context;

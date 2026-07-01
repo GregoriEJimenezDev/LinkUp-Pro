@@ -1,4 +1,4 @@
-@model LinkUpPro.Core.Application.ViewModel.Users.EditProfileViewModel
+@model EditProfileViewModel
 
 @{
     ViewData["Title"] = "Configuración de Perfil";
@@ -23,7 +23,6 @@
             <div asp-validation-summary="All" class="rounded-xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"></div>
         }
 
-        <!-- Información de Cuenta (Solo lectura) -->
         <div class="rounded-2xl border bg-card shadow-sm overflow-hidden">
             <div class="border-b bg-muted/30 px-6 py-4">
                 <h2 class="text-lg font-semibold flex items-center gap-2">
@@ -51,7 +50,6 @@
             </div>
         </div>
 
-        <!-- Información Pública -->
         <div class="rounded-2xl border bg-card shadow-sm overflow-hidden">
             <div class="border-b bg-muted/30 px-6 py-4">
                 <h2 class="text-lg font-semibold flex items-center gap-2">
@@ -62,7 +60,6 @@
             </div>
 
             <div class="p-6 flex flex-col md:flex-row gap-8">
-                <!-- Foto de Perfil -->
                 <div class="flex flex-col items-center gap-4">
                     <div class="relative group flex size-32 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-background bg-secondary shadow-md ring-2 ring-primary/20">
                         <img id="previewImage" class="aspect-square h-full w-full object-cover" src="@(Model.CurrentProfilePicture ?? "/placeholder.svg")" alt="Foto de perfil" />
@@ -78,7 +75,6 @@
                     </label>
                 </div>
 
-                <!-- Datos personales -->
                 <div class="flex flex-col gap-4 flex-1">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-2">
@@ -103,7 +99,6 @@
             </div>
         </div>
 
-        <!-- Seguridad -->
         <div class="rounded-2xl border bg-card shadow-sm overflow-hidden">
             <div class="border-b bg-muted/30 px-6 py-4">
                 <h2 class="text-lg font-semibold flex items-center gap-2">
@@ -114,7 +109,6 @@
             </div>
 
             <div class="p-6 flex flex-col gap-4">
-                <!-- Contraseña actual -->
                 <div class="space-y-2">
                     <label asp-for="CurrentPassword" class="text-sm font-medium leading-none">Contraseña Actual</label>
                     <div class="relative">
@@ -128,7 +122,6 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Nueva contraseña -->
                     <div class="space-y-2">
                         <label asp-for="Password" class="text-sm font-medium leading-none">Nueva Contraseña</label>
                         <div class="relative">
@@ -139,7 +132,6 @@
                         </div>
                         <span asp-validation-for="Password" class="text-xs text-destructive"></span>
 
-                        <!-- Password Strength Indicator -->
                         <div id="strengthContainer" class="hidden space-y-1.5 pt-1">
                             <div class="flex gap-1">
                                 <div id="bar1" class="h-1 flex-1 rounded-full bg-muted transition-colors duration-300"></div>
@@ -150,8 +142,7 @@
                             <p id="strengthText" class="text-[10px] font-medium text-muted-foreground"></p>
                         </div>
                     </div>
-
-                    <!-- Confirmar nueva contraseña -->
+>
                     <div class="space-y-2">
                         <label asp-for="ConfirmPassword" class="text-sm font-medium leading-none">Confirmar Nueva Contraseña</label>
                         <div class="relative">
@@ -181,7 +172,6 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 
     <script>
-        // Image preview
         function previewFile() {
             const preview = document.getElementById('previewImage');
             const file = document.getElementById('File').files[0];
@@ -196,7 +186,6 @@
             }
         }
 
-        // Toggle password visibility
         function togglePassword(fieldId, btn) {
             const input = document.getElementById(fieldId);
             if (!input) return;
@@ -211,7 +200,6 @@
             }
         }
 
-        // Password strength checker
         function checkPasswordStrength(password) {
             const container = document.getElementById('strengthContainer');
             const bar1 = document.getElementById('bar1');
@@ -220,8 +208,7 @@
             const bar4 = document.getElementById('bar4');
             const text = document.getElementById('strengthText');
             
-            // Adjust to 3 bars since we have 3 levels: Débil, Media, Fuerte
-            if (bar4) bar4.style.display = 'none'; // We only need 3 bars for the visual
+            if (bar4) bar4.style.display = 'none';
             
             const bars = [bar1, bar2, bar3];
             const resetColor = 'bg-muted';
@@ -244,7 +231,6 @@
             let label = '';
             let color = '';
 
-            // Débil: <= 2. Media: 3 o 4. Fuerte: 5
             if (score <= 2) {
                 level = 1; label = 'Débil'; color = 'bg-red-500';
             } else if (score === 3 || score === 4) {
@@ -261,15 +247,11 @@
 
             if (text) {
                 text.textContent = label;
-                text.className = 'text-[10px] font-medium ' + (
-                    level === 1 ? 'text-red-500' :
-                    level === 2 ? 'text-orange-500' :
-                    'text-emerald-500'
+                text.className = 'text-[10px] font-medium ' + ( level === 1 ? 'text-red-500' : level === 2 ? 'text-orange-500' : 'text-emerald-500'
                 );
             }
         }
 
-        // Re-initialize lucide icons after DOM updates
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }

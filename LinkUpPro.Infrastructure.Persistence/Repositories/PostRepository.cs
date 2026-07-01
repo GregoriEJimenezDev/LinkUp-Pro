@@ -1,5 +1,6 @@
 using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Interfaces;
+using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Infrastructure.Persistence.Context;
 using LinkUpPro.Infrastructure.Persistence.Repositories.Generic;
 using Microsoft.EntityFrameworkCore;
@@ -51,11 +52,8 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
             
             var query = _context.Posts.Where(p => !p.IsDeleted);
 
-            // Using standard OR logic compatible with EF Core translation
-            query = query.Where(p => 
-                p.UserId == userId || 
-                (fIds.Contains(p.UserId) && p.Privacy != LinkUpPro.Core.Domain.Enum.PostPrivacy.OnlyMe) || 
-                (includeGlobalPublic && p.Privacy == LinkUpPro.Core.Domain.Enum.PostPrivacy.Public)
+            query = query.Where(p => p.UserId == userId || (fIds.Contains(p.UserId!) && p.Privacy != PostPrivacy.OnlyMe) || 
+            (includeGlobalPublic && p.Privacy == PostPrivacy.Public)
             );
 
             return await query

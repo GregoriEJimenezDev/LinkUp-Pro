@@ -16,7 +16,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
         public async Task<Ship> GetWithCellsAsync(int shipId) =>
             await _context.Ships.Include(s => s.Cells)
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Id == shipId) ?? throw new KeyNotFoundException($"The id {shipId} was not found.");
+            .FirstOrDefaultAsync(s => s.Id == shipId) ?? throw new KeyNotFoundException($"El identificador {shipId} no existe.");
 
         public async Task<IEnumerable<Ship>> GetWithCellsByGameAndPlayerAsync(int gameId, string playerId) =>
             await _context.Ships
@@ -26,8 +26,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
 
         public async Task<bool> PlayerFinishedPlacingAsync(int gameId, string playerId)
         {
-            var count = await _context.Ships
-                .CountAsync(s => s.GameId == gameId && s.PlayerId == playerId);
+            var count = await _context.Ships.CountAsync(s => s.GameId == gameId && s.PlayerId == playerId);
             return count == 5;
         }
 

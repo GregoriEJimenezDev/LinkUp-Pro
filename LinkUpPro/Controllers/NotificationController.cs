@@ -1,23 +1,16 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using LinkUpPro.Core.Application.Interfaces.IServices;
-using System.Security.Claims;
 
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class NotificationController : BaseController
+    public class NotificationController(
+        INotificationService notificationService,
+        IUserService userService) : BaseController
     {
-        private readonly INotificationService _notificationService;
-        private readonly IUserService _userService;
-
-        public NotificationController(
-            INotificationService notificationService,
-            IUserService userService)
-        {
-            _notificationService = notificationService;
-            _userService = userService;
-        }
+        private readonly INotificationService _notificationService = notificationService;
+        private readonly IUserService _userService = userService;
 
         public async Task<IActionResult> Index()
         {
