@@ -46,5 +46,11 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories.Generic
             _dbSet.Remove(entity);
             await _context.SaveChangesAsync();
         }
+
+        public async Task UpdateRangeAsync(IEnumerable<Entity> entities)
+        {
+            _dbSet.UpdateRange(entities);
+            await _context.SaveChangesAsync();
+        }
     }
 }

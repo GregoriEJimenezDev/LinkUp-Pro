@@ -40,7 +40,7 @@
                                 @notification.Title
                             </span>
                             <span class="text-sm text-muted-foreground mt-1">@notification.Message</span>
-                            <span class="text-xs text-muted-foreground/70 mt-2 font-medium">@notification.CreatedAt.ToString("g")</span>
+                            <span class="text-xs text-muted-foreground/70 mt-2 font-medium">@notification.CreatedAt.ToLocalTime().ToString("g")</span>
                         </div>
                     </div>
                     

@@ -54,7 +54,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
             // Using standard OR logic compatible with EF Core translation
             query = query.Where(p => 
                 p.UserId == userId || 
-                (fIds.Contains(p.UserId) && p.Privacy != LinkUpPro.Core.Domain.Enum.PostPrivacy.OnlyMe) || 
+                (p.UserId != null && fIds.Contains(p.UserId) && p.Privacy != LinkUpPro.Core.Domain.Enum.PostPrivacy.OnlyMe) || 
                 (includeGlobalPublic && p.Privacy == LinkUpPro.Core.Domain.Enum.PostPrivacy.Public)
             );
 

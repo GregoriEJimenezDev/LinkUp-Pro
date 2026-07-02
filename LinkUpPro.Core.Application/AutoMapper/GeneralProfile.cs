@@ -13,6 +13,8 @@ namespace LinkUpPro.Core.Application.AutoMapper
         public GeneralProfile() 
         {
             CreateMap<BattleshipGame, GameDto>()
+                .ForMember(d => d.Player1Id, opt => opt.MapFrom(s => s.FirstPlayerId))
+                .ForMember(d => d.Player2Id, opt => opt.MapFrom(s => s.SecondPlayerId))
                 .ForMember(d => d.Player1Username, opt => opt.Ignore())
                 .ForMember(d => d.Player2Username, opt => opt.Ignore())
                 .ForMember(d => d.WinnerUsername, opt => opt.Ignore())

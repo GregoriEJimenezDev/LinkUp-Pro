@@ -7,6 +7,7 @@ namespace LinkUpPro.Core.Domain.Interfaces.IGeneric
         Task AddAsync(Entity entity);
         Task AddRangeAsync(IEnumerable<Entity> entities);
         Task UpdateAsync(Entity entity);
+        Task UpdateRangeAsync(IEnumerable<Entity> entities);
         Task DeleteAsync(Entity entity);
     }
 }

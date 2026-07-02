@@ -2,7 +2,7 @@
 
 @{
     var currentUrl = ViewContext.HttpContext.Request.Path.ToString().ToLower();
-    var profilePic = Model.CurrentUser?.ProfilePicturePath ?? "/placeholder.svg";
+    var profilePic = Model.CurrentUser?.ProfilePictureUrl ?? "/placeholder.svg";
     var unreadCount = Model.UnreadNotificationsCount;
     var pendingRequestsCount = Model.PendingFriendRequestsCount;
 }
@@ -78,28 +78,4 @@
     </div>
 </aside>
 
-<script>
-    function updateThemeIcons(isDark) {
-        document.querySelectorAll('.theme-icon-sun').forEach(el => el.style.display = isDark ? 'inline-flex' : 'none');
-        document.querySelectorAll('.theme-icon-moon').forEach(el => el.style.display = isDark ? 'none' : 'inline-flex');
-    }
-
-    function toggleTheme() {
-        const root = document.documentElement;
-        const isDark = root.classList.contains('dark');
-        if (isDark) {
-            root.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-            updateThemeIcons(false);
-        } else {
-            root.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-            updateThemeIcons(true);
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const isDark = document.documentElement.classList.contains('dark') || localStorage.getItem('theme') === 'dark';
-        updateThemeIcons(isDark);
-    });
-</script>
+<script src="~/js/appsidebar-default.js" asp-append-version="true"></script>

@@ -53,7 +53,8 @@ namespace LinkUpPro.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            return RedirectToAction(nameof(SelectShip), new { gameId = result.Data });
+            TempData["Success"] = "Invitación enviada. Espera a que el oponente acepte para comenzar a colocar tus barcos.";
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]

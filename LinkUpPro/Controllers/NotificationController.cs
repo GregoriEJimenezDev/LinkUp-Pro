@@ -44,13 +44,7 @@ namespace LinkUpPro.Controllers
         public async Task<IActionResult> MarkAllAsRead()
         {
             var userId = UserId;
-            var notifications = await _notificationService.GetNotificationsAsync(userId);
-            var unread = notifications.Where(n => !n.IsRead).ToList();
-
-            foreach (var notification in unread)
-            {
-                await _notificationService.MarkAsReadAsync(notification.Id, userId);
-            }
+            await _notificationService.MarkAllAsReadAsync(userId);
 
             TempData["Success"] = "Todas las notificaciones han sido marcadas como leídas.";
             return RedirectToAction(nameof(Index));

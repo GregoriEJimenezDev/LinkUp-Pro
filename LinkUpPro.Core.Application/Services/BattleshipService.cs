@@ -192,6 +192,15 @@ namespace LinkUpPro.Core.Application.Services
             await _gameRepo.UpdateAsync(game);
             await _unitOfWork.SaveChangesAsync();
 
+            var acceptorInfo = await _userService.GetUserBasicInfoAsync(playerId);
+            await _notificationService.CreateNotificationAsync(
+                game.FirstPlayerId,
+                "Invitación aceptada",
+                $"{acceptorInfo.Username} ha aceptado tu invitación. ¡Ya pueden colocar sus barcos!",
+                $"/Battleship/Index",
+                NotificationType.GameStarted
+            );
+
             return ServiceResult.Success();
         }
 
@@ -209,6 +218,15 @@ namespace LinkUpPro.Core.Application.Services
             game.Status = GameStatus.Abandoned;
             await _gameRepo.UpdateAsync(game);
             await _unitOfWork.SaveChangesAsync();
+
+            var rejectorInfo = await _userService.GetUserBasicInfoAsync(playerId);
+            await _notificationService.CreateNotificationAsync(
+                game.FirstPlayerId,
+                "Invitación rechazada",
+                $"{rejectorInfo.Username} ha rechazado tu invitación de Battleship.",
+                $"/Battleship/Index",
+                NotificationType.GameInvitation
+            );
 
             return ServiceResult.Success();
         }
@@ -266,8 +284,8 @@ namespace LinkUpPro.Core.Application.Services
             if (!Enum.TryParse<ShipType>(shipType, out var st))
                 return ServiceResult.Failure("Tipo de barco inválido.");
 
-            if (game.Status != GameStatus.PlacingShips && game.Status != GameStatus.WaitingForOpponent)
-                return ServiceResult.Failure("El juego no está en fase de colocación.");
+            if (game.Status != GameStatus.PlacingShips)
+                return ServiceResult.Failure("El juego no está en fase de colocación. Espera a que tu oponente acepte la invitación.");
 
             var existingShips = await _shipRepo.GetByGameAndPlayerAsync(gameId, playerId);
 

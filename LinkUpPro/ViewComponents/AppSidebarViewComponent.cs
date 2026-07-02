@@ -1,36 +1,37 @@
+using LinkUpPro.Core.Application.DTOs.User;
 using LinkUpPro.Core.Application.Interfaces.IServices;
-using LinkUpPro.Infrastructure.Identity.Entities;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace LinkUpPro.ViewComponents
 {
     public class AppSidebarViewComponent : ViewComponent
     {
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUserService _userService;
         private readonly INotificationService _notificationService;
         private readonly IFriendRequestService _friendRequestService;
 
         public AppSidebarViewComponent(
-            UserManager<ApplicationUser> userManager,
+            IUserService userService,
             INotificationService notificationService,
             IFriendRequestService friendRequestService)
         {
-            _userManager = userManager;
+            _userService = userService;
             _notificationService = notificationService;
             _friendRequestService = friendRequestService;
         }
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var currentUser = await _userManager.GetUserAsync(Request.HttpContext.User);
-            var userId = currentUser?.Id;
+            var userId = Request.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
+            UserBasicDto? currentUser = null;
             int unreadNotificationsCount = 0;
             int pendingRequestsCount = 0;
 
             if (userId != null)
             {
+                currentUser = await _userService.GetUserBasicInfoAsync(userId);
                 unreadNotificationsCount = await _notificationService.GetUnreadCountAsync(userId);
                 pendingRequestsCount = await _friendRequestService.GetPendingCountAsync(userId);
             }
@@ -48,7 +49,7 @@ namespace LinkUpPro.ViewComponents
 
     public class AppSidebarViewModel
     {
-        public ApplicationUser? CurrentUser { get; set; }
+        public UserBasicDto? CurrentUser { get; set; }
         public int UnreadNotificationsCount { get; set; }
         public int PendingFriendRequestsCount { get; set; }
     }

@@ -393,18 +393,5 @@
 </form>
 
 @section Scripts {
-    <script>
-        function attackCell(row, col) {
-            document.getElementById('attackRow').value = row;
-            document.getElementById('attackCol').value = col;
-            document.getElementById('attackForm').submit();
-        }
-        
-        @if (!Model.IsMyTurn)
-        {
-            <text>
-            // El usuario debe refrescar manualmente con el botón
-            </text>
-        }
-    </script>
+    <script src="~/js/battleship-attackboard.js" asp-append-version="true"></script>
 }

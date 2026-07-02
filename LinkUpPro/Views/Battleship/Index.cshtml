@@ -118,11 +118,17 @@
                                 </div>
                             </div>
 
-                            @if (game.Status == GameStatus.PlacingShips || (game.Status == GameStatus.WaitingForOpponent && game.Player1Id == currentUserId))
+                            @if (game.Status == GameStatus.PlacingShips)
                             {
                                 <a href="/Battleship/SelectShip?gameId=@game.Id" class="inline-flex h-8 items-center justify-center rounded-md bg-secondary px-3 text-xs font-medium hover:bg-secondary/80">
-                                    @(game.Status == GameStatus.WaitingForOpponent ? "Ver sala" : "Preparar")
+                                    Preparar
                                 </a>
+                            }
+                            else if (game.Status == GameStatus.WaitingForOpponent)
+                            {
+                                <span class="inline-flex h-8 items-center justify-center rounded-md bg-secondary/50 px-3 text-xs font-medium text-muted-foreground">
+                                    Esperando...
+                                </span>
                             }
                             else
                             {
