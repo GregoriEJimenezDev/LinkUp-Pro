@@ -77,7 +77,7 @@ namespace LinkUpPro.Core.Application.Services
             return ServiceResult.Success();
         }
 
-        public async Task<List<PostViewModel>> GetByFriendsAsync(string userId, bool includeGlobalPublic = false)
+        public async Task<List<PostViewModel>> GetByFriendsAsync(string userId, bool includeGlobalPublic = false, bool includeSelf = true)
         {
             var cacheKey = $"FeedPosts_{userId}_{includeGlobalPublic}";
             
@@ -90,7 +90,7 @@ namespace LinkUpPro.Core.Application.Services
             var friendIds = friendships.Select(f => f.FirstUserId == userId ? f.SecondUserId : f.FirstUserId)
                 .Where(id => id != null).ToList();
 
-            var feedPosts = await _postRepository.GetFeedPostsAsync(userId, friendIds!, includeGlobalPublic);
+            var feedPosts = await _postRepository.GetFeedPostsAsync(userId, friendIds!, includeGlobalPublic, includeSelf);
 
             var userIdsToFetch = new HashSet<string>();
             foreach (var post in feedPosts)

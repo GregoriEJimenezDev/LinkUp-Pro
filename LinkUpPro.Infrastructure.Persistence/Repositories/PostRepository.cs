@@ -46,7 +46,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
                 .AsSplitQuery()
                 .ToListAsync();
 
-        public async Task<IEnumerable<Post>> GetFeedPostsAsync(string userId, IEnumerable<string> friendIds, bool includeGlobalPublic)
+        public async Task<IEnumerable<Post>> GetFeedPostsAsync(string userId, IEnumerable<string> friendIds, bool includeGlobalPublic, bool includeSelf)
         {
             var fIds = friendIds.ToList();
             
@@ -54,7 +54,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
 
             // Using standard OR logic compatible with EF Core translation
             query = query.Where(p => 
-                p.UserId == userId || 
+                (includeSelf && p.UserId == userId) || 
                 (p.UserId != null && fIds.Contains(p.UserId) && p.Privacy != LinkUpPro.Core.Domain.Enum.PostPrivacy.OnlyMe) || 
                 (includeGlobalPublic && p.Privacy == LinkUpPro.Core.Domain.Enum.PostPrivacy.Public)
             );

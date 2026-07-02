@@ -8,6 +8,6 @@ namespace LinkUpPro.Core.Domain.Interfaces
         Task<IEnumerable<Post>> GetByUserIdAsync(string userId);
         Task<IEnumerable<Post>> GetByFriendsAsync(IEnumerable<string> friendIds);
         Task<IEnumerable<Post>> GetAllPostWithDetailsAsync();
-        Task<IEnumerable<Post>> GetFeedPostsAsync(string userId, IEnumerable<string> friendIds, bool includeGlobalPublic);
+        Task<IEnumerable<Post>> GetFeedPostsAsync(string userId, IEnumerable<string> friendIds, bool includeGlobalPublic, bool includeSelf);
     }
 }

@@ -22,7 +22,7 @@ namespace LinkUpPro.Controllers
             var vm = new FriendIndexViewModel
             {
                 Friends = await _friendshipService.GetFriendsAsync(userId),
-                FriendsPosts = await _postService.GetByFriendsAsync(userId)
+                FriendsPosts = await _postService.GetByFriendsAsync(userId, includeGlobalPublic: false, includeSelf: false)
             };
 
             return View(vm);
