@@ -13,7 +13,7 @@
         <p class="mt-2 text-sm text-muted-foreground">
             La solicitud pasará a estado Cancelada y permanecerá en tu historial, pero el destinatario ya no podrá aceptarla.
         </p>
-        <form asp-action="Delete" method="post" class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <form asp-action="Delete" method="post" class="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerHTML = 'Cancelando...';">
             <input type="hidden" name="id" value="@Model" />
             <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-yellow-500 text-white hover:bg-yellow-600 h-10 px-4 py-2 w-full sm:w-auto">
                 Cancelar Solicitud
