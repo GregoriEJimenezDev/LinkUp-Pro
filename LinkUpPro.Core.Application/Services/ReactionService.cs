@@ -51,7 +51,7 @@ namespace LinkUpPro.Core.Application.Services
                         post.UserId!,
                         "Nueva reacción",
                         $"{reactorInfo.Username} {action} tu publicación.",
-                        "/", 
+                        $"/Post/Details/{post.Id}", 
                         NotificationType.PostReaction
                     );
                 }

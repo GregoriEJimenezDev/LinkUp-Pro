@@ -129,6 +129,8 @@ namespace LinkUpPro.Core.Application.Services
             foreach (var r in received)
             {
                 var senderInfo = await _userService.GetUserBasicInfoAsync(r.SenderId!);
+                if (string.IsNullOrEmpty(senderInfo.Username)) continue;
+
                 var mutual = await GetMutualFriendsCountAsync(userId, r.SenderId!);
                 receivedDtos.Add(new FriendRequestDto
                 {
@@ -147,6 +149,8 @@ namespace LinkUpPro.Core.Application.Services
             foreach (var s in sent)
             {
                 var receiverInfo = await _userService.GetUserBasicInfoAsync(s.ReceiverId!);
+                if (string.IsNullOrEmpty(receiverInfo.Username)) continue;
+
                 var mutual = await GetMutualFriendsCountAsync(userId, s.ReceiverId!);
                 sentDtos.Add(new FriendRequestDto
                 {

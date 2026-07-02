@@ -3,9 +3,13 @@ document.addEventListener("DOMContentLoaded", function () {
     timeElements.forEach(el => {
         const utcDateStr = el.getAttribute("datetime");
         if (utcDateStr) {
-            const date = new Date(utcDateStr + "Z"); // Ensure it's treated as UTC
+            let parseStr = utcDateStr;
+            if (!parseStr.endsWith("Z") && !parseStr.includes("+") && !parseStr.includes("-", 10)) {
+                parseStr += "Z";
+            }
+            const date = new Date(parseStr);
             if (!isNaN(date)) {
-                el.textContent = date.toLocaleString();
+                el.textContent = date.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
             }
         }
     });

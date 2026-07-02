@@ -62,19 +62,34 @@
                     @foreach (var game in Model.ActiveGames)
                     {
                         var opponentName = game.Player1Id == userId ? game.Player2Username : game.Player1Username;
-                        var gameUrl = (game.Status == GameStatus.PlacingShips || (game.Status == GameStatus.WaitingForOpponent && game.Player1Id == userId))
-                            ? $"/Battleship/SelectShip?gameId={game.Id}" : $"/Battleship/AttackBoard?gameId={game.Id}";
-                        <a href="@gameUrl" class="flex items-center justify-between rounded-lg border p-3 hover:bg-accent transition-colors">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="swords" class="size-4 text-muted-foreground"></i>
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-semibold truncate max-w-[120px]">vs @opponentName</span>
-                                    <span class="text-xs text-muted-foreground">
-                                        @(game.Status == GameStatus.PlacingShips ? "Fase de preparación" : "En progreso")
-                                    </span>
+                        
+                        @if (game.Status == GameStatus.WaitingForOpponent)
+                        {
+                            <div class="flex items-center justify-between rounded-lg border p-3 bg-secondary/20">
+                                <div class="flex items-center gap-2 opacity-70">
+                                    <i data-lucide="swords" class="size-4 text-muted-foreground"></i>
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-semibold truncate max-w-[120px]">vs @opponentName</span>
+                                        <span class="text-xs text-muted-foreground">Esperando...</span>
+                                    </div>
                                 </div>
                             </div>
-                        </a>
+                        }
+                        else
+                        {
+                            var gameUrl = game.Status == GameStatus.PlacingShips ? $"/Battleship/SelectShip?gameId={game.Id}" : $"/Battleship/AttackBoard?gameId={game.Id}";
+                            <a href="@gameUrl" class="flex items-center justify-between rounded-lg border p-3 hover:bg-accent transition-colors">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="swords" class="size-4 text-muted-foreground"></i>
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-semibold truncate max-w-[120px]">vs @opponentName</span>
+                                        <span class="text-xs text-muted-foreground">
+                                            @(game.Status == GameStatus.PlacingShips ? "Fase de preparación" : "En progreso")
+                                        </span>
+                                    </div>
+                                </div>
+                            </a>
+                        }
                     }
                 </div>
                 <a href="/Battleship/Index" class="text-xs text-center text-primary hover:underline mt-2">Ver todas</a>

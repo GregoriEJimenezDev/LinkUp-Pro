@@ -11,6 +11,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Configuration
             #region post
             builder.ToTable("Posts");
             builder.HasKey(p => p.Id);
+            builder.HasQueryFilter(p => !p.IsDeleted);
             #endregion
 
             #region properties

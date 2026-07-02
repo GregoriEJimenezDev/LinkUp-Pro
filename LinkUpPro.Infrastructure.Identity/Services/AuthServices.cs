@@ -11,16 +11,20 @@ using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.RegularExpressions;
 
+using Microsoft.Extensions.Caching.Memory;
+
 namespace LinkUpPro.Infrastructure.Identity.Services
 {
     public class AuthServices(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, 
-        IEmailService emailService, IHttpContextAccessor httpContextAccessor, IFileStorageService fileStorageService) : IUserService
+        IEmailService emailService, IHttpContextAccessor httpContextAccessor, IFileStorageService fileStorageService,
+        IMemoryCache cache) : IUserService
     {
         private readonly UserManager<ApplicationUser> _userManager = userManager;
         private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
         private readonly IEmailService _emailService = emailService;
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
         private readonly IFileStorageService _fileStorageService = fileStorageService;
+        private readonly IMemoryCache _cache = cache;
 
         private string GetBaseUrl()
         {
@@ -96,6 +100,12 @@ namespace LinkUpPro.Infrastructure.Identity.Services
             if (user.IsActive)
                 return ServiceResult.Failure("Esta cuenta ya se encuentra activa. Puedes iniciar sesión.");
 
+            var cacheKey = $"ResendEmail_{user.Id}";
+            if (_cache.TryGetValue(cacheKey, out _))
+            {
+                return ServiceResult.Failure("Debes esperar 5 minutos antes de solicitar otro correo de activación.");
+            }
+
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
             var baseUrl = GetBaseUrl();
@@ -112,6 +122,8 @@ namespace LinkUpPro.Infrastructure.Identity.Services
                 <p>Si no puedes hacer clic, copia este enlace en tu navegador:</p>
                 <p>{activationLink}</p>"
             });
+
+            _cache.Set(cacheKey, true, TimeSpan.FromMinutes(5));
 
             return ServiceResult.Success();
         }

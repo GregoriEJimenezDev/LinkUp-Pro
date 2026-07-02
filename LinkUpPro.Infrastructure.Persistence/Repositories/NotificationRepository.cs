@@ -16,5 +16,12 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
                 .AsNoTracking()
                 .ToListAsync();
         }
+
+        public async Task MarkAllAsReadAsync(string userId)
+        {
+            await _context.Notifications
+                .Where(n => n.UserId == userId && !n.IsRead)
+                .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
+        }
     }
 }

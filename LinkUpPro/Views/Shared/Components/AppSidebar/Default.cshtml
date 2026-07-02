@@ -47,7 +47,7 @@
             <span class="flex-1 truncate">Battleship</span>
         </a>
 
-        <a href="/User/Profile" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors @(currentUrl.StartsWith("/user/profile") ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground")">
+        <a href="@Url.Action("Index", "Profile", new { id = User.Identity?.Name })" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors @(currentUrl.StartsWith("/profile") ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground")">
             <i data-lucide="user" class="size-5 shrink-0"></i>
             <span class="flex-1 truncate">Perfil</span>
         </a>

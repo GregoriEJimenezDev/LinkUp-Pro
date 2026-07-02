@@ -62,18 +62,7 @@ namespace LinkUpPro.Core.Application.Services
 
         public async Task<ServiceResult> MarkAllAsReadAsync(string userId)
         {
-            var notifications = await _notificationRepo.GetByUserIdAsync(userId);
-            var unread = notifications.Where(n => !n.IsRead).ToList();
-            
-            if (unread.Any())
-            {
-                foreach (var notification in unread)
-                {
-                    notification.IsRead = true;
-                }
-                await _notificationRepo.UpdateRangeAsync(unread);
-            }
-
+            await _notificationRepo.MarkAllAsReadAsync(userId);
             return ServiceResult.Success();
         }
     }

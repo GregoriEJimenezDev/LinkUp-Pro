@@ -5,6 +5,13 @@
 }
 
 <div class="max-w-2xl mx-auto flex flex-col gap-4">
+    @if (TempData["Error"] != null)
+    {
+        <div class="rounded-md bg-destructive/15 p-4 text-sm text-destructive border border-destructive/20">
+            @TempData["Error"]
+        </div>
+    }
+    
     <div class="rounded-2xl border bg-card text-card-foreground shadow-sm p-6">
         <h2 class="text-xl font-bold mb-4">Editar Publicación</h2>
         
@@ -13,7 +20,7 @@
             <input type="hidden" asp-for="MediaType" id="MediaType" />
             
             <div class="flex flex-col gap-4">
-                <textarea asp-for="Content" placeholder="¿Qué estás pensando?" class="flex min-h-[120px] w-full rounded-md px-3 py-2 text-sm border bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" required></textarea>
+                <textarea asp-for="Content" placeholder="¿Qué estás pensando?" class="flex min-h-[120px] w-full rounded-md px-3 py-2 text-sm border bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" required oninvalid="this.setCustomValidity('Por favor, completa este campo.')" oninput="this.setCustomValidity('')"></textarea>
                 <span asp-validation-for="Content" class="text-xs text-destructive"></span>
                 
                 <div class="flex flex-col gap-2">

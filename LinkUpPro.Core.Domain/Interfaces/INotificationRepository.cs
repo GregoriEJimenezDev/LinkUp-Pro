@@ -6,5 +6,6 @@ namespace LinkUpPro.Core.Domain.Interfaces
     public interface INotificationRepository : IGenericRepository<Notification>
     {
         Task<IEnumerable<Notification>> GetByUserIdAsync(string userId);
+        Task MarkAllAsReadAsync(string userId);
     }
 }

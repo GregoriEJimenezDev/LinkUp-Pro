@@ -33,6 +33,8 @@ namespace LinkUpPro.Core.Application.Services
 
             if (hasImage && hasVideo)
                 return ServiceResult.Failure("Solo puedes adjuntar una imagen o un video de YouTube, no ambos.");
+            if (!hasImage && !hasVideo)
+                return ServiceResult.Failure("Debes adjuntar obligatoriamente una imagen o un video.");
 
             string? mediaUrl = null;
 
@@ -77,6 +79,12 @@ namespace LinkUpPro.Core.Application.Services
             return ServiceResult.Success();
         }
 
+        public async Task<bool> IsPostAvailableAsync(int postId)
+        {
+            var post = await _postRepository.GetByIdAsync(postId);
+            return post != null && !post.IsDeleted;
+        }
+
         public async Task<List<PostViewModel>> GetByFriendsAsync(string userId, bool includeGlobalPublic = false, bool includeSelf = true)
         {
             var cacheKey = $"FeedPosts_{userId}_{includeGlobalPublic}";
@@ -119,6 +127,8 @@ namespace LinkUpPro.Core.Application.Services
             foreach (var post in feedPosts)
             {
                 var authorInfo = usersInfo.TryGetValue(post.UserId!, out var u) ? u : new UserBasicDto();
+                if (string.IsNullOrEmpty(authorInfo.Username)) continue;
+
                 var vm = MapSinglePostSync(post, userId, authorInfo, usersInfo);
                 result.Add(vm);
             }
@@ -150,28 +160,19 @@ namespace LinkUpPro.Core.Application.Services
             var posts = await _postRepository.GetByUserIdAsync(targetUserId);
             var activePosts = posts.Where(p => !p.IsDeleted).ToList();
 
-            if (targetUserId != currentUserId)
-            {
-                var friendship = await _friendshipRepository.GetByUsersAsync(targetUserId, currentUserId);
-                bool areFriends = friendship != null;
-
-                activePosts = activePosts.Where(p => 
-                    p.Privacy == PostPrivacy.Public || 
-                    (p.Privacy == PostPrivacy.FriendsOnly && areFriends)).ToList();
-            }
+            if (!activePosts.Any()) return [];
 
             var userIdsToFetch = new HashSet<string>();
             foreach (var post in activePosts)
             {
-                userIdsToFetch.Add(post.UserId!);
                 if (post.Comments != null)
                 {
-                    foreach(var comment in post.Comments)
+                    foreach (var comment in post.Comments)
                     {
                         userIdsToFetch.Add(comment.UserId!);
-                        if(comment.Replies != null)
+                        if (comment.Replies != null)
                         {
-                            foreach(var reply in comment.Replies)
+                            foreach (var reply in comment.Replies)
                             {
                                 userIdsToFetch.Add(reply.UserId!);
                             }
@@ -183,6 +184,8 @@ namespace LinkUpPro.Core.Application.Services
             var usersInfo = await _userService.GetUsersBasicInfoAsync(userIdsToFetch);
             var userInfo = await _userService.GetUserBasicInfoAsync(targetUserId);
             
+            if (string.IsNullOrEmpty(userInfo.Username)) return [];
+
             return MapToViewModelsSync(activePosts, currentUserId, userInfo, usersInfo);
         }
 
@@ -242,34 +245,38 @@ namespace LinkUpPro.Core.Application.Services
             post.UpdatedAt = DateTime.UtcNow;
 
             await _postRepository.UpdateAsync(post);
+            
+            _cache.Remove($"FeedPosts_{userId}_True");
+            _cache.Remove($"FeedPosts_{userId}_False");
+
             return ServiceResult.Success();
         }
 
-        #region Private Helpers
+        #region Private Methods
+
         private List<PostViewModel> MapToViewModelsSync(IEnumerable<Post> posts, string currentUserId, UserBasicDto authorInfo, Dictionary<string, UserBasicDto> usersInfo)
         {
             var result = new List<PostViewModel>();
             foreach (var post in posts)
             {
-                var vm = MapSinglePostSync(post, currentUserId, authorInfo, usersInfo);
-                result.Add(vm);
+                result.Add(MapSinglePostSync(post, currentUserId, authorInfo, usersInfo));
             }
             return result;
         }
 
-        private PostViewModel MapSinglePostSync(Post post, string currentUserId, UserBasicDto authorInfo, Dictionary<string, UserBasicDto> usersInfo)
+        private PostViewModel MapSinglePostSync(Post post, string userId, UserBasicDto authorInfo, Dictionary<string, UserBasicDto> usersInfo)
         {
-            var userReaction = post.Reactions?.FirstOrDefault(r => r.UserId == currentUserId);
-            var comment = new List<CommentDto>();
-            if (post.Comments != null)
-            {
-                foreach (var cm in post.Comments.Where(c => c.ParentCommentId == null).DistinctBy(c => c.Id).OrderBy(c => c.CreatedAt))
+            var userReaction = post.Reactions?.FirstOrDefault(r => r.UserId == userId);
+            
+            var comment = post.Comments?
+                .Where(c => c.ParentCommentId == null)
+                .OrderByDescending(c => c.CreatedAt)
+                .Select(c => 
                 {
-                    var commentUserInfo = usersInfo.TryGetValue(cm.UserId!, out var cu) ? cu : new UserBasicDto();
-                    var dto = MapCommentWhitUserSync(cm, commentUserInfo, usersInfo);
-                    comment.Add(dto);
-                }
-            }
+                    var cUserInfo = usersInfo.TryGetValue(c.UserId!, out var cu) ? cu : new UserBasicDto();
+                    return MapCommentWhitUserSync(c, cUserInfo, usersInfo);
+                })
+                .ToList() ?? [];
 
             return new PostViewModel
             {
@@ -317,8 +324,8 @@ namespace LinkUpPro.Core.Application.Services
                 CreatedAt = comment.CreatedAt,
                 UpdatedAt = comment.UpdatedAt,
                 UserId = comment.UserId!,
-                Username = userInfo.Username,
-                UserProfilePicture = userInfo.ProfilePictureUrl,
+                Username = string.IsNullOrEmpty(userInfo.Username) ? "Usuario Eliminado" : userInfo.Username,
+                UserProfilePicture = string.IsNullOrEmpty(userInfo.Username) ? "/placeholder.svg" : userInfo.ProfilePictureUrl,
                 PostId = comment.PostId,
                 ParentCommentId = comment.ParentCommentId,
                 IsDeleted = comment.IsDeleted,

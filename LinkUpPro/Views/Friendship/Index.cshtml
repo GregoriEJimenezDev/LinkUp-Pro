@@ -62,6 +62,54 @@
         <div class="flex items-center justify-between">
             <h2 class="text-2xl font-bold tracking-tight text-foreground">Publicaciones de Amigos</h2>
         </div>
+        </div>
+
+        <form asp-controller="Friendship" asp-action="Index" method="get" class="flex flex-col gap-3 p-4 bg-card rounded-2xl border shadow-sm">
+            <div class="relative">
+                <i data-lucide="search" class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"></i>
+                <input type="text" name="search" value="@ViewBag.SearchTerm" placeholder="Buscar publicaciones de amigos..." class="flex h-10 w-full border border-input px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-full bg-background pl-9" />
+            </div>
+            <div class="flex flex-wrap gap-3 items-center">
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-muted-foreground">Fecha:</label>
+                    <input type="date" name="date" value="@ViewBag.FilterDate" class="h-8 rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-muted-foreground">Tipo:</label>
+                    <select name="mediaType" class="h-8 rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                        <option value="">Todos</option>
+                        @if (ViewBag.FilterMediaType == 0)
+                        {
+                            <option value="0" selected>Imagen</option>
+                        }
+                        else
+                        {
+                            <option value="0">Imagen</option>
+                        }
+                        
+                        @if (ViewBag.FilterMediaType == 1)
+                        {
+                            <option value="1" selected>Video</option>
+                        }
+                        else
+                        {
+                            <option value="1">Video</option>
+                        }
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="isEdited" value="true" checked="@(ViewBag.FilterIsEdited == true)" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                    <label class="text-sm text-muted-foreground">Solo editados</label>
+                </div>
+                <div class="flex-1"></div>
+                <button type="submit" class="bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md px-4 text-xs font-medium transition-colors">
+                    Filtrar
+                </button>
+                <a href="@Url.Action("Index", "Friendship")" class="h-8 rounded-md px-4 text-xs font-medium transition-colors border flex items-center justify-center hover:bg-muted">
+                    Limpiar
+                </a>
+            </div>
+        </form>
 
         <div class="flex flex-col gap-4">
             @if (Model.FriendsPosts != null && Model.FriendsPosts.Any())

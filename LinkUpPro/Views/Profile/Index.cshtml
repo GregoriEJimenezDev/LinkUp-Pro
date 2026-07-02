@@ -1,125 +1,112 @@
-@model HomeViewModel
+@model LinkUpPro.Core.Application.ViewModel.Users.UserProfileViewModel
 
 @{
-    ViewData["Title"] = "Inicio";
-    var profilePic = Model.CurrentUserProfilePicture ?? "/placeholder.svg";
+    ViewData["Title"] = $"Perfil de {Model.UserInfo.Username}";
+    var profilePic = Model.UserInfo.ProfilePictureUrl ?? "/placeholder.svg";
+    var currentUserProfilePic = ViewBag.ProfilePic ?? "/placeholder.svg";
 }
 
-<div class="flex flex-col gap-4">
+<div class="flex flex-col gap-6">
     @if (TempData["Error"] != null)
     {
-        <div class="mb-4 rounded-md bg-destructive/15 p-4 text-sm text-destructive border border-destructive/20">
+        <div class="rounded-md bg-destructive/15 p-4 text-sm text-destructive border border-destructive/20">
             @TempData["Error"]
         </div>
     }
     @if (TempData["Success"] != null)
     {
-        <div class="mb-4 rounded-md bg-emerald-500/15 p-4 text-sm text-emerald-500 border border-emerald-500/20">
+        <div class="rounded-md bg-emerald-500/15 p-4 text-sm text-emerald-500 border border-emerald-500/20">
             @TempData["Success"]
         </div>
     }
-    <div class="rounded-2xl border bg-card text-card-foreground shadow-sm p-4">
-        <form id="createPostForm" asp-controller="Post" asp-action="Create" method="post" enctype="multipart/form-data">
-            <input type="hidden" id="MediaType" name="MediaType" value="0" />
-            <div class="flex items-start gap-3">
-                <div class="relative flex size-11 shrink-0 overflow-hidden rounded-full">
-                    <img class="aspect-square h-full w-full object-cover" src="@profilePic" alt="User" onerror="this.src='/placeholder.svg'" />
+
+    <!-- Banner and Profile Info -->
+    <div class="rounded-2xl border bg-card text-card-foreground shadow-sm overflow-hidden">
+        <!-- Banner -->
+        <div class="h-48 w-full bg-gradient-to-r from-primary/80 to-primary"></div>
+        
+        <!-- Profile Info Container -->
+        <div class="px-6 pb-6">
+            
+            <!-- Avatar and Actions Row -->
+            <div class="flex justify-between items-start">
+                <!-- Avatar -->
+                <div class="relative -mt-16 rounded-full p-1 bg-card shrink-0">
+                    <div class="size-32 overflow-hidden rounded-full border-4 border-background shadow-md">
+                        <img class="aspect-square h-full w-full object-cover" src="@profilePic" alt="@Model.UserInfo.Username" onerror="this.src='/placeholder.svg'" />
+                    </div>
                 </div>
-                <div class="flex-1">
-                    <textarea name="Content" placeholder="¿Qué estás pensando?" class="flex min-h-[60px] w-full rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0" required oninvalid="this.setCustomValidity('Por favor, completa este campo.')" oninput="this.setCustomValidity('')"></textarea>
-                    
-                    <div id="mediaPreviewContainer" class="hidden mt-3 relative rounded-xl overflow-hidden border bg-muted/30">
-                        <button type="button" onclick="clearMedia()" class="absolute top-2 right-2 bg-background/80 hover:bg-destructive hover:text-white rounded-full p-1.5 transition-colors z-10 backdrop-blur-sm shadow-sm" title="Eliminar archivo">
-                            <i data-lucide="x" class="size-4"></i>
-                        </button>
-                        <img id="imagePreview" src="#" alt="Preview" class="hidden w-full max-h-[400px] object-cover" />
-                        <div id="videoPreviewContainer" class="hidden w-full aspect-video">
-                            <iframe id="videoPreview" class="w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                        </div>
+
+                <!-- Actions -->
+                <div class="pt-4 flex gap-2">
+                    @if (User.Identity?.Name != Model.UserInfo.Username)
+                    {
+                        @if (Model.IsFriend)
+                        {
+                            <button class="bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 rounded-full px-4 text-sm font-medium flex items-center gap-2 transition-colors cursor-default border border-border">
+                                <i data-lucide="check" class="size-4"></i> Amigos
+                            </button>
+                        }
+                        else
+                        {
+                            <form asp-controller="FriendRequest" asp-action="Send" method="post">
+                                <input type="hidden" name="receiverId" value="@Model.UserInfo.Id" />
+                                <button type="submit" class="bg-foreground text-background hover:bg-foreground/90 h-9 rounded-full px-4 text-sm font-medium flex items-center gap-2 transition-colors">
+                                    <i data-lucide="user-plus" class="size-4"></i> Añadir a amigos
+                                </button>
+                            </form>
+                        }
+                    }
+                    else
+                    {
+                        <a href="/User/Profile" class="bg-transparent text-foreground hover:bg-secondary h-9 rounded-full px-4 text-sm font-medium flex items-center gap-2 transition-colors border border-border">
+                            Editar perfil
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <!-- Header Info -->
+            <div class="mt-3">
+                <h1 class="text-2xl font-extrabold leading-tight">@Model.UserInfo.FirstName @Model.UserInfo.LastName</h1>
+                <p class="text-muted-foreground text-sm">@@@Model.UserInfo.Username</p>
+            </div>
+
+            <!-- Stats and Contact -->
+            <div class="mt-4 flex flex-col gap-3">
+                <!-- Bio or Contact -->
+                <div class="flex items-center gap-2 text-muted-foreground text-sm">
+                    <i data-lucide="mail" class="size-4"></i>
+                    <span>@Model.UserInfo.Email</span>
+                </div>
+
+                <!-- Stats -->
+                <div class="flex items-center gap-4 text-sm mt-1">
+                    <a href="@(User.Identity?.Name == Model.UserInfo.Username ? Url.Action("Index", "Friendship") : Url.Action("Friends", "Profile", new { id = Model.UserInfo.Username }))" class="flex items-center gap-1.5 cursor-pointer hover:underline">
+                        <span class="font-bold text-foreground">@Model.FriendsCount</span>
+                        <span class="text-muted-foreground">Amigos</span>
+                    </a>
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-bold text-foreground">@Model.PostsCount</span>
+                        <span class="text-muted-foreground">Publicaciones</span>
                     </div>
                 </div>
             </div>
-
-            <div class="my-3 h-[1px] w-full shrink-0 bg-border"></div>
-
-            <div class="flex flex-wrap items-center gap-2">
-                <input type="file" id="ImageFile" name="File" accept="image/*" class="hidden" onchange="handleImageSelect(event)" />
-                <div id="videoUrlContainer" class="hidden flex-1 min-w-[200px] flex items-center gap-2">
-                    <input type="text" id="VideoUrl" name="VideoUrl" placeholder="Pega el enlace de YouTube aquí..." class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" oninput="handleVideoInput(event)" />
-                </div>
-                
-                <button type="button" id="btnFoto" onclick="document.getElementById('ImageFile').click();" class="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-accent hover:text-accent-foreground h-9 px-3 gap-2 rounded-full text-muted-foreground text-sm">
-                    <i data-lucide="image" class="size-4 text-success"></i>
-                    Foto
-                </button>
-                <button type="button" id="btnVideo" onclick="toggleVideoInput()" class="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-accent hover:text-accent-foreground h-9 px-3 gap-2 rounded-full text-muted-foreground text-sm">
-                    <i data-lucide="play-circle" class="size-4 text-destructive"></i>
-                    Video
-                </button>
-
-                <div class="ml-auto flex items-center gap-2">
-                    <select name="Privacy" class="flex h-10 w-full items-center justify-between rounded-full border border-input bg-card px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
-                        <option value="0" class="bg-card text-card-foreground">Público</option>
-                        <option value="1" class="bg-card text-card-foreground">Solo amigos</option>
-                        <option value="2" class="bg-card text-card-foreground">Solo yo</option>
-                    </select>
-
-                    <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-full text-sm">
-                        Publicar
-                    </button>
-                </div>
-            </div>
-        </form>
+        </div>
     </div>
 
-    <form asp-controller="Home" asp-action="Index" method="get" class="mb-4 flex flex-col gap-3 p-4 bg-card rounded-2xl border shadow-sm">
-        <div class="relative">
-            <i data-lucide="search" class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"></i>
-            <input type="text" name="search" value="@Model.SearchQuery" placeholder="Buscar publicaciones..." class="flex h-10 w-full border border-input px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-full bg-background pl-9" />
-        </div>
-        <div class="flex flex-wrap gap-3 items-center">
-            <div class="flex items-center gap-2">
-                <label class="text-sm text-muted-foreground">Fecha:</label>
-                <input type="date" name="date" value="@Model.FilterDate?.ToString("yyyy-MM-dd")" class="h-8 rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
-            </div>
-            <div class="flex items-center gap-2">
-                <label class="text-sm text-muted-foreground">Tipo:</label>
-                <select name="mediaType" class="h-8 rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                    <option value="">Todos</option>
-                    @if (Model.FilterMediaType == MediaType.Image)
-                    {
-                        <option value="0" selected>Imagen</option>
-                    }
-                    else
-                    {
-                        <option value="0">Imagen</option>
-                    }
-                    
-                    @if (Model.FilterMediaType == MediaType.Video)
-                    {
-                        <option value="1" selected>Video</option>
-                    }
-                    else
-                    {
-                        <option value="1">Video</option>
-                    }
-                </select>
-            </div>
-            <div class="flex items-center gap-2">
-                <input type="checkbox" name="isEdited" value="true" checked="@(Model.FilterIsEdited == true)" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
-                <label class="text-sm text-muted-foreground">Solo editados</label>
-            </div>
-            <div class="flex-1"></div>
-            <button type="submit" class="bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md px-4 text-xs font-medium transition-colors">
-                Filtrar
-            </button>
-            <a href="@Url.Action("Index", "Home")" class="bg-secondary text-secondary-foreground hover:bg-secondary/80 h-8 flex items-center rounded-md px-4 text-xs font-medium transition-colors">
-                Limpiar
-            </a>
-        </div>
-    </form>
+    <div class="flex items-center gap-2">
+        @if (User.Identity?.Name == Model.UserInfo.Username)
+        {
+            <h2 class="text-xl font-semibold">Mis publicaciones</h2>
+        }
+        else
+        {
+            <h2 class="text-xl font-semibold">Publicaciones de @Model.UserInfo.FirstName</h2>
+        }
+    </div>
 
-    <div class="mt-4 flex flex-col gap-4">
+    <div class="mt-2 flex flex-col gap-4">
         @if (Model?.Posts != null && Model.Posts.Any())
         {
             foreach (var post in Model.Posts)
@@ -140,11 +127,11 @@
                                             <span class="text-[10px] ml-1">(Editado)</span>
                                         }
                                         <span>•</span>
-                                        @if (post.Privacy == PostPrivacy.Public)
+                                        @if (post.Privacy == LinkUpPro.Core.Domain.Enum.PostPrivacy.Public)
                                         {
                                             <i data-lucide="globe" class="size-3"></i>
                                         }
-                                        else if (post.Privacy == PostPrivacy.FriendsOnly)
+                                        else if (post.Privacy == LinkUpPro.Core.Domain.Enum.PostPrivacy.FriendsOnly)
                                         {
                                             <i data-lucide="users" class="size-3"></i>
                                         }
@@ -174,13 +161,13 @@
 
                         <div class="mt-4 text-sm whitespace-pre-wrap">@post.Content</div>
 
-                        @if (post.MediaType == MediaType.Image && !string.IsNullOrEmpty(post.MediaUrl))
+                        @if (post.MediaType == LinkUpPro.Core.Domain.Enum.MediaType.Image && !string.IsNullOrEmpty(post.MediaUrl))
                         {
                             <div class="mt-3 overflow-hidden rounded-xl">
                                 <img src="@post.MediaUrl" alt="Post content" class="w-full object-cover max-h-[500px]" />
                             </div>
                         }
-                        else if (post.MediaType == MediaType.Video && !string.IsNullOrEmpty(post.MediaUrl))
+                        else if (post.MediaType == LinkUpPro.Core.Domain.Enum.MediaType.Video && !string.IsNullOrEmpty(post.MediaUrl))
                         {
                             <div class="mt-3 overflow-hidden rounded-xl">
                                 <iframe src="@post.MediaUrl" class="w-full aspect-video" frameborder="0" allowfullscreen></iframe>
@@ -240,7 +227,7 @@
                             <form asp-controller="Comment" asp-action="Create" method="post" class="flex items-start gap-3 mb-4" onsubmit="handleCommentSubmit(event, this)">
                                 <input type="hidden" name="PostId" value="@post.Id" />
                                 <div class="relative flex size-8 shrink-0 overflow-hidden rounded-full">
-                                    <img class="aspect-square h-full w-full object-cover" src="@profilePic" alt="User" onerror="this.src='/placeholder.svg'" />
+                                    <img class="aspect-square h-full w-full object-cover" src="@currentUserProfilePic" alt="User" onerror="this.src='/placeholder.svg'" />
                                 </div>
                                 <div class="flex-1 flex flex-col gap-2">
                                     <input type="text" name="Content" placeholder="Escribe un comentario..." class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" required />
@@ -384,9 +371,9 @@
         else
         {
             <div class="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
-                <p class="font-medium">No encontramos publicaciones</p>
+                <p class="font-medium">Sin publicaciones</p>
                 <p class="mt-1 text-sm text-muted-foreground">
-                    Cuando haya contenido disponible, aparecerá aquí.
+                    Este usuario aún no ha realizado ninguna publicación.
                 </p>
             </div>
         }

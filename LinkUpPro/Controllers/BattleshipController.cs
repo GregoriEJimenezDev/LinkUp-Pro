@@ -2,15 +2,22 @@ using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Application.ViewModel.Select;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using LinkUpPro.Hubs;
 
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class BattleshipController( IBattleshipService battleshipService, IUserService userService, IFriendshipService friendshipService) : BaseController
+    public class BattleshipController( 
+        IBattleshipService battleshipService, 
+        IUserService userService, 
+        IFriendshipService friendshipService,
+        IHubContext<BattleshipHub> hubContext) : BaseController
     {
         private readonly IBattleshipService _battleshipService = battleshipService;
         private readonly IUserService _userService = userService;
         private readonly IFriendshipService _friendshipService = friendshipService;
+        private readonly IHubContext<BattleshipHub> _hubContext = hubContext;
 
         private string CurrentUserId =>
             UserId;
@@ -58,6 +65,7 @@ namespace LinkUpPro.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            await _hubContext.Clients.Group(gameId.ToString()).SendAsync("ReceiveGameUpdate");
             return RedirectToAction(nameof(SelectShip), new { gameId });
         }
 
@@ -101,6 +109,7 @@ namespace LinkUpPro.Controllers
                 return RedirectToAction(nameof(PlaceShip), new { gameId = vm.GameId, shipType = vm.ShipType });
             }
 
+            await _hubContext.Clients.Group(vm.GameId.ToString()).SendAsync("ReceiveGameUpdate");
             return RedirectToAction(nameof(SelectShip), new { gameId = vm.GameId });
         }
 
@@ -123,6 +132,7 @@ namespace LinkUpPro.Controllers
                 return RedirectToAction(nameof(AttackBoard), new { gameId });
             }
 
+            await _hubContext.Clients.Group(gameId.ToString()).SendAsync("ReceiveGameUpdate");
             var game = await _battleshipService.GetResultAsync(gameId, userId);
 
             if (game.IWon || game.FinishedAt.HasValue)
@@ -139,6 +149,8 @@ namespace LinkUpPro.Controllers
 
             if (!result.Succeeded)
                 TempData["Error"] = result.ErrorMessage;
+            else
+                await _hubContext.Clients.Group(gameId.ToString()).SendAsync("ReceiveGameUpdate");
 
             return RedirectToAction(nameof(Result), new { gameId });
         }

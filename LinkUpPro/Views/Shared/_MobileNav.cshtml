@@ -31,7 +31,7 @@
             <span class="truncate">Notificaciones</span>
         </a>
         
-        <a href="/User/Profile" class="relative flex flex-col items-center gap-0.5 py-1 text-[11px] font-medium transition-colors @(currentUrl.StartsWith("/user/profile") ? "text-primary" : "text-muted-foreground")">
+        <a href="@Url.Action("Index", "Profile", new { id = User.Identity?.Name })" class="relative flex flex-col items-center gap-0.5 py-1 text-[11px] font-medium transition-colors @(currentUrl.StartsWith("/profile") ? "text-primary" : "text-muted-foreground")">
             <span class="relative">
                 <i data-lucide="user" class="size-6"></i>
             </span>

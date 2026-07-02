@@ -114,13 +114,7 @@
         <div class="flex flex-wrap items-center gap-3">
             @if (!Model.IsFinished)
             {
-                @if (!Model.IsMyTurn)
-                {
-                    <button type="button" onclick="window.location.reload()" class="inline-flex h-10 items-center justify-center rounded-md bg-secondary px-4 text-sm font-medium hover:bg-secondary/80 transition-colors gap-2">
-                        <i data-lucide="refresh-cw" class="size-4"></i>
-                        Actualizar estado
-                    </button>
-                }
+
                 <form asp-action="Surrender" method="post" class="m-0">
                     <input type="hidden" name="gameId" value="@Model.GameId" />
                     <button type="submit" class="inline-flex h-10 items-center justify-center rounded-md border border-destructive bg-transparent px-4 text-sm font-medium text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors gap-2" onclick="return confirm('¿Estás seguro de que quieres rendirte?');">
@@ -377,5 +371,23 @@
 </form>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script src="~/js/battleship-attackboard.js" asp-append-version="true"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/battleshipHub")
+            .build();
+
+        connection.on("ReceiveGameUpdate", function () {
+            window.location.reload();
+        });
+
+        connection.start().then(function () {
+            connection.invoke("JoinGameGroup", "@Model.GameId.ToString()").catch(function (err) {
+                return console.error(err.toString());
+            });
+        }).catch(function (err) {
+            return console.error(err.toString());
+        });
+    </script>
 }

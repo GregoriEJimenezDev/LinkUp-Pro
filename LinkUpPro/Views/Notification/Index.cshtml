@@ -12,9 +12,16 @@
         </div>
         @if (Model != null && Model.Count(n => !n.IsRead) > 0)
         {
-            <span class="rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold">
-                @Model.Count(n => !n.IsRead) nuevas
-            </span>
+            <div class="flex items-center gap-2">
+                <span class="rounded-full bg-primary/10 text-primary px-3 py-1 text-xs font-semibold">
+                    @Model.Count(n => !n.IsRead) nuevas
+                </span>
+                <form asp-action="MarkAllAsRead" method="post">
+                    <button type="submit" class="inline-flex h-8 items-center justify-center rounded-md bg-secondary px-3 text-xs font-medium text-secondary-foreground hover:bg-secondary/80 transition-colors">
+                        Marcar todas como leídas
+                    </button>
+                </form>
+            </div>
         }
     </div>
 

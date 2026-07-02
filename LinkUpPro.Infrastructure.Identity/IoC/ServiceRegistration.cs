@@ -27,7 +27,7 @@ namespace LinkUpPro.Infrastructure.Identity.IoC
                 options.LoginPath = "/Auth/Index";
                 options.AccessDeniedPath = "/Auth/AccessDenied";
                 options.SlidingExpiration = true;
-                options.ExpireTimeSpan = TimeSpan.FromDays(7);
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
                 options.Events.OnSigningIn = context =>
                 {
                     if (context.Properties.IsPersistent)
@@ -61,6 +61,8 @@ namespace LinkUpPro.Infrastructure.Identity.IoC
             .AddEntityFrameworkStores<IdentityProContext>()
             .AddSignInManager<SignInManager<ApplicationUser>>()
             .AddDefaultTokenProviders();
+
+            services.Configure<SecurityStampValidatorOptions>(opts => opts.ValidationInterval = TimeSpan.Zero);
             #endregion
 
             #region Services Registration

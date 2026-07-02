@@ -62,6 +62,19 @@ namespace LinkUpPro.Controllers
             return View(vm);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var exists = await _postService.IsPostAvailableAsync(id);
+            if (!exists)
+            {
+                TempData["Error"] = "Esta publicación ya no se encuentra disponible.";
+                return RedirectToAction("Index", "Home");
+            }
+            
+            return RedirectToAction("Index", "Home", null, $"post-{id}");
+        }
+
         [HttpPost]
         public async Task<IActionResult> Edit(SavePostViewModel vm, IFormFile? File)
         {
@@ -105,6 +118,7 @@ namespace LinkUpPro.Controllers
             {
                 _cache.Remove($"FeedPosts_{userId}_True");
                 _cache.Remove($"FeedPosts_{userId}_False");
+                TempData["Success"] = "La publicación fue eliminada correctamente.";
             }
 
             return RedirectToAction("Index", "Home");

@@ -52,7 +52,7 @@ namespace LinkUpPro.Core.Application.Services
                         parentComment.UserId!,
                         "Nueva respuesta",
                         $"{commenterInfo.Username} respondió a tu comentario.",
-                        "/",
+                        $"/Post/Details/{parentComment.PostId}",
                         NotificationType.CommentReply
                     );
                 }
@@ -65,7 +65,7 @@ namespace LinkUpPro.Core.Application.Services
                         post.UserId!,
                         "Nuevo comentario",
                         $"{commenterInfo.Username} comentó tu publicación.",
-                        "/",
+                        $"/Post/Details/{post.Id}",
                         NotificationType.PostComment
                     );
                 }

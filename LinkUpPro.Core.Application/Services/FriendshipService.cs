@@ -33,6 +33,8 @@ namespace LinkUpPro.Core.Application.Services
             {
                 var friendId = f.FirstUserId == userId ? f.SecondUserId : f.FirstUserId;
                 var info = await _userServices.GetUserBasicInfoAsync(friendId!);
+                
+                if (string.IsNullOrEmpty(info.Username)) continue;
 
                 result.Add(new FriendDto
                 {
