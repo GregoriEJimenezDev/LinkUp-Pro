@@ -1,23 +1,16 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using LinkUpPro.Core.Application.Interfaces.IServices;
-using System.Security.Claims;
 
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class FriendRequestController : BaseController
+    public class FriendRequestController(
+        IFriendRequestService friendRequestService,
+        IUserService userService) : BaseController
     {
-        private readonly IFriendRequestService _friendRequestService;
-        private readonly IUserService _userService;
-
-        public FriendRequestController(
-            IFriendRequestService friendRequestService,
-            IUserService userService)
-        {
-            _friendRequestService = friendRequestService;
-            _userService = userService;
-        }
+        private readonly IFriendRequestService _friendRequestService = friendRequestService;
+        private readonly IUserService _userService = userService;
 
         public async Task<IActionResult> Index()
         {

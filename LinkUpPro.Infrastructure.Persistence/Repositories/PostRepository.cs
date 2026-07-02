@@ -1,5 +1,6 @@
 using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Interfaces;
+using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Infrastructure.Persistence.Context;
 using LinkUpPro.Infrastructure.Persistence.Repositories.Generic;
 using Microsoft.EntityFrameworkCore;

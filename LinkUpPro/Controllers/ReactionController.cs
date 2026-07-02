@@ -1,4 +1,5 @@
 using LinkUpPro.Core.Application.Interfaces.IServices;
+using LinkUpPro.Core.Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -6,20 +7,13 @@ using Microsoft.Extensions.Caching.Memory;
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class ReactionController : BaseController
+    public class ReactionController(IReactionService reactionService, IUserService userService, 
+        IReactionRepository reactionRepository, IMemoryCache cache) : BaseController
     {
-        private readonly IReactionService _reactionService;
-        private readonly IUserService _userService;
-        private readonly LinkUpPro.Core.Domain.Interfaces.IReactionRepository _reactionRepository;
-        private readonly IMemoryCache _cache;
-
-        public ReactionController(IReactionService reactionService, IUserService userService, LinkUpPro.Core.Domain.Interfaces.IReactionRepository reactionRepository, IMemoryCache cache)
-        {
-            _reactionService = reactionService;
-            _userService = userService;
-            _reactionRepository = reactionRepository;
-            _cache = cache;
-        }
+        private readonly IReactionService _reactionService = reactionService;
+        private readonly IUserService _userService = userService;
+        private readonly IReactionRepository _reactionRepository = reactionRepository;
+        private readonly IMemoryCache _cache = cache;
 
         [HttpPost]
         public async Task<IActionResult> Toggle(int postId, bool isLike)

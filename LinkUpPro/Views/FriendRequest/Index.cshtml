@@ -1,4 +1,4 @@
-@model LinkUpPro.Core.Application.ViewModel.Friend.FriendRequestIndexViewModel
+@model FriendRequestIndexViewModel
 
 @{
     ViewData["Title"] = "Solicitudes de Amistad";
@@ -25,7 +25,6 @@
 
     <div class="grid gap-6 md:grid-cols-2">
         
-        <!-- Recibidas -->
         <div class="flex flex-col gap-4">
             <h2 class="text-lg font-semibold flex items-center gap-2">
                 <i data-lucide="inbox" class="size-5 text-primary"></i>
@@ -70,7 +69,6 @@
             </div>
         </div>
 
-        <!-- Enviadas -->
         <div class="flex flex-col gap-4">
             <h2 class="text-lg font-semibold flex items-center gap-2">
                 <i data-lucide="send" class="size-5 text-muted-foreground"></i>
@@ -91,15 +89,15 @@
                                 <div class="flex flex-col">
                                     <span class="text-sm font-semibold">@request.ReceiverUsername</span>
                                     <span class="text-xs text-muted-foreground">
-                                        @if (request.Status == LinkUpPro.Core.Domain.Enum.FriendRequestStatus.Pending)
+                                        @if (request.Status == FriendRequestStatus.Pending)
                                         {
                                             <text>En espera de respuesta...</text>
                                         }
-                                        else if (request.Status == LinkUpPro.Core.Domain.Enum.FriendRequestStatus.Accepted)
+                                        else if (request.Status == FriendRequestStatus.Accepted)
                                         {
                                             <text>Aceptada</text>
                                         }
-                                        else if (request.Status == LinkUpPro.Core.Domain.Enum.FriendRequestStatus.Rejected)
+                                        else if (request.Status == FriendRequestStatus.Rejected)
                                         {
                                             <text>Rechazada</text>
                                         }
@@ -107,7 +105,7 @@
                                 </div>
                             </div>
                             
-                            @if (request.Status == LinkUpPro.Core.Domain.Enum.FriendRequestStatus.Pending)
+                            @if (request.Status == FriendRequestStatus.Pending)
                             {
                                 <a href="/FriendRequest/ConfirmCancel/@request.Id" class="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors" title="Cancelar solicitud">
                                     <i data-lucide="x" class="size-4"></i>

@@ -1,12 +1,10 @@
-@using LinkUpPro.Core.Domain.Enum
-@model LinkUpPro.ViewComponents.RightSidebarViewModel
+@model RightSidebarViewModel
 
 @{
     var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
     int activeBattlesCount = Model.ActiveGames.Count;
 }
 <aside class="sticky top-0 hidden h-screen w-72 shrink-0 flex-col gap-4 overflow-y-auto py-5 pr-4 no-scrollbar lg:flex xl:w-80">
-    <!-- Suggestions Card -->
     <div class="rounded-2xl border bg-card text-card-foreground shadow-sm">
         <div class="flex flex-col space-y-1.5 p-6 pb-3">
             <h3 class="font-semibold leading-none tracking-tight flex items-center gap-2 text-base">
@@ -46,7 +44,6 @@
         </div>
     </div>
 
-    <!-- Active Battles Card -->
     <div class="rounded-2xl border bg-card text-card-foreground shadow-sm">
         <div class="flex flex-col space-y-1.5 p-6 pb-3">
             <h3 class="font-semibold leading-none tracking-tight flex items-center gap-2 text-base">
@@ -66,8 +63,7 @@
                     {
                         var opponentName = game.Player1Id == userId ? game.Player2Username : game.Player1Username;
                         var gameUrl = (game.Status == GameStatus.PlacingShips || (game.Status == GameStatus.WaitingForOpponent && game.Player1Id == userId))
-                            ? $"/Battleship/SelectShip?gameId={game.Id}"
-                            : $"/Battleship/AttackBoard?gameId={game.Id}";
+                            ? $"/Battleship/SelectShip?gameId={game.Id}" : $"/Battleship/AttackBoard?gameId={game.Id}";
                         <a href="@gameUrl" class="flex items-center justify-between rounded-lg border p-3 hover:bg-accent transition-colors">
                             <div class="flex items-center gap-2">
                                 <i data-lucide="swords" class="size-4 text-muted-foreground"></i>

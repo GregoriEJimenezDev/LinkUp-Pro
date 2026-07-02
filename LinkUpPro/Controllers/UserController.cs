@@ -2,19 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Application.ViewModel.Users;
-using System.Security.Claims;
 
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class UserController : BaseController
+    public class UserController(IUserService userService) : BaseController
     {
-        private readonly IUserService _userService;
-
-        public UserController(IUserService userService)
-        {
-            _userService = userService;
-        }
+        private readonly IUserService _userService = userService;
 
         public async Task<IActionResult> Profile()
         {

@@ -4,14 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace LinkUpPro.Controllers
 {
-    public class AuthController : BaseController
+    public class AuthController(IUserService userService) : BaseController
     {
-        private readonly IUserService _userService;
-
-        public AuthController(IUserService userService)
-        {
-            _userService = userService;
-        }
+        private readonly IUserService _userService = userService;
 
         public IActionResult Index()
         {

@@ -4,15 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - LinkUpPro</title>
-    
     <link rel="stylesheet" href="~/css/app.min.css" asp-append-version="true" />
-    
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-
-    <!-- Theme initialization -->
     <script>
-        // Check for saved theme preference or system preference
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
@@ -20,7 +14,6 @@
             document.documentElement.classList.remove('dark');
         }
     </script>
-    
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="font-sans antialiased text-foreground">
@@ -28,11 +21,9 @@
     @if (User.Identity != null && User.Identity.IsAuthenticated)
     {
         <div class="mx-auto flex min-h-screen w-full max-w-[1440px]">
-            <!-- App Sidebar -->
             @await Component.InvokeAsync("AppSidebar")
             
             <div class="flex min-w-0 flex-1 flex-col">
-                <!-- Mobile Header -->
                 <partial name="_MobileHeader" />
                 
                 <main class="mx-auto w-full max-w-[760px] flex-1 px-3 pb-24 pt-4 sm:px-4 md:pb-10 lg:px-5">
@@ -40,18 +31,14 @@
                 </main>
             </div>
             
-            <!-- Right Sidebar -->
             @await Component.InvokeAsync("RightSidebar")
             
-            <!-- Mobile Nav -->
             <partial name="_MobileNav" />
         </div>
     }
     else
     {
-        <!-- Non-authenticated layout (Login, Register) -->
         <div class="relative min-h-screen grid lg:grid-cols-2">
-            <!-- Theme Toggle at top right -->
             <div class="absolute right-4 top-4 z-50">
                 <button type="button" onclick="toggleTheme()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 w-9">
                     <i data-lucide="sun" class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"></i>
@@ -60,16 +47,13 @@
                 </button>
             </div>
 
-            <!-- Left Column - Visual/Brand -->
             <div class="hidden lg:flex flex-col justify-center relative overflow-hidden bg-zinc-900">
-                <!-- Background Image with Overlay -->
                 <div 
                   class="absolute inset-0 z-0 bg-cover bg-center" 
                   style="background-image: url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2938&auto=format&fit=crop')">
                 </div>
                 <div class="absolute inset-0 z-10 bg-gradient-to-br from-primary/90 via-primary/80 to-purple-900/90 mix-blend-multiply"></div>
                 
-                <!-- Content -->
                 <div class="relative z-20 flex flex-col justify-center h-full px-12 xl:px-20 text-white">
                     <div class="mb-8 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium backdrop-blur-md w-fit">
                         <i data-lucide="network" class="size-4 text-yellow-300"></i>

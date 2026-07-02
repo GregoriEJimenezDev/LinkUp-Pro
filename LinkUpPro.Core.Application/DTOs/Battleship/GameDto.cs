@@ -11,7 +11,6 @@ namespace LinkUpPro.Core.Application.DTOs.Battleship
         public string Player2Username { get; set; } = string.Empty;
         public string CurrentTurnPlayerId { get; set; } = string.Empty;
         public GameStatus Status { get; set; }
-        public DateTime StartedAt { get; set; }
         public DateTime? FinishedAt { get; set; }
         public string? WinnerId { get; set; }
         public string? WinnerUsername { get; set; }

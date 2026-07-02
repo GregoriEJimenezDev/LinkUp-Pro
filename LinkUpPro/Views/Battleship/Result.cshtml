@@ -1,28 +1,23 @@
-@model LinkUpPro.Core.Application.ViewModel.Game.GameResultViewModel
+@model GameResultViewModel
 
 @{
     ViewData["Title"] = "Resultado de Partida";
     
-    var duration = Model.FinishedAt.HasValue 
-        ? Model.FinishedAt.Value.Subtract(Model.StartedAt) 
-        : TimeSpan.Zero;
+    var duration = Model.FinishedAt.HasValue ? Model.FinishedAt.Value.Subtract(Model.StartedAt) : TimeSpan.Zero;
         
-    string durationStr = duration.TotalHours >= 1 
-        ? $"{(int)duration.TotalHours} h {duration.Minutes:00} min" 
+    string durationStr = duration.TotalHours >= 1 ? $"{(int)duration.TotalHours} h {duration.Minutes:00} min" 
         : $"{(int)duration.TotalMinutes} min {duration.Seconds:00} s";
 }
 
 <div class="flex flex-col gap-6 w-full max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
     <div class="flex flex-col overflow-hidden rounded-xl border bg-card shadow-sm">
         
-        <!-- Header -->
         <div class="flex items-center justify-between border-b bg-muted/30 px-6 py-4">
             <h1 class="text-lg font-bold tracking-tight text-foreground flex items-center gap-2">
                 <i data-lucide="flag-checkered" class="size-5 text-muted-foreground"></i> Partida Finalizada
             </h1>
         </div>
 
-        <!-- Contenido Central -->
         <div class="flex flex-col p-6">
             <div class="flex items-center gap-4 mb-8 p-4 rounded-lg @(Model.IWon ? "bg-success/10 border border-success/20" : "bg-destructive/10 border border-destructive/20")">
                 <div class="flex size-14 shrink-0 items-center justify-center rounded-full @(Model.IWon ? "bg-success/20" : "bg-destructive/20")">
@@ -80,7 +75,6 @@
             </div>
         </div>
         
-        <!-- Acciones -->
         <div class="flex flex-col sm:flex-row gap-3 bg-muted/30 p-6 border-t mt-auto">
             <a href="/Battleship/Index" class="inline-flex flex-1 items-center justify-center whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 rounded-md shadow-sm">
                 Volver a Batallas

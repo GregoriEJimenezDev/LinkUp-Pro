@@ -19,7 +19,7 @@ namespace LinkUpPro.Infrastructure.Shared.EmailServices
             {
                 if (string.IsNullOrEmpty(_settings.SmtpHost))
                 {
-                    _logger.LogWarning("SmtpHost is empty. Skipping email sending.");
+                    _logger.LogWarning("SmtpHost esta vacio. Saltando el envio de correo.");
                     return;
                 }
 
@@ -48,7 +48,7 @@ namespace LinkUpPro.Infrastructure.Shared.EmailServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error sending email to {To}", request.To);
+                _logger.LogError(ex, "Error al enviar el mensaje a{To}", request.To);
                 throw new Exception("Ha ocurrido un error al enviar el correo electrónico.");
             }
         }

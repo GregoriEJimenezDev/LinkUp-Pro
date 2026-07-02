@@ -8,18 +8,11 @@ using Microsoft.Extensions.Caching.Memory;
 namespace LinkUpPro.Controllers
 {
     [Authorize]
-    public class HomeController : BaseController
+    public class HomeController(IPostService postService, IUserService userService, IMemoryCache cache) : BaseController
     {
-        private readonly IPostService _postService;
-        private readonly IUserService _userService;
-        private readonly IMemoryCache _cache;
-
-        public HomeController(IPostService postService, IUserService userService, IMemoryCache cache)
-        {
-            _postService = postService;
-            _userService = userService;
-            _cache = cache;
-        }
+        private readonly IPostService _postService = postService;
+        private readonly IUserService _userService = userService;
+        private readonly IMemoryCache _cache = cache;
 
         public async Task<IActionResult> Index(string? search, int? mediaType, DateTime? date, bool? isEdited)
         {

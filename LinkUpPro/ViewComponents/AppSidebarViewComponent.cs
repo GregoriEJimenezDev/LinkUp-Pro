@@ -5,7 +5,10 @@ using System.Security.Claims;
 
 namespace LinkUpPro.ViewComponents
 {
-    public class AppSidebarViewComponent : ViewComponent
+    public class AppSidebarViewComponent(
+        UserManager<ApplicationUser> userManager,
+        INotificationService notificationService,
+        IFriendRequestService friendRequestService) : ViewComponent
     {
         private readonly IUserService _userService;
         private readonly INotificationService _notificationService;
