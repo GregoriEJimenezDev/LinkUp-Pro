@@ -45,7 +45,7 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
 
         public async Task<bool> HasActiveGameWithFriendAsync(string userId, string friendId) =>
             await _context.BattleshipGames.AsNoTracking()
-                .AnyAsync(g => g.Status != GameStatus.Finished && ((g.FirstPlayerId == userId && g.SecondPlayerId == friendId) || 
+                .AnyAsync(g => g.Status != GameStatus.Finished && g.Status != GameStatus.Abandoned && ((g.FirstPlayerId == userId && g.SecondPlayerId == friendId) || 
                 (g.FirstPlayerId == friendId && g.SecondPlayerId == userId)));
 
         public async Task<IEnumerable<BattleshipGame>> GetAllActiveAsync() =>

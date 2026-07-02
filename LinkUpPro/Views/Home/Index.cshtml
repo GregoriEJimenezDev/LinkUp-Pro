@@ -59,9 +59,9 @@
 
                 <div class="ml-auto flex items-center gap-2">
                     <select name="Privacy" class="flex h-10 w-full items-center justify-between rounded-full border border-input bg-card px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
-                        <option value="0" class="bg-card text-card-foreground">Público</option>
-                        <option value="1" class="bg-card text-card-foreground">Solo amigos</option>
-                        <option value="2" class="bg-card text-card-foreground">Solo yo</option>
+                        <option value="1" class="bg-card text-card-foreground">Público</option>
+                        <option value="2" class="bg-card text-card-foreground">Solo amigos</option>
+                        <option value="3" class="bg-card text-card-foreground">Solo yo</option>
                     </select>
 
                     <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-full text-sm">
@@ -134,7 +134,7 @@
                                 <div class="flex flex-col">
                                     <p class="text-sm font-semibold leading-none">@post.Username</p>
                                     <div class="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                                        <span>@post.CreatedAt.ToLocalTime().ToString("g")</span>
+                                        <span><time class="local-time" datetime="@post.CreatedAt.ToString("O")">@post.CreatedAt.ToString("g")</time></span>
                                         @if (post.UpdatedAt.HasValue)
                                         {
                                             <span class="text-[10px] ml-1">(Editado)</span>
@@ -302,7 +302,7 @@
                                                 </form>
                                                 }
                                                 <div class="flex items-center gap-3 mt-2">
-                                                    <p class="text-xs text-muted-foreground">@comment.CreatedAt.ToLocalTime().ToString("g")</p>
+                                                    <p class="text-xs text-muted-foreground"><time class="local-time" datetime="@comment.CreatedAt.ToString("O")">@comment.CreatedAt.ToString("g")</time></p>
                                                     @if (!comment.IsDeleted)
                                                     {
                                                         <button type="button" onclick="document.getElementById('reply-form-@comment.Id').classList.toggle('hidden')" class="px-2 py-1 text-xs text-muted-foreground hover:bg-muted rounded-md transition-colors hover:text-primary font-medium">Responder</button>
@@ -367,7 +367,7 @@
                                                                     </div>
                                                                 </form>
                                                             }
-                                                            <p class="text-[10px] text-muted-foreground mt-1">@reply.CreatedAt.ToLocalTime().ToString("g")</p>
+                                                            <p class="text-[10px] text-muted-foreground mt-1"><time class="local-time" datetime="@reply.CreatedAt.ToString("O")">@reply.CreatedAt.ToString("g")</time></p>
                                                         </div>
                                                     </div>
                                                 }

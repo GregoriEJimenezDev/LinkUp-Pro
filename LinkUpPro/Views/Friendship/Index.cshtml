@@ -77,7 +77,7 @@
                                 <div class="flex flex-col">
                                     <p class="text-sm font-semibold leading-none">@post.Username</p>
                                     <div class="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                                        <span>@post.CreatedAt.ToLocalTime().ToString("g")</span>
+                                        <span><time class="local-time" datetime="@post.CreatedAt.ToString("O")">@post.CreatedAt.ToString("g")</time></span>
                                         @if (post.UpdatedAt.HasValue)
                                         {
                                             <span class="text-[10px] ml-1">(Editado)</span>

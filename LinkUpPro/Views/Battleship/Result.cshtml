@@ -70,7 +70,7 @@
                 </div>
                 <div class="flex items-center justify-between py-2">
                     <span class="text-sm text-muted-foreground">Fecha</span>
-                    <span class="text-sm font-semibold">@Model.FinishedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                    <span class="text-sm font-semibold"><time class="local-time" datetime="@Model.FinishedAt?.ToString("O")">@Model.FinishedAt?.ToString("dd/MM/yyyy HH:mm")</time></span>
                 </div>
             </div>
         </div>

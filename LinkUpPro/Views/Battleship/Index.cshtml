@@ -170,7 +170,7 @@
                                 }
                                 @if (game.FinishedAt.HasValue)
                                 {
-                                    <span class="text-xs text-muted-foreground ml-2 font-normal">@game.FinishedAt.Value.ToLocalTime().ToString("g")</span>
+                                    <span class="text-xs text-muted-foreground ml-2 font-normal"><time class="local-time" datetime="@game.FinishedAt.Value.ToString("O")">@game.FinishedAt.Value.ToString("g")</time></span>
                                 }
                             </span>
                             <i data-lucide="chevron-right" class="size-4 text-muted-foreground"></i>
