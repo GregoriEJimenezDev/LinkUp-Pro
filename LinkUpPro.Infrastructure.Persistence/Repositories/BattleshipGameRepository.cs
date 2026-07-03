@@ -51,10 +51,6 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
         public async Task<IEnumerable<BattleshipGame>> GetAllActiveAsync() =>
             await _context.BattleshipGames
                 .Where(g => g.Status != GameStatus.Finished && g.Status != GameStatus.Abandoned)
-                .Include(g => g.Ships).ThenInclude(s => s.Cells)
-                .Include(g => g.Attacks)
-                .AsSplitQuery()
-                .AsNoTracking()
                 .ToListAsync();
 
         public async Task<IEnumerable<BattleshipGame>> GetByPlayerAsync(string userId) =>

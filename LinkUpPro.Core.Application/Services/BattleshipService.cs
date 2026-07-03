@@ -323,13 +323,21 @@ namespace LinkUpPro.Core.Application.Services
             if (myCount >= 5 && otherCount >= 5)
                 game.StartGame();
 
-            await _unitOfWork.SaveChangesAsync();
+            try
+            {
+                await _unitOfWork.SaveChangesAsync();
+            }
+            catch (ConcurrencyException)
+            {
+                return ServiceResult.Failure("El juego fue modificado por otro jugador. Por favor intenta colocar el barco de nuevo.");
+            }
+
             return ServiceResult.Success();
         }
 
         public async Task<AttackBoardViewModel> GetAttackBoardAsync(int gameId, string playerId)
         {
-            var game = await _gameRepo.GetWithDetailsAsync(gameId);
+            var game = await _gameRepo.GetWithDetailsForUpdateAsync(gameId);
             ValidatePlayerInGame(game, playerId);
             
             if (game.Status == GameStatus.InProgress && game.CheckTimeout(48))
@@ -337,7 +345,6 @@ namespace LinkUpPro.Core.Application.Services
                 game.Status = GameStatus.Finished;
                 game.WinnerId = game.CurrentTurnPlayerId == game.FirstPlayerId ? game.SecondPlayerId : game.FirstPlayerId;
                 game.FinishedAt = DateTime.UtcNow;
-                await _gameRepo.UpdateAsync(game);
                 await _unitOfWork.SaveChangesAsync();
             }
 
@@ -510,24 +517,27 @@ namespace LinkUpPro.Core.Application.Services
         public async Task CheckTimeoutsAsync()
         {
             var activeGames = await _gameRepo.GetAllActiveAsync();
+            var now = DateTime.UtcNow;
+            var changed = false;
 
             foreach (var game in activeGames)
             {
                 if (!game.LastAttackedAt.HasValue)
                     continue;
 
-                if ((DateTime.UtcNow - game.LastAttackedAt.Value).TotalHours >= 48)
+                if ((now - game.LastAttackedAt.Value).TotalHours >= 48)
                 {
                     game.Status = GameStatus.Abandoned;
                     game.WinnerId = game.CurrentTurnPlayerId == game.FirstPlayerId
                         ? game.SecondPlayerId
                         : game.FirstPlayerId;
-                    game.FinishedAt = DateTime.UtcNow;
-                    await _gameRepo.UpdateAsync(game);
+                    game.FinishedAt = now;
+                    changed = true;
                 }
             }
 
-            await _unitOfWork.SaveChangesAsync();
+            if (changed)
+                await _unitOfWork.SaveChangesAsync();
         }
 
         private async Task<IEnumerable<GameDto>> MapGamesAsync(IEnumerable<BattleshipGame> games)
