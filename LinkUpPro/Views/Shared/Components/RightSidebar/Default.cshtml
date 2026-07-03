@@ -30,7 +30,7 @@
                                     <span class="text-xs text-muted-foreground truncate">@(user.MutualFriendsCount > 0 ? $"{user.MutualFriendsCount} amigos mutuos" : "Sugerencia")</span>
                                 </div>
                             </div>
-                            <form action="/FriendRequest/Send" method="post" class="shrink-0">
+                            <form asp-controller="FriendRequest" asp-action="Send" method="post" class="shrink-0">
                                 <input type="hidden" name="receiverId" value="@user.UserId" />
                                 <button type="submit" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground hover:bg-secondary/80 h-7 px-2">
                                     <i data-lucide="plus" class="size-3 mr-1"></i> Añadir

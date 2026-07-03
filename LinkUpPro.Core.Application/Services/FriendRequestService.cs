@@ -102,7 +102,8 @@ namespace LinkUpPro.Core.Application.Services
                     !user.Username.Contains(search, StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                var mutual = await GetMutualFriendsCountAsync(userId, user.Id!);
+                var theirFriendIds = await GetFriendIdsAsync(user.Id!);
+                var mutual = friendIds.Intersect(theirFriendIds).Count();
 
                 available.Add(new UserToAddViewModel
                 {
@@ -125,13 +126,17 @@ namespace LinkUpPro.Core.Application.Services
             var received = await _friendRequestRepository.GetReceivedByUserAsync(userId);
             var sent = await _friendRequestRepository.GetSentByUserAsync(userId);
 
+            var myFriendIds = await GetFriendIdsAsync(userId);
+
             var receivedDtos = new List<FriendRequestDto>();
             foreach (var r in received)
             {
                 var senderInfo = await _userService.GetUserBasicInfoAsync(r.SenderId!);
                 if (string.IsNullOrEmpty(senderInfo.Username)) continue;
 
-                var mutual = await GetMutualFriendsCountAsync(userId, r.SenderId!);
+                var theirFriendIds = await GetFriendIdsAsync(r.SenderId!);
+                var mutual = myFriendIds.Intersect(theirFriendIds).Count();
+
                 receivedDtos.Add(new FriendRequestDto
                 {
                     Id = r.Id,
@@ -151,7 +156,9 @@ namespace LinkUpPro.Core.Application.Services
                 var receiverInfo = await _userService.GetUserBasicInfoAsync(s.ReceiverId!);
                 if (string.IsNullOrEmpty(receiverInfo.Username)) continue;
 
-                var mutual = await GetMutualFriendsCountAsync(userId, s.ReceiverId!);
+                var theirFriendIds = await GetFriendIdsAsync(s.ReceiverId!);
+                var mutual = myFriendIds.Intersect(theirFriendIds).Count();
+
                 sentDtos.Add(new FriendRequestDto
                 {
                     Id = s.Id,

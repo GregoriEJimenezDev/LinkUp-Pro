@@ -14,46 +14,72 @@ namespace LinkUpPro.Controllers
         private readonly IUserService _userService = userService;
         private readonly IMemoryCache _cache = cache;
 
-        public async Task<IActionResult> Index(string? search, int? mediaType, DateTime? date, bool? isEdited)
+        public async Task<IActionResult> Index(string? search, int? mediaType, DateTime? dateFrom, DateTime? dateTo, int? editState)
         {
             var userId = UserId;
-            var posts = await _postService.GetByFriendsAsync(userId, includeGlobalPublic: true);
+            var posts = await _postService.GetByUserAsync(userId, userId);
 
-            if (!string.IsNullOrWhiteSpace(search))
+            if (dateFrom.HasValue && dateTo.HasValue && dateFrom.Value.Date > dateTo.Value.Date)
             {
-                posts = posts
-                    .Where(p => p.Content.Contains(search, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
+                TempData["Error"] = "La fecha inicial no puede ser posterior a la fecha final.";
             }
-
-            MediaType? filterMediaType = null;
-            if (mediaType.HasValue && System.Enum.IsDefined(typeof(MediaType), mediaType.Value))
+            else
             {
-                filterMediaType = (MediaType)mediaType.Value;
-                posts = posts.Where(p => p.MediaType == filterMediaType.Value).ToList();
-            }
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    posts = posts
+                        .Where(p => p.Content.Contains(search, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+                }
 
-            if (date.HasValue)
-            {
-                posts = posts.Where(p => p.CreatedAt.Date == date.Value.Date).ToList();
-            }
+                MediaType? filterMediaType = null;
+                if (mediaType.HasValue && System.Enum.IsDefined(typeof(MediaType), mediaType.Value))
+                {
+                    filterMediaType = (MediaType)mediaType.Value;
+                    posts = posts.Where(p => p.MediaType == filterMediaType.Value).ToList();
+                }
 
-            if (isEdited.HasValue && isEdited.Value)
-            {
-                posts = posts.Where(p => p.UpdatedAt.HasValue).ToList();
+                if (dateFrom.HasValue)
+                {
+                    posts = posts.Where(p => p.CreatedAt.Date >= dateFrom.Value.Date).ToList();
+                }
+
+                if (dateTo.HasValue)
+                {
+                    posts = posts.Where(p => p.CreatedAt.Date <= dateTo.Value.Date).ToList();
+                }
+
+                if (editState.HasValue)
+                {
+                    if (editState.Value == 1) // Editadas
+                    {
+                        posts = posts.Where(p => p.UpdatedAt.HasValue).ToList();
+                    }
+                    else if (editState.Value == 2) // No editadas
+                    {
+                        posts = posts.Where(p => !p.UpdatedAt.HasValue).ToList();
+                    }
+                }
             }
 
             ViewBag.CurrentUserId = userId;
 
             var userInfo = await _userService.GetUserBasicInfoAsync(userId);
 
+            MediaType? selectedMediaType = null;
+            if (mediaType.HasValue && System.Enum.IsDefined(typeof(MediaType), mediaType.Value))
+            {
+                selectedMediaType = (MediaType)mediaType.Value;
+            }
+
             var vm = new HomeViewModel
             {
                 Posts = posts,
                 SearchQuery = search,
-                FilterMediaType = filterMediaType,
-                FilterDate = date,
-                FilterIsEdited = isEdited,
+                FilterMediaType = selectedMediaType,
+                FilterDateFrom = dateFrom,
+                FilterDateTo = dateTo,
+                FilterEditState = editState,
                 CurrentUserProfilePicture = userInfo.ProfilePictureUrl
             };
 
@@ -61,4 +87,5 @@ namespace LinkUpPro.Controllers
         }
     }
 }
+
 

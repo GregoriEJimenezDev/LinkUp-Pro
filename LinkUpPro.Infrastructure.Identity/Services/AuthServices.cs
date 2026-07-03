@@ -272,10 +272,16 @@ namespace LinkUpPro.Infrastructure.Identity.Services
 
         public async Task<UserBasicDto> GetUserBasicInfoAsync(string userId)
         {
+            var cacheKey = $"UserInfo_{userId}";
+            if (_cache.TryGetValue(cacheKey, out UserBasicDto? cachedInfo) && cachedInfo != null)
+            {
+                return cachedInfo;
+            }
+
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return new UserBasicDto();
 
-            return new UserBasicDto
+            var info = new UserBasicDto
             {
                 Id = user.Id,
                 Username = user.UserName!,
@@ -285,6 +291,9 @@ namespace LinkUpPro.Infrastructure.Identity.Services
                 Email = user.Email!,
                 IsActive = user.IsActive
             };
+
+            _cache.Set(cacheKey, info, TimeSpan.FromMinutes(10));
+            return info;
         }
 
         public async Task<ServiceResult> UpdateProfileAsync(EditProfileViewModel vm, string userId)
@@ -330,6 +339,9 @@ namespace LinkUpPro.Infrastructure.Identity.Services
             var updateResult = await _userManager.UpdateAsync(user);
             if (!updateResult.Succeeded)
                 return ServiceResult.Failure(updateResult.Errors.First().Description);
+
+            // Invalidate cache
+            _cache.Remove($"UserInfo_{userId}");
 
             return ServiceResult.Success();
         }

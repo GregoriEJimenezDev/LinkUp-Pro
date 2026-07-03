@@ -21,7 +21,6 @@ builder.Services.AddSharedInfrastructure(builder.Configuration);
 builder.Services.AddHostedService<BattleshipBackgroundService>();
 
 builder.Services.AddMemoryCache();
-builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -45,7 +44,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
-
-app.MapHub<LinkUpPro.Hubs.BattleshipHub>("/battleshipHub");
 
 app.Run();

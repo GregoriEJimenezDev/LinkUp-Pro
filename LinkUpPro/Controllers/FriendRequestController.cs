@@ -29,6 +29,12 @@ namespace LinkUpPro.Controllers
         [HttpPost]
         public async Task<IActionResult> Send(string receiverId)
         {
+            if (string.IsNullOrEmpty(receiverId))
+            {
+                TempData["Error"] = "Debes seleccionar un usuario válido.";
+                return RedirectToAction(nameof(Add));
+            }
+
             var senderId = UserId;
             var result = await _friendRequestService.SendAsync(senderId, receiverId);
 

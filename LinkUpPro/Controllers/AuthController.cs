@@ -8,12 +8,18 @@ namespace LinkUpPro.Controllers
     {
         private readonly IUserService _userService = userService;
 
-        public IActionResult Index()
+        public IActionResult Index([FromQuery] string? ReturnUrl)
         {
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("Index", "Home");
             }
+
+            if (!string.IsNullOrEmpty(ReturnUrl))
+            {
+                TempData["Error"] = "Su sesión finalizó por inactividad. Inicie sesión nuevamente para continuar.";
+            }
+
             return View("Login", new LoginViewModel());
         }
 

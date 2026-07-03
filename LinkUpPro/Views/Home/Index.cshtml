@@ -59,7 +59,6 @@
 
                 <div class="ml-auto flex items-center gap-2">
                     <select name="Privacy" class="flex h-10 w-full items-center justify-between rounded-full border border-input bg-card px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer">
-                        <option value="0" class="bg-card text-card-foreground">Público</option>
                         <option value="1" class="bg-card text-card-foreground">Solo amigos</option>
                         <option value="2" class="bg-card text-card-foreground">Solo yo</option>
                     </select>
@@ -79,8 +78,12 @@
         </div>
         <div class="flex flex-wrap gap-3 items-center">
             <div class="flex items-center gap-2">
-                <label class="text-sm text-muted-foreground">Fecha:</label>
-                <input type="date" name="date" value="@Model.FilterDate?.ToString("yyyy-MM-dd")" class="h-8 rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                <label class="text-sm text-muted-foreground">Desde:</label>
+                <input type="date" name="dateFrom" value="@Model.FilterDateFrom?.ToString("yyyy-MM-dd")" class="h-8 rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+            </div>
+            <div class="flex items-center gap-2">
+                <label class="text-sm text-muted-foreground">Hasta:</label>
+                <input type="date" name="dateTo" value="@Model.FilterDateTo?.ToString("yyyy-MM-dd")" class="h-8 rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
             </div>
             <div class="flex items-center gap-2">
                 <label class="text-sm text-muted-foreground">Tipo:</label>
@@ -106,8 +109,35 @@
                 </select>
             </div>
             <div class="flex items-center gap-2">
-                <input type="checkbox" name="isEdited" value="true" checked="@(Model.FilterIsEdited == true)" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
-                <label class="text-sm text-muted-foreground">Solo editados</label>
+                <label class="text-sm text-muted-foreground">Edición:</label>
+                <select name="editState" class="h-8 rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                    @if (!Model.FilterEditState.HasValue || Model.FilterEditState.Value == 0)
+                    {
+                        <option value="0" selected>Todas</option>
+                    }
+                    else
+                    {
+                        <option value="0">Todas</option>
+                    }
+
+                    @if (Model.FilterEditState == 1)
+                    {
+                        <option value="1" selected>Editadas</option>
+                    }
+                    else
+                    {
+                        <option value="1">Editadas</option>
+                    }
+
+                    @if (Model.FilterEditState == 2)
+                    {
+                        <option value="2" selected>No editadas</option>
+                    }
+                    else
+                    {
+                        <option value="2">No editadas</option>
+                    }
+                </select>
             </div>
             <div class="flex-1"></div>
             <button type="submit" class="bg-primary text-primary-foreground hover:bg-primary/90 h-8 rounded-md px-4 text-xs font-medium transition-colors">
@@ -252,7 +282,7 @@
                         }
                         else
                         {
-                            <p class="text-sm text-muted-foreground text-center mb-4">Los comentarios están desactivados.</p>
+                            <p class="text-sm text-muted-foreground text-center mb-4">Los comentarios están desactivados para esta publicación.</p>
                         }
 
                         @if (post.Comments != null && post.Comments.Any())
@@ -282,7 +312,7 @@
                                                 </div>
                                                 @if (comment.IsDeleted)
                                                 {
-                                                    <p class="text-sm mt-1 italic text-muted-foreground">Este comentario ha sido eliminado.</p>
+                                                    <p class="text-sm mt-1 italic text-muted-foreground">Este comentario fue eliminado.</p>
                                                 }
                                                 else
                                                 {
@@ -303,7 +333,7 @@
                                                 }
                                                 <div class="flex items-center gap-3 mt-2">
                                                     <p class="text-xs text-muted-foreground"><time class="local-time" datetime="@comment.CreatedAt.ToString("O")">@comment.CreatedAt.ToString("g")</time></p>
-                                                    @if (!comment.IsDeleted)
+                                                    @if (!comment.IsDeleted && post.AllowComments)
                                                     {
                                                         <button type="button" onclick="document.getElementById('reply-form-@comment.Id').classList.toggle('hidden')" class="px-2 py-1 text-xs text-muted-foreground hover:bg-muted rounded-md transition-colors hover:text-primary font-medium">Responder</button>
                                                     }
@@ -348,7 +378,7 @@
                                                             </div>
                                                             @if (reply.IsDeleted)
                                                             {
-                                                                <p class="text-xs mt-1 italic text-muted-foreground">Este comentario ha sido eliminado.</p>
+                                                                <p class="text-xs mt-1 italic text-muted-foreground">Este comentario fue eliminado.</p>
                                                             }
                                                             else
                                                             {
@@ -384,7 +414,14 @@
         else
         {
             <div class="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
-                <p class="font-medium">No encontramos publicaciones</p>
+                @if (!string.IsNullOrEmpty(Model.SearchQuery) || Model.FilterMediaType.HasValue || Model.FilterDateFrom.HasValue || Model.FilterDateTo.HasValue || (Model.FilterEditState.HasValue && Model.FilterEditState.Value != 0))
+                {
+                    <p class="font-medium">No se encontraron publicaciones que coincidan con los criterios seleccionados.</p>
+                }
+                else
+                {
+                    <p class="font-medium">Todavía no ha realizado ninguna publicación.</p>
+                }
                 <p class="mt-1 text-sm text-muted-foreground">
                     Cuando haya contenido disponible, aparecerá aquí.
                 </p>
