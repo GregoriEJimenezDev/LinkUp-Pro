@@ -37,8 +37,6 @@ namespace LinkUpPro.Core.Application.Services
 
         public async Task<BattleshipIndexViewModel> GetIndexAsync(string userId)
         {
-            await CheckTimeoutsAsync();
-
             var activeGames = (await _gameRepo.GetActiveByUserIdAsync(userId)).DistinctBy(g => g.Id).ToList();
             var finishedGames = (await _gameRepo.GetFinishedByUserIdAsync(userId)).DistinctBy(g => g.Id).ToList();
 

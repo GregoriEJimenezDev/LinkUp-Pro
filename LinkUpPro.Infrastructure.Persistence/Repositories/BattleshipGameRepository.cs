@@ -13,9 +13,6 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
             await _context.BattleshipGames
                 .Where(g => (g.FirstPlayerId == userId || g.SecondPlayerId == userId) && g.Status != GameStatus.Finished && g.Status != GameStatus.Abandoned)
                 .OrderByDescending(g => g.StartedAt)
-                .Include(g => g.Ships).ThenInclude(s => s.Cells)
-                .Include(g => g.Attacks)
-                .AsSplitQuery()
                 .AsNoTracking()
                 .ToListAsync();
 
