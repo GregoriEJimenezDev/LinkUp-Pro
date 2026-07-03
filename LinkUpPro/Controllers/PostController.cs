@@ -28,6 +28,7 @@ namespace LinkUpPro.Controllers
                 using var ms = new MemoryStream();
                 await File.CopyToAsync(ms);
                 vm.ImageFile = ms.ToArray();
+                vm.ImageFileName = File.FileName;
             }
 
             var userId = UserId;
@@ -88,6 +89,7 @@ namespace LinkUpPro.Controllers
                 using var ms = new MemoryStream();
                 await File.CopyToAsync(ms);
                 vm.ImageFile = ms.ToArray();
+                vm.ImageFileName = File.FileName;
             }
 
             var userId = UserId;

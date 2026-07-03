@@ -4,6 +4,7 @@ using LinkUpPro.Core.Application.ViewModel.Friend;
 using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Core.Domain.Interfaces;
+using System.Transactions;
 
 namespace LinkUpPro.Core.Application.Services
 {
@@ -33,28 +34,34 @@ namespace LinkUpPro.Core.Application.Services
 
             request.Status = FriendRequestStatus.Accepted;
             request.RespondedAt = DateTime.UtcNow;
-            await _friendRequestRepository.UpdateAsync(request);
 
-            if (string.IsNullOrEmpty(request.SenderId) || string.IsNullOrEmpty(request.ReceiverId))
-                return ServiceResult.Failure("Los datos de la solicitud de amistad no son válidos.");
-
-            var existingFriendship = await _friendshipRepository.GetByUsersAsync(request.SenderId, request.ReceiverId);
-            if (existingFriendship != null)
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                if (existingFriendship.IsDeleted)
+                await _friendRequestRepository.UpdateAsync(request);
+
+                if (string.IsNullOrEmpty(request.SenderId) || string.IsNullOrEmpty(request.ReceiverId))
+                    return ServiceResult.Failure("Los datos de la solicitud de amistad no son válidos.");
+
+                var existingFriendship = await _friendshipRepository.GetByUsersAsync(request.SenderId, request.ReceiverId);
+                if (existingFriendship != null)
                 {
-                    existingFriendship.IsDeleted = false;
-                    await _friendshipRepository.UpdateAsync(existingFriendship);
+                    if (existingFriendship.IsDeleted)
+                    {
+                        existingFriendship.IsDeleted = false;
+                        await _friendshipRepository.UpdateAsync(existingFriendship);
+                    }
                 }
-            }
-            else
-            {
-                await _friendshipRepository.AddAsync(new Friendship
+                else
                 {
-                    FirstUserId = request.SenderId,
-                    SecondUserId = request.ReceiverId,
-                    CreatedAt = DateTime.UtcNow
-                });
+                    await _friendshipRepository.AddAsync(new Friendship
+                    {
+                        FirstUserId = request.SenderId,
+                        SecondUserId = request.ReceiverId,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                scope.Complete();
             }
 
             var receiverInfo = await _userService.GetUserBasicInfoAsync(userId);

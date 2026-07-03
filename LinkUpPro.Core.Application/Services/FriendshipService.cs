@@ -45,7 +45,7 @@ namespace LinkUpPro.Core.Application.Services
                     FriendshipId = f.Id
                 });
             }
-            return result;
+            return result.OrderBy(f => f.FullName).ToList();
         }
         public async Task<ServiceResult> RemoveAsync(int friendshipId, string userId)
         {

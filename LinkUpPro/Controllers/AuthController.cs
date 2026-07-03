@@ -1,9 +1,11 @@
 using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Application.ViewModel.Users;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LinkUpPro.Controllers
 {
+    [AllowAnonymous]
     public class AuthController(IUserService userService) : BaseController
     {
         private readonly IUserService _userService = userService;

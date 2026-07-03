@@ -42,7 +42,7 @@ namespace LinkUpPro.Core.Application.Services
             {
                 if (vm.ImageFile!.Length > 5 * 1024 * 1024)
                     return ServiceResult.Failure("La imagen de la publicación no puede superar los 5 MB.");
-                string extension = ".jpg";
+                string extension = string.IsNullOrEmpty(vm.ImageFileName) ? ".jpg" : Path.GetExtension(vm.ImageFileName).ToLower();
                 mediaUrl = await SaveImageAsync(vm.ImageFile, extension);
             }
             else if (vm.MediaType == MediaType.Video && !string.IsNullOrEmpty(vm.VideoUrl))
@@ -218,7 +218,7 @@ namespace LinkUpPro.Core.Application.Services
                 {
                     if (vm.ImageFile.Length > 5 * 1024 * 1024)
                         return ServiceResult.Failure("La imagen de la publicación no puede superar los 5 MB.");
-                    string extension = ".jpg";
+                    string extension = string.IsNullOrEmpty(vm.ImageFileName) ? ".jpg" : Path.GetExtension(vm.ImageFileName).ToLower();
                     post.MediaUrl = await SaveImageAsync(vm.ImageFile, extension);
                 }
             }

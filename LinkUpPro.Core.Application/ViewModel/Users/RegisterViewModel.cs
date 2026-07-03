@@ -38,7 +38,7 @@ namespace LinkUpPro.Core.Application.ViewModel.Users
         public string PhoneNumber { get; set; } = string.Empty;
 
         [Display(Name = "Foto de perfil")]
-        [MaxFileSize(2 * 1024 * 1024)]
+        [MaxFileSize(5 * 1024 * 1024)]
         public byte[]? ProfilePicture { get; set; }
 
         public string? ProfilePictureFileName { get; set; }
