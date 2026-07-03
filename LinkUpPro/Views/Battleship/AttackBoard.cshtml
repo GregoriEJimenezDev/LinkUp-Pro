@@ -81,10 +81,19 @@
                 <i data-lucide="arrow-left" class="size-5"></i>
             </a>
             <div class="flex flex-col">
-                <h1 class="text-2xl font-bold tracking-tight flex items-center gap-2">
-                    <i data-lucide="crosshair" class="size-6 text-primary"></i>
-                    Batalla contra @Model.OpponentUsername
-                </h1>
+                <div class="flex items-center gap-3">
+                    @if (!string.IsNullOrEmpty(Model.OpponentProfilePicture))
+                    {
+                        <img class="size-8 rounded-full object-cover border border-border" src="@Model.OpponentProfilePicture" alt="@Model.OpponentUsername" onerror="this.src='/placeholder.svg'" />
+                    }
+                    else
+                    {
+                        <i data-lucide="crosshair" class="size-6 text-primary"></i>
+                    }
+                    <h1 class="text-2xl font-bold tracking-tight">
+                        Batalla contra @Model.OpponentUsername
+                    </h1>
+                </div>
                 
                 <div class="flex items-center gap-2 mt-2">
                     @if (Model.IsFinished)

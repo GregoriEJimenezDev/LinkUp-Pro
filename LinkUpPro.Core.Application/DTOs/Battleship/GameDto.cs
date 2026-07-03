@@ -7,8 +7,10 @@ namespace LinkUpPro.Core.Application.DTOs.Battleship
         public int Id { get; set; }
         public string Player1Id { get; set; } = string.Empty;
         public string Player1Username { get; set; } = string.Empty;
+        public string? Player1ProfilePicture { get; set; }
         public string Player2Id { get; set; } = string.Empty;
         public string Player2Username { get; set; } = string.Empty;
+        public string? Player2ProfilePicture { get; set; }
         public string CurrentTurnPlayerId { get; set; } = string.Empty;
         public GameStatus Status { get; set; }
         public DateTime? FinishedAt { get; set; }

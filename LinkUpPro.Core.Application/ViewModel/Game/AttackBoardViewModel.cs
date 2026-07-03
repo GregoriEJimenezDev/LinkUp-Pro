@@ -8,6 +8,8 @@ namespace LinkUpPro.Core.Application.ViewModel.Game
         public bool IsMyTurn { get; set; }
         public bool IsFinished { get; set; }
         public string OpponentUsername { get; set; } = string.Empty;
+        public string? OpponentProfilePicture { get; set; }
+        public string? MyProfilePicture { get; set; }
 
         public List<AttackDto> MyAttacks { get; set; } = [];
         public List<ShipDto> MyShips { get; set; } = [];

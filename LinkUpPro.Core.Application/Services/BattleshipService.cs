@@ -350,6 +350,7 @@ namespace LinkUpPro.Core.Application.Services
 
             var opponentId = game.FirstPlayerId == playerId ? game.SecondPlayerId : game.FirstPlayerId;
             var opponent = await _userService.GetUserBasicInfoAsync(opponentId);
+            var myInfo = await _userService.GetUserBasicInfoAsync(playerId);
 
             var myShips = await _shipRepo.GetWithCellsByGameAndPlayerAsync(gameId, playerId);
             var opponentAttacks = await _attackRepo.GetByGameAndAttackerAsync(gameId, opponentId);
@@ -363,6 +364,8 @@ namespace LinkUpPro.Core.Application.Services
                 IsMyTurn = game.CurrentTurnPlayerId == playerId && game.Status == GameStatus.InProgress,
                 IsFinished = game.Status == GameStatus.Finished || game.Status == GameStatus.Abandoned,
                 OpponentUsername = opponent.Username,
+                OpponentProfilePicture = opponent.ProfilePictureUrl,
+                MyProfilePicture = myInfo.ProfilePictureUrl,
                 MyAttacks = myAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList(),
                 MyShips = myShips.Select(s => _mapper.Map<ShipDto>(s)).ToList(),
                 OpponentAttacks = opponentAttacks.Select(a => _mapper.Map<AttackDto>(a)).ToList(),
@@ -549,7 +552,9 @@ namespace LinkUpPro.Core.Application.Services
                 var p2 = await _userService.GetUserBasicInfoAsync(game.SecondPlayerId);
 
                 dto.Player1Username = p1.Username;
+                dto.Player1ProfilePicture = p1.ProfilePictureUrl;
                 dto.Player2Username = p2.Username;
+                dto.Player2ProfilePicture = p2.ProfilePictureUrl;
 
                 if (!string.IsNullOrEmpty(game.WinnerId))
                 {
