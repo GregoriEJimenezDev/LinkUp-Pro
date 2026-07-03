@@ -17,11 +17,6 @@ namespace LinkUpPro.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            if (!string.IsNullOrEmpty(ReturnUrl))
-            {
-                TempData["Error"] = "Su sesión finalizó por inactividad. Inicie sesión nuevamente para continuar.";
-            }
-
             return View("Login", new LoginViewModel());
         }
 
