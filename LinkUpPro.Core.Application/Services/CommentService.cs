@@ -23,11 +23,21 @@ namespace LinkUpPro.Core.Application.Services
             if (!post.AllowComments)
                 return ServiceResult.Failure("Esta publicación no permite comentarios.");
 
-            if (post.UserId != userId && post.Privacy == PostPrivacy.FriendsOnly)
+            if (post.UserId != userId)
             {
-                var friendship = await _friendshipRepo.GetByUsersAsync(userId, post.UserId!);
-                if (friendship == null)
+                if (post.Privacy == PostPrivacy.OnlyMe)
+                {
                     return ServiceResult.Failure("No estás autorizado para comentar en esta publicación.");
+                }
+
+                if (post.Privacy == PostPrivacy.FriendsOnly)
+                {
+                    bool areFriends = await _friendshipRepo.AreFriendsAsync(userId, post.UserId!);
+                    if (!areFriends)
+                    {
+                        return ServiceResult.Failure("No estás autorizado para comentar en esta publicación.");
+                    }
+                }
             }
 
             var comment = new Comment

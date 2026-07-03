@@ -55,7 +55,8 @@ namespace LinkUpPro.Core.Application.Services
             if (friendship.FirstUserId != userId && friendship.SecondUserId != userId)
                 return ServiceResult.Failure("No formas parte de esta relación de amistad.");
 
-            await _friendshipRepository.DeleteAsync(friendship);
+            friendship.IsDeleted = true;
+            await _friendshipRepository.UpdateAsync(friendship);
             return ServiceResult.Success();
         }
     }

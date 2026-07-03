@@ -43,6 +43,13 @@ namespace LinkUpPro.Core.Application.Services
                 if (vm.ImageFile!.Length > 5 * 1024 * 1024)
                     return ServiceResult.Failure("La imagen de la publicación no puede superar los 5 MB.");
                 string extension = string.IsNullOrEmpty(vm.ImageFileName) ? ".jpg" : Path.GetExtension(vm.ImageFileName).ToLower();
+                
+                var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+                if (!validExtensions.Contains(extension))
+                {
+                    return ServiceResult.Failure("El formato de la imagen no es válido. Formatos permitidos: JPG, PNG, WEBP, GIF.");
+                }
+
                 mediaUrl = await SaveImageAsync(vm.ImageFile, extension);
             }
             else if (vm.MediaType == MediaType.Video && !string.IsNullOrEmpty(vm.VideoUrl))
@@ -155,10 +162,22 @@ namespace LinkUpPro.Core.Application.Services
             };
         }
 
-        public async Task<List<PostViewModel>> GetByUserAsync(string targetUserId, string currentUserId)
+        public async Task<List<PostViewModel>> GetByUserAsync(string targetUserId, string currentUserId, bool areFriends = false)
         {
             var posts = await _postRepository.GetByUserIdAsync(targetUserId);
             var activePosts = posts.Where(p => !p.IsDeleted).ToList();
+
+            if (targetUserId != currentUserId)
+            {
+                if (areFriends)
+                {
+                    activePosts = activePosts.Where(p => p.Privacy == PostPrivacy.Public || p.Privacy == PostPrivacy.FriendsOnly).ToList();
+                }
+                else
+                {
+                    activePosts = activePosts.Where(p => p.Privacy == PostPrivacy.Public).ToList();
+                }
+            }
 
             if (!activePosts.Any()) return [];
 
@@ -219,6 +238,13 @@ namespace LinkUpPro.Core.Application.Services
                     if (vm.ImageFile.Length > 5 * 1024 * 1024)
                         return ServiceResult.Failure("La imagen de la publicación no puede superar los 5 MB.");
                     string extension = string.IsNullOrEmpty(vm.ImageFileName) ? ".jpg" : Path.GetExtension(vm.ImageFileName).ToLower();
+                    
+                    var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+                    if (!validExtensions.Contains(extension))
+                    {
+                        return ServiceResult.Failure("El formato de la imagen no es válido. Formatos permitidos: JPG, PNG, WEBP, GIF.");
+                    }
+
                     post.MediaUrl = await SaveImageAsync(vm.ImageFile, extension);
                 }
             }

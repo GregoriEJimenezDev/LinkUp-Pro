@@ -6,15 +6,36 @@ using LinkUpPro.Core.Domain.Interfaces;
 namespace LinkUpPro.Core.Application.Services
 {
     public class ReactionService(IReactionRepository reactionRepository, INotificationService notificationService,
-        IPostRepository postRepository, IUserService userService) : IReactionService
+        IPostRepository postRepository, IUserService userService, IFriendshipRepository friendshipRepo) : IReactionService
     {
         private readonly IReactionRepository _reactionRepository = reactionRepository;
         private readonly INotificationService _notificationService = notificationService;
         private readonly IPostRepository _postRepository = postRepository;
         private readonly IUserService _userService = userService;
+        private readonly IFriendshipRepository _friendshipRepo = friendshipRepo;
 
         public async Task<ServiceResult> ReactAsync(int postId, string userId, bool isLike)
         {
+            var post = await _postRepository.GetByIdAsync(postId);
+            if (post == null) return ServiceResult.Failure("Publicación no encontrada.");
+
+            if (post.UserId != userId)
+            {
+                if (post.Privacy == Core.Domain.Enum.PostPrivacy.OnlyMe)
+                {
+                    return ServiceResult.Failure("No estás autorizado para interactuar con esta publicación.");
+                }
+                
+                if (post.Privacy == Core.Domain.Enum.PostPrivacy.FriendsOnly)
+                {
+                    bool areFriends = await _friendshipRepo.AreFriendsAsync(userId, post.UserId!);
+                    if (!areFriends)
+                    {
+                        return ServiceResult.Failure("No estás autorizado para interactuar con esta publicación.");
+                    }
+                }
+            }
+
             var existing = await _reactionRepository.GetByPostAndUserAsync(postId, userId);
             bool isNewReaction = false;
 
@@ -42,7 +63,6 @@ namespace LinkUpPro.Core.Application.Services
 
             if (isNewReaction)
             {
-                var post = await _postRepository.GetByIdAsync(postId);
                 if (post != null && post.UserId != userId)
                 {
                     var reactorInfo = await _userService.GetUserBasicInfoAsync(userId);

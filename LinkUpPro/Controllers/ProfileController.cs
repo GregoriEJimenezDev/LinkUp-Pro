@@ -29,7 +29,9 @@ namespace LinkUpPro.Controllers
             var currentUserId = UserId;
             var userInfo = await _userService.GetUserBasicInfoAsync(userId);
             var friends = await _friendshipService.GetFriendIdsAsync(userId);
-            var posts = await _postService.GetByUserAsync(userId, currentUserId);
+            
+            bool areFriends = friends.Contains(currentUserId) || currentUserId == userId;
+            var posts = await _postService.GetByUserAsync(userId, currentUserId, areFriends);
 
             var currentUserInfo = await _userService.GetUserBasicInfoAsync(currentUserId);
             ViewBag.CurrentUserId = currentUserId;
@@ -41,7 +43,7 @@ namespace LinkUpPro.Controllers
                 FriendsCount = friends.Count,
                 PostsCount = posts.Count,
                 Posts = posts.OrderByDescending(p => p.CreatedAt).ToList(),
-                IsFriend = friends.Contains(currentUserId) || currentUserId == userId
+                IsFriend = areFriends
             };
 
             return View(vm);
