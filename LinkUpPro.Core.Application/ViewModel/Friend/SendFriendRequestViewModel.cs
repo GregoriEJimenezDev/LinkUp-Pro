@@ -14,5 +14,6 @@ namespace LinkUpPro.Core.Application.ViewModel.Friend
         public string Username { get; set; } = string.Empty;
         public string? ProfilePicture { get; set; }
         public int MutualFriendsCount { get; set; }
+        public bool IsFriend { get; set; }
     }
 }

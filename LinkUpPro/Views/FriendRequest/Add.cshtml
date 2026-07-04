@@ -54,18 +54,18 @@
                 <div class="flex flex-col gap-3">
                     @foreach (var user in Model.AvailableUsers)
                     {
-                        <label class="flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm transition-all hover:border-primary/50 cursor-pointer">
+                        <label class="flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm @(user.IsFriend ? "opacity-75" : "transition-all hover:border-primary/50 cursor-pointer")">
                             <div class="flex items-center gap-3">
                                 <div class="relative flex size-12 shrink-0 overflow-hidden rounded-full border border-border">
                                     <img class="aspect-square h-full w-full object-cover" src="@user.ProfilePicture" alt="@user.Username" onerror="this.src='/placeholder.svg'" />
                                 </div>
                                 <div class="flex flex-col">
                                     <span class="text-sm font-semibold text-foreground">@@@user.Username</span>
-                                    @if (user.MutualFriendsCount > 0)
+                                    @if (user.MutualFriendsCount > 0 && !user.IsFriend)
                                     {
                                         <span class="text-xs text-muted-foreground">@user.MutualFriendsCount amigos en común</span>
                                     }
-                                    else
+                                    else if (!user.IsFriend)
                                     {
                                         <span class="text-xs text-muted-foreground">Usuario en LinkUp</span>
                                     }
@@ -73,17 +73,27 @@
                             </div>
                             
                             <div class="flex items-center">
-                                <input type="radio" name="receiverId" value="@user.UserId" class="size-5 accent-primary" required />
+                                @if (user.IsFriend)
+                                {
+                                    <span class="text-xs font-medium text-primary flex items-center gap-1"><i data-lucide="user-check" class="size-4"></i> Amigos</span>
+                                }
+                                else
+                                {
+                                    <input type="radio" name="receiverId" value="@user.UserId" class="size-5 accent-primary" required />
+                                }
                             </div>
                         </label>
                     }
                 </div>
                 
                 <div class="flex justify-end mt-2">
-                    <button type="submit" class="inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground h-11 px-8 font-medium transition-colors hover:bg-primary/90 gap-2">
-                        <i data-lucide="send" class="size-4"></i>
-                        Enviar Solicitud
-                    </button>
+                    @if (Model.AvailableUsers.Any(u => !u.IsFriend))
+                    {
+                        <button type="submit" class="inline-flex items-center justify-center rounded-full bg-primary text-primary-foreground h-11 px-8 font-medium transition-colors hover:bg-primary/90 gap-2">
+                            <i data-lucide="send" class="size-4"></i>
+                            Enviar Solicitud
+                        </button>
+                    }
                 </div>
             </form>
         }

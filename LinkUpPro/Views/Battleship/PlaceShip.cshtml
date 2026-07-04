@@ -63,14 +63,14 @@
                             {
                                 bool isOccupied = occupied.Contains($"{r},{c}");
                                 <button type="button" 
-                                        class="board-cell size-7 sm:size-8 md:size-10 rounded-sm transition-all flex items-center justify-center text-xs @(isOccupied ? "bg-slate-300 dark:bg-slate-700 cursor-not-allowed" : "bg-secondary hover:bg-primary/20 cursor-pointer") border border-border/80"
+                                        class="board-cell size-7 sm:size-8 md:size-10 rounded-sm transition-all flex items-center justify-center text-xs @(isOccupied ? "bg-slate-400 dark:bg-slate-600 cursor-not-allowed border-foreground/30" : "bg-secondary hover:bg-primary/20 cursor-pointer border-border/80") border"
                                         data-row="@r" 
                                         data-col="@c"
                                         @(isOccupied ? "disabled" : "")
                                         onclick="selectCell(@r, @c, this)">
                                         @if(isOccupied)
                                         {
-                                            <i data-lucide="ship" class="size-4 text-slate-600 dark:text-slate-300"></i>
+                                            <i data-lucide="ship" class="size-4 md:size-5 text-slate-900 dark:text-slate-100 drop-shadow-md"></i>
                                         }
                                 </button>
                             }
@@ -85,7 +85,7 @@
         <div class="flex flex-col rounded-xl border bg-card p-6 shadow-sm">
             <h2 class="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-4">Controles</h2>
             
-            <form asp-action="PlaceShip" method="post" class="flex flex-col gap-6 flex-1">
+            <form id="placeShipForm" asp-action="PlaceShip" method="post" class="flex flex-col gap-6 flex-1" onsubmit="document.getElementById('submitBtn').disabled = true; return true;">
                 <input type="hidden" name="gameId" value="@Model.GameId" />
                 <input type="hidden" name="shipType" value="@Model.ShipType" />
                 <input type="hidden" id="inputRow" name="row" value="" required />

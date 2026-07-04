@@ -102,7 +102,7 @@ namespace LinkUpPro.Core.Application.Services
             foreach (var user in allUsers)
             {
                 if (user.Id == userId) continue;
-                if (friendIds.Contains(user.Id!)) continue;
+                bool isFriend = friendIds.Contains(user.Id!);
                 var hasPending = await _friendRequestRepository.HasPendingRequestAsync(userId, user.Id!);
                 if (hasPending) continue;
                 if (!string.IsNullOrWhiteSpace(search))
@@ -123,7 +123,8 @@ namespace LinkUpPro.Core.Application.Services
                     UserId = user.Id!,
                     Username = user.Username,
                     ProfilePicture = user.ProfilePictureUrl,
-                    MutualFriendsCount = mutual
+                    MutualFriendsCount = mutual,
+                    IsFriend = isFriend
                 });
             }
 
