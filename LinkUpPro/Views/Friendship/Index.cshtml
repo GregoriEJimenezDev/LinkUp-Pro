@@ -168,11 +168,11 @@
                     <div class="rounded-2xl border bg-card text-card-foreground shadow-sm">
                         <div class="p-6 pb-4">
                             <div class="flex items-center gap-3">
-                                <div class="relative flex size-10 shrink-0 overflow-hidden rounded-full">
+                                <a href="@Url.Action("Index", "Profile", new { id = post.Username })" class="relative flex size-10 shrink-0 overflow-hidden rounded-full">
                                     <img class="aspect-square h-full w-full object-cover" src="@post.UserProfilePicture" alt="@post.Username" onerror="this.src='/placeholder.svg'" />
-                                </div>
+                                </a>
                                 <div class="flex flex-col">
-                                    <p class="text-sm font-semibold leading-none">@post.Username</p>
+                                    <a href="@Url.Action("Index", "Profile", new { id = post.Username })" class="text-sm font-semibold leading-none hover:underline">@post.Username</a>
                                     <div class="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                                         <span><time class="local-time" datetime="@post.CreatedAt.ToString("O")">@post.CreatedAt.ToString("g")</time></span>
                                         @if (post.UpdatedAt.HasValue)

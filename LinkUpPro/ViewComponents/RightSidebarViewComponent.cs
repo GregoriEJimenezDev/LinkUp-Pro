@@ -21,7 +21,7 @@ namespace LinkUpPro.ViewComponents
                 vm.ActiveGames = gameIndex?.ActiveGames?.Take(3).ToList() ?? new List<GameDto>();
 
                 var suggestions = await _friendRequestService.GetAvailableUsersAsync(userId, null);
-                vm.SuggestedUsers = suggestions.AvailableUsers.Take(3).ToList();
+                vm.SuggestedUsers = suggestions.AvailableUsers.Where(u => !u.IsFriend).Take(3).ToList();
             }
 
             return View(vm);
