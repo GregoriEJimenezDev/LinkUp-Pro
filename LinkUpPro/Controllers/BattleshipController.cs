@@ -87,6 +87,8 @@ namespace LinkUpPro.Controllers
             }
             catch (InvalidOperationException ex)
             {
+                if (ex.Message == "IN_PROGRESS")
+                    return RedirectToAction(nameof(AttackBoard), new { gameId });
                 TempData["Error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
@@ -102,6 +104,8 @@ namespace LinkUpPro.Controllers
             }
             catch (InvalidOperationException ex)
             {
+                if (ex.Message == "IN_PROGRESS")
+                    return RedirectToAction(nameof(AttackBoard), new { gameId });
                 TempData["Error"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }

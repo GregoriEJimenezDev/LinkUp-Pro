@@ -68,6 +68,10 @@
                                         data-col="@c"
                                         @(isOccupied ? "disabled" : "")
                                         onclick="selectCell(@r, @c, this)">
+                                        @if(isOccupied)
+                                        {
+                                            <i data-lucide="ship" class="size-4 text-slate-600 dark:text-slate-300"></i>
+                                        }
                                 </button>
                             }
                         }

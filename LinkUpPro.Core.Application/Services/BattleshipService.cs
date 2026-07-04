@@ -236,6 +236,8 @@ namespace LinkUpPro.Core.Application.Services
             var game = await _gameRepo.GetWithDetailsAsync(gameId);
             ValidatePlayerInGame(game, playerId);
             
+            if (game.Status == GameStatus.InProgress)
+                throw new InvalidOperationException("IN_PROGRESS");
             if (game.Status != GameStatus.PlacingShips)
                 throw new InvalidOperationException("El juego no está en fase de colocación. Espera a que tu oponente acepte la invitación.");
                 
@@ -265,6 +267,8 @@ namespace LinkUpPro.Core.Application.Services
             var game = await _gameRepo.GetWithDetailsAsync(gameId);
             ValidatePlayerInGame(game, playerId);
 
+            if (game.Status == GameStatus.InProgress)
+                throw new InvalidOperationException("IN_PROGRESS");
             if (game.Status != GameStatus.PlacingShips)
                 throw new InvalidOperationException("El juego no está en fase de colocación. Espera a que tu oponente acepte la invitación.");
 
