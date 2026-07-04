@@ -79,16 +79,32 @@ namespace LinkUpPro.Controllers
 
         public async Task<IActionResult> SelectShip(int gameId)
         {
-            var userId = UserId;
-            var vm = await _battleshipService.GetPendingShipsAsync(gameId, userId);
-            return View(vm);
+            try
+            {
+                var userId = UserId;
+                var vm = await _battleshipService.GetPendingShipsAsync(gameId, userId);
+                return View(vm);
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         public async Task<IActionResult> PlaceShip(int gameId, string shipType)
         {
-            var userId = UserId;
-            var vm = await _battleshipService.GetBoardForPlacementAsync(gameId, userId, shipType);
-            return View(vm);
+            try
+            {
+                var userId = UserId;
+                var vm = await _battleshipService.GetBoardForPlacementAsync(gameId, userId, shipType);
+                return View(vm);
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["Error"] = ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         [HttpPost]

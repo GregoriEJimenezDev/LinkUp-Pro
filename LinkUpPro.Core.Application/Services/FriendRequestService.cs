@@ -105,9 +105,15 @@ namespace LinkUpPro.Core.Application.Services
                 if (friendIds.Contains(user.Id!)) continue;
                 var hasPending = await _friendRequestRepository.HasPendingRequestAsync(userId, user.Id!);
                 if (hasPending) continue;
-                if (!string.IsNullOrWhiteSpace(search) &&
-                    !user.Username.Contains(search, StringComparison.OrdinalIgnoreCase))
-                    continue;
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    bool matchesUsername = user.Username?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false;
+                    bool matchesFirstName = user.FirstName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false;
+                    bool matchesLastName = user.LastName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false;
+                    
+                    if (!matchesUsername && !matchesFirstName && !matchesLastName)
+                        continue;
+                }
 
                 var theirFriendIds = await GetFriendIdsAsync(user.Id!);
                 var mutual = friendIds.Intersect(theirFriendIds).Count();

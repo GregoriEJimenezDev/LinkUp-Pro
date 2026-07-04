@@ -63,7 +63,7 @@
                             {
                                 bool isOccupied = occupied.Contains($"{r},{c}");
                                 <button type="button" 
-                                        class="board-cell size-7 sm:size-8 md:size-10 rounded-sm transition-all flex items-center justify-center text-xs @(isOccupied ? "bg-primary/40 cursor-not-allowed" : "bg-secondary hover:bg-primary/20 cursor-pointer") border border-border/80"
+                                        class="board-cell size-7 sm:size-8 md:size-10 rounded-sm transition-all flex items-center justify-center text-xs @(isOccupied ? "bg-slate-300 dark:bg-slate-700 cursor-not-allowed" : "bg-secondary hover:bg-primary/20 cursor-pointer") border border-border/80"
                                         data-row="@r" 
                                         data-col="@c"
                                         @(isOccupied ? "disabled" : "")

@@ -235,6 +235,10 @@ namespace LinkUpPro.Core.Application.Services
         {
             var game = await _gameRepo.GetWithDetailsAsync(gameId);
             ValidatePlayerInGame(game, playerId);
+            
+            if (game.Status != GameStatus.PlacingShips)
+                throw new InvalidOperationException("El juego no está en fase de colocación. Espera a que tu oponente acepte la invitación.");
+                
             var playerShips = game.Ships.Where(s => s.PlayerId == playerId).ToList();
 
             var allShipTypes = new[] { ShipType.size2, ShipType.size3A, ShipType.size3B, ShipType.size4, ShipType.size5 };
@@ -258,11 +262,14 @@ namespace LinkUpPro.Core.Application.Services
             if (!Enum.TryParse<ShipType>(shipType, out var st))
                 throw new ArgumentException("Tipo de barco inválido.");
 
-            var existingShips = await _shipRepo.GetByGameAndPlayerAsync(gameId, playerId);
-            
             var game = await _gameRepo.GetWithDetailsAsync(gameId);
             ValidatePlayerInGame(game, playerId);
 
+            if (game.Status != GameStatus.PlacingShips)
+                throw new InvalidOperationException("El juego no está en fase de colocación. Espera a que tu oponente acepte la invitación.");
+
+            var existingShips = await _shipRepo.GetByGameAndPlayerAsync(gameId, playerId);
+            
             var occupiedCells = existingShips.SelectMany(s => s.Cells)
                 .Select(c => (c.Row, c.Column)).ToList();
 
