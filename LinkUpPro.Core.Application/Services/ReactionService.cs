@@ -3,21 +3,24 @@ using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Core.Domain.Interfaces;
 
+using LinkUpPro.Core.Application.Interfaces.Repositories;
+
 namespace LinkUpPro.Core.Application.Services
 {
     public class ReactionService(IReactionRepository reactionRepository, INotificationService notificationService,
-        IPostRepository postRepository, IUserService userService, IFriendshipRepository friendshipRepo) : IReactionService
+        IPostRepository postRepository, IUserService userService, IFriendshipRepository friendshipRepo, IUnitOfWork unitOfWork) : IReactionService
     {
         private readonly IReactionRepository _reactionRepository = reactionRepository;
         private readonly INotificationService _notificationService = notificationService;
         private readonly IPostRepository _postRepository = postRepository;
         private readonly IUserService _userService = userService;
         private readonly IFriendshipRepository _friendshipRepo = friendshipRepo;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<ServiceResult> ReactAsync(int postId, string userId, bool isLike)
         {
             var post = await _postRepository.GetByIdAsync(postId);
-            if (post == null) return ServiceResult.Failure("Publicación no encontrada.");
+            if (post == null || post.IsDeleted) return ServiceResult.Failure("Publicación no encontrada.");
 
             if (post.UserId != userId)
             {
@@ -60,6 +63,8 @@ namespace LinkUpPro.Core.Application.Services
                 await _reactionRepository.UpdateAsync(existing);
                 isNewReaction = true;
             }
+
+            await _unitOfWork.SaveChangesAsync();
 
             if (isNewReaction)
             {

@@ -4,21 +4,24 @@ using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Core.Domain.Interfaces;
 
+using LinkUpPro.Core.Application.Interfaces.Repositories;
+
 namespace LinkUpPro.Core.Application.Services
 {
     public class CommentService(ICommentRepository commentRepo, INotificationService notificationService,
-        IPostRepository postRepository, IUserService userService, IFriendshipRepository friendshipRepo) : ICommentService
+        IPostRepository postRepository, IUserService userService, IFriendshipRepository friendshipRepo, IUnitOfWork unitOfWork) : ICommentService
     {
         private readonly ICommentRepository _commentRepo = commentRepo;
         private readonly INotificationService _notificationService = notificationService;
         private readonly IPostRepository _postRepository = postRepository;
         private readonly IUserService _userService = userService;
         private readonly IFriendshipRepository _friendshipRepo = friendshipRepo;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<ServiceResult> AddAsync(SaveCommentViewModel vm, string userId)
         {
             var post = await _postRepository.GetByIdAsync(vm.PostId);
-            if (post == null) return ServiceResult.Failure("Publicación no encontrada.");
+            if (post == null || post.IsDeleted) return ServiceResult.Failure("Publicación no encontrada.");
             
             if (!post.AllowComments)
                 return ServiceResult.Failure("Esta publicación no permite comentarios.");
@@ -37,6 +40,15 @@ namespace LinkUpPro.Core.Application.Services
                     {
                         return ServiceResult.Failure("No estás autorizado para comentar en esta publicación.");
                     }
+                }
+            }
+
+            if (vm.ParentCommentId.HasValue)
+            {
+                var parentCommentValidation = await _commentRepo.GetByIdAsync(vm.ParentCommentId.Value);
+                if (parentCommentValidation == null || parentCommentValidation.PostId != vm.PostId)
+                {
+                    return ServiceResult.Failure("El comentario padre no existe o no pertenece a esta publicación.");
                 }
             }
 
@@ -81,6 +93,8 @@ namespace LinkUpPro.Core.Application.Services
                 }
             }
 
+            await _unitOfWork.SaveChangesAsync();
+
             return ServiceResult.Success();
         }
         public async Task<ServiceResult> DeleteAsync(int commentId, string userId)
@@ -94,6 +108,7 @@ namespace LinkUpPro.Core.Application.Services
 
             comment.IsDeleted = true;
             await _commentRepo.UpdateAsync(comment);
+            await _unitOfWork.SaveChangesAsync();
             
             return ServiceResult.Success();
         }
@@ -110,6 +125,7 @@ namespace LinkUpPro.Core.Application.Services
             comment.UpdatedAt = DateTime.UtcNow;
 
             await _commentRepo.UpdateAsync(comment);
+            await _unitOfWork.SaveChangesAsync();
 
             return ServiceResult.Success();
         }

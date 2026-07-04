@@ -234,6 +234,7 @@ namespace LinkUpPro.Core.Application.Services
         public async Task<SelectShipViewModel> GetPendingShipsAsync(int gameId, string playerId)
         {
             var game = await _gameRepo.GetWithDetailsAsync(gameId);
+            if (game == null) throw new KeyNotFoundException("Partida no encontrada.");
             ValidatePlayerInGame(game, playerId);
             
             if (game.Status == GameStatus.InProgress)
@@ -265,6 +266,7 @@ namespace LinkUpPro.Core.Application.Services
                 throw new ArgumentException("Tipo de barco inválido.");
 
             var game = await _gameRepo.GetWithDetailsAsync(gameId);
+            if (game == null) throw new KeyNotFoundException("Partida no encontrada.");
             ValidatePlayerInGame(game, playerId);
 
             if (game.Status == GameStatus.InProgress)
@@ -347,6 +349,7 @@ namespace LinkUpPro.Core.Application.Services
         public async Task<AttackBoardViewModel> GetAttackBoardAsync(int gameId, string playerId)
         {
             var game = await _gameRepo.GetWithDetailsForUpdateAsync(gameId);
+            if (game == null) throw new KeyNotFoundException("Partida no encontrada.");
             ValidatePlayerInGame(game, playerId);
             
             if (game.Status == GameStatus.InProgress && game.CheckTimeout(48))
@@ -500,6 +503,7 @@ namespace LinkUpPro.Core.Application.Services
         public async Task<GameResultViewModel> GetResultAsync(int gameId, string playerId)
         {
             var game = await _gameRepo.GetWithDetailsAsync(gameId);
+            if (game == null) throw new KeyNotFoundException("Partida no encontrada.");
             ValidatePlayerInGame(game, playerId);
 
             var opponentId = game.FirstPlayerId == playerId ? game.SecondPlayerId : game.FirstPlayerId;

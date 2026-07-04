@@ -19,7 +19,11 @@ namespace LinkUpPro.Controllers
         public async Task<IActionResult> Toggle(int postId, bool isLike)
         {
             var userId = UserId;
-            await _reactionService.ReactAsync(postId, userId, isLike);
+            var result = await _reactionService.ReactAsync(postId, userId, isLike);
+            if (!result.Succeeded)
+            {
+                return Json(new { success = false, message = result.ErrorMessage });
+            }
 
             _cache.Remove($"FeedPosts_{userId}_True");
             _cache.Remove($"FeedPosts_{userId}_False");

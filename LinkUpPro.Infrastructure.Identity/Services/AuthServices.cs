@@ -44,6 +44,9 @@ namespace LinkUpPro.Infrastructure.Identity.Services
             if (!result.Succeeded)
                 return ServiceResult.Failure(result.Errors.First().Description);
 
+            await _userManager.UpdateSecurityStampAsync(user);
+            await _userManager.SetLockoutEndDateAsync(user, null);
+
             return ServiceResult.Success();
         }
 
@@ -94,16 +97,13 @@ namespace LinkUpPro.Infrastructure.Identity.Services
         {
             var user = await _userManager.FindByNameAsync(username) ?? await _userManager.FindByEmailAsync(username);
             
-            if (user == null)
-                return ServiceResult.Failure("No existe ninguna cuenta asociada a este correo o nombre de usuario.");
-
-            if (user.IsActive)
-                return ServiceResult.Failure("Esta cuenta ya se encuentra activa. Puedes iniciar sesión.");
+            if (user == null || user.IsActive)
+                return ServiceResult.Success();
 
             var cacheKey = $"ResendEmail_{user.Id}";
             if (_cache.TryGetValue(cacheKey, out _))
             {
-                return ServiceResult.Failure("Debes esperar 5 minutos antes de solicitar otro correo de activación.");
+                return ServiceResult.Success();
             }
 
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -209,6 +209,9 @@ namespace LinkUpPro.Infrastructure.Identity.Services
 
                 if (!allowedExtensions.Contains(extension))
                     return ServiceResult.Failure("Solo se permiten imágenes .jpg, .png y .webp.");
+
+                if (!IsValidImageFile(vm.ProfilePicture))
+                    return ServiceResult.Failure("El archivo no es una imagen válida o está corrupto.");
 
                 var fileName = $"{Guid.NewGuid()}{extension}";
                 var contentType = extension == ".png" ? "image/png" : (extension == ".webp" ? "image/webp" : "image/jpeg");
@@ -317,6 +320,9 @@ namespace LinkUpPro.Infrastructure.Identity.Services
                 if (!allowedExtensions.Contains(extension))
                     return ServiceResult.Failure("Solo se permiten imágenes .jpg, .png y .webp.");
 
+                if (!IsValidImageFile(vm.ProfilePicture))
+                    return ServiceResult.Failure("El archivo no es una imagen válida o está corrupto.");
+
                 var fileName = $"{Guid.NewGuid()}{extension}";
                 var contentType = extension == ".png" ? "image/png" : (extension == ".webp" ? "image/webp" : "image/jpeg");
                 
@@ -367,5 +373,31 @@ namespace LinkUpPro.Infrastructure.Identity.Services
             return activeUsers;
         }
 
+
+        private static bool IsValidImageFile(byte[] fileBytes)
+        {
+            if (fileBytes == null || fileBytes.Length < 4) return false;
+
+            var header = fileBytes.Take(4).ToArray();
+
+            // JPEG: FF D8 FF
+            if (header[0] == 0xFF && header[1] == 0xD8 && header[2] == 0xFF) return true;
+
+            // PNG: 89 50 4E 47
+            if (header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47) return true;
+
+            // WEBP: RIFF ... WEBP
+            if (fileBytes.Length > 12)
+            {
+                var webpHeader = fileBytes.Take(12).ToArray();
+                if (webpHeader[0] == 0x52 && webpHeader[1] == 0x49 && webpHeader[2] == 0x46 && webpHeader[3] == 0x46 &&
+                    webpHeader[8] == 0x57 && webpHeader[9] == 0x45 && webpHeader[10] == 0x42 && webpHeader[11] == 0x50)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

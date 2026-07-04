@@ -414,7 +414,7 @@
         else
         {
             <div class="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
-                @if (!string.IsNullOrEmpty(Model.SearchQuery) || Model.FilterMediaType.HasValue || Model.FilterDateFrom.HasValue || Model.FilterDateTo.HasValue || (Model.FilterEditState.HasValue && Model.FilterEditState.Value != 0))
+                @if (!string.IsNullOrEmpty(Model?.SearchQuery) || Model?.FilterMediaType.HasValue == true || Model?.FilterDateFrom.HasValue == true || Model?.FilterDateTo.HasValue == true || (Model?.FilterEditState.HasValue == true && Model?.FilterEditState.Value != 0))
                 {
                     <p class="font-medium">No se encontraron publicaciones que coincidan con los criterios seleccionados.</p>
                 }

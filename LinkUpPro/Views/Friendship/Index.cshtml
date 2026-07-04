@@ -26,11 +26,11 @@
                 {
                     <div class="flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm transition-all hover:border-primary/50">
                         <div class="flex items-center gap-3">
-                            <div class="relative flex size-12 shrink-0 overflow-hidden rounded-full border border-border">
+                            <a href="@Url.Action("Index", "Profile", new { id = friend.Username })" class="relative flex size-12 shrink-0 overflow-hidden rounded-full border border-border">
                                 <img class="aspect-square h-full w-full object-cover" src="@friend.ProfilePicture" alt="@friend.Username" onerror="this.src='/placeholder.svg'" />
-                            </div>
+                            </a>
                             <div class="flex flex-col">
-                                <span class="text-sm font-semibold">@friend.FullName</span>
+                                <a href="@Url.Action("Index", "Profile", new { id = friend.Username })" class="text-sm font-semibold hover:underline">@friend.FullName</a>
                                 <span class="text-xs text-muted-foreground">@@@friend.Username</span>
                             </div>
                         </div>

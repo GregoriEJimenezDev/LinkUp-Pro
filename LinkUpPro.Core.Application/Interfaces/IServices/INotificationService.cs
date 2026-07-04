@@ -4,7 +4,7 @@ using LinkUpPro.Core.Domain.Enum;
 
 namespace LinkUpPro.Core.Application.Interfaces.IServices
 {
-    public interface INotificationService
+    public interface INotificationService : IGenericService<NotificationDto, NotificationDto, Domain.Entities.Notification>
     {
         Task<ServiceResult> CreateNotificationAsync(string userId, string title, string message, string? url = null, NotificationType type = NotificationType.FriendRequestReceived);
         Task<int> GetUnreadCountAsync(string userId);

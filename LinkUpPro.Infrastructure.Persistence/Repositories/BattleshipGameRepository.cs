@@ -23,22 +23,20 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories
                 .AsNoTracking()
                 .ToListAsync();
 
-        public async Task<BattleshipGame> GetWithDetailsAsync(int gameId) =>
+        public async Task<BattleshipGame?> GetWithDetailsAsync(int gameId) =>
             await _context.BattleshipGames
                 .Include(g => g.Ships).ThenInclude(s => s.Cells)
                 .Include(g => g.Attacks)
                 .AsSplitQuery()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(g => g.Id == gameId)
-            ?? throw new Exception($"Details not found.");
+                .FirstOrDefaultAsync(g => g.Id == gameId);
 
-        public async Task<BattleshipGame> GetWithDetailsForUpdateAsync(int gameId) =>
+        public async Task<BattleshipGame?> GetWithDetailsForUpdateAsync(int gameId) =>
             await _context.BattleshipGames
                 .Include(g => g.Ships).ThenInclude(s => s.Cells)
                 .Include(g => g.Attacks)
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(g => g.Id == gameId)
-            ?? throw new Exception($"Details not found.");
+                .FirstOrDefaultAsync(g => g.Id == gameId);
 
         public async Task<bool> HasActiveGameWithFriendAsync(string userId, string friendId) =>
             await _context.BattleshipGames.AsNoTracking()

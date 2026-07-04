@@ -63,6 +63,7 @@ namespace LinkUpPro.Infrastructure.Identity.IoC
             .AddDefaultTokenProviders();
 
             services.Configure<SecurityStampValidatorOptions>(opts => opts.ValidationInterval = TimeSpan.Zero);
+            services.Configure<DataProtectionTokenProviderOptions>(opts => opts.TokenLifespan = TimeSpan.FromHours(1));
             #endregion
 
             #region Services Registration

@@ -2,12 +2,15 @@ using LinkUpPro.Core.Application.DTOs.Friend;
 using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Domain.Interfaces;
 
+using LinkUpPro.Core.Application.Interfaces.Repositories;
+
 namespace LinkUpPro.Core.Application.Services
 {
-    public class FriendshipService(IFriendshipRepository friendshipRepository, IUserService userService) : IFriendshipService
+    public class FriendshipService(IFriendshipRepository friendshipRepository, IUserService userService, IUnitOfWork unitOfWork) : IFriendshipService
     {
         private readonly IFriendshipRepository _friendshipRepository = friendshipRepository;
         private readonly IUserService _userServices = userService;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<List<string>> GetFriendIdsAsync(string userId)
         {
@@ -57,6 +60,7 @@ namespace LinkUpPro.Core.Application.Services
 
             friendship.IsDeleted = true;
             await _friendshipRepository.UpdateAsync(friendship);
+            await _unitOfWork.SaveChangesAsync();
             return ServiceResult.Success();
         }
     }

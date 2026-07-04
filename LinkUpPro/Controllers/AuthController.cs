@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace LinkUpPro.Controllers
 {
-    [AllowAnonymous]
     public class AuthController(IUserService userService) : BaseController
     {
         private readonly IUserService _userService = userService;
 
+        [AllowAnonymous]
         public IActionResult Index([FromQuery] string? ReturnUrl)
         {
             if (User.Identity != null && User.Identity.IsAuthenticated)
@@ -21,6 +21,7 @@ namespace LinkUpPro.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Login(LoginViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -39,6 +40,7 @@ namespace LinkUpPro.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        [AllowAnonymous]
         public IActionResult Register()
         {
             if (User.Identity != null && User.Identity.IsAuthenticated)
@@ -49,6 +51,7 @@ namespace LinkUpPro.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> Register(RegisterViewModel vm, IFormFile? file)
         {
             if (!ModelState.IsValid)
@@ -75,6 +78,7 @@ namespace LinkUpPro.Controllers
             return RedirectToAction("RegisterSuccess");
         }
 
+        [AllowAnonymous]
         public IActionResult RegisterSuccess()
         {
             if (User.Identity != null && User.Identity.IsAuthenticated)
@@ -84,6 +88,7 @@ namespace LinkUpPro.Controllers
             return View();
         }
 
+        [AllowAnonymous]
         public IActionResult ResendActivation()
         {
             if (User.Identity != null && User.Identity.IsAuthenticated)
@@ -94,6 +99,7 @@ namespace LinkUpPro.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> ResendActivation(string username)
         {
             if (string.IsNullOrEmpty(username))
@@ -110,16 +116,20 @@ namespace LinkUpPro.Controllers
                 return View();
             }
 
-            TempData["Success"] = "Se ha reenviado el enlace de activación. Por favor verifica tu bandeja de entrada o spam.";
+            TempData["Success"] = "Si el usuario existe y su cuenta no está activa, se reenviará el enlace de activación. Por favor verifica tu bandeja de entrada o spam.";
             return RedirectToAction("Index");
         }
 
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             await _userService.LogoutAsync();
             return RedirectToAction("Index", "Home");
         }
 
+        [AllowAnonymous]
         public async Task<IActionResult> ActivateAccount(string token, string userId)
         {
             var result = await _userService.ActivateAccountAsync(token, userId);
@@ -136,6 +146,7 @@ namespace LinkUpPro.Controllers
             return RedirectToAction("Index");
         }
 
+        [AllowAnonymous]
         public IActionResult ForgotPassword()
         {
             if (User.Identity != null && User.Identity.IsAuthenticated)
@@ -146,6 +157,7 @@ namespace LinkUpPro.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -160,6 +172,7 @@ namespace LinkUpPro.Controllers
             return View(vm);
         }
 
+        [AllowAnonymous]
         public IActionResult ResetPassword(string userId, string token)
         {
             if (User.Identity != null && User.Identity.IsAuthenticated)
@@ -177,6 +190,7 @@ namespace LinkUpPro.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel vm)
         {
             if (!ModelState.IsValid)

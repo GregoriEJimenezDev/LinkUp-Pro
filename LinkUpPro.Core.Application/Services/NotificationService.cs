@@ -4,11 +4,17 @@ using LinkUpPro.Core.Application.Interfaces.IServices;
 using LinkUpPro.Core.Domain.Entities;
 using LinkUpPro.Core.Domain.Interfaces;
 
+using LinkUpPro.Core.Application.Interfaces.Repositories;
+
+using AutoMapper;
+
 namespace LinkUpPro.Core.Application.Services
 {
-    public class NotificationService(INotificationRepository notificationRepo) : INotificationService
+    public class NotificationService(INotificationRepository notificationRepo, IMapper mapper, IUnitOfWork unitOfWork) 
+        : GenericService<NotificationDto, NotificationDto, Notification>(notificationRepo, mapper, unitOfWork), INotificationService
     {
         private readonly INotificationRepository _notificationRepo = notificationRepo;
+
 
         public async Task<ServiceResult> CreateNotificationAsync(string userId, string title, string message, string? url = null, NotificationType type = NotificationType.FriendRequestReceived)
         {
@@ -23,6 +29,7 @@ namespace LinkUpPro.Core.Application.Services
             };
 
             await _notificationRepo.AddAsync(notification);
+            await _unitOfWork.SaveChangesAsync();
             return ServiceResult.Success();
         }
 
@@ -56,6 +63,7 @@ namespace LinkUpPro.Core.Application.Services
 
             notification.IsRead = true;
             await _notificationRepo.UpdateAsync(notification);
+            await _unitOfWork.SaveChangesAsync();
 
             return ServiceResult.Success();
         }

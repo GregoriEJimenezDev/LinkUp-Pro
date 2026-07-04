@@ -32,25 +32,21 @@ namespace LinkUpPro.Infrastructure.Persistence.Repositories.Generic
         public async Task AddAsync(Entity entity)
         {
             await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(Entity entity)
         {
             _dbSet.Update(entity);
-            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Entity entity)
         {
             _dbSet.Remove(entity);
-            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateRangeAsync(IEnumerable<Entity> entities)
         {
             _dbSet.UpdateRange(entities);
-            await _context.SaveChangesAsync();
         }
     }
 }

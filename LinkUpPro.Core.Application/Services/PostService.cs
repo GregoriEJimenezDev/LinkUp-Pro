@@ -8,10 +8,12 @@ using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Core.Domain.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 
+using LinkUpPro.Core.Application.Interfaces.Repositories;
+
 namespace LinkUpPro.Core.Application.Services
 {
     public class PostService(IPostRepository postRepository, IReactionRepository reactionRepository,
-        IFriendshipRepository friendshipRepository, IUserService userService, IFileStorageService fileStorageService, Microsoft.Extensions.Caching.Memory.IMemoryCache memoryCache) : IPostService
+        IFriendshipRepository friendshipRepository, IUserService userService, IFileStorageService fileStorageService, Microsoft.Extensions.Caching.Memory.IMemoryCache memoryCache, IUnitOfWork unitOfWork) : IPostService
     {
         private readonly IPostRepository _postRepository = postRepository;
         private readonly IReactionRepository _reactionRepository = reactionRepository;
@@ -19,6 +21,7 @@ namespace LinkUpPro.Core.Application.Services
         private readonly IUserService _userService = userService;
         private readonly IFileStorageService _fileStorageService = fileStorageService;
         private readonly Microsoft.Extensions.Caching.Memory.IMemoryCache _cache = memoryCache;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<ServiceResult> CreateAsync(SavePostViewModel vm, string userId)
         {
@@ -44,10 +47,10 @@ namespace LinkUpPro.Core.Application.Services
                     return ServiceResult.Failure("La imagen de la publicación no puede superar los 5 MB.");
                 string extension = string.IsNullOrEmpty(vm.ImageFileName) ? ".jpg" : Path.GetExtension(vm.ImageFileName).ToLower();
                 
-                var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
-                if (!validExtensions.Contains(extension))
+                var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                if (!validExtensions.Contains(extension) || !IsValidImageFile(vm.ImageFile))
                 {
-                    return ServiceResult.Failure("El formato de la imagen no es válido. Formatos permitidos: JPG, PNG, WEBP, GIF.");
+                    return ServiceResult.Failure("El formato de la imagen no es válido o el archivo está corrupto. Formatos permitidos: JPG, PNG, WEBP.");
                 }
 
                 mediaUrl = await SaveImageAsync(vm.ImageFile, extension);
@@ -69,8 +72,12 @@ namespace LinkUpPro.Core.Application.Services
                 UserId = userId,
                 CreatedAt = DateTime.UtcNow
             };
-
             await _postRepository.AddAsync(post);
+            await _unitOfWork.SaveChangesAsync();
+            
+            _cache.Remove($"FeedPosts_{userId}_True");
+            _cache.Remove($"FeedPosts_{userId}_False");
+
             return ServiceResult.Success();
         }
 
@@ -83,6 +90,11 @@ namespace LinkUpPro.Core.Application.Services
 
             post.IsDeleted = true;
             await _postRepository.UpdateAsync(post);
+            await _unitOfWork.SaveChangesAsync();
+
+            _cache.Remove($"FeedPosts_{userId}_True");
+            _cache.Remove($"FeedPosts_{userId}_False");
+
             return ServiceResult.Success();
         }
 
@@ -239,10 +251,10 @@ namespace LinkUpPro.Core.Application.Services
                         return ServiceResult.Failure("La imagen de la publicación no puede superar los 5 MB.");
                     string extension = string.IsNullOrEmpty(vm.ImageFileName) ? ".jpg" : Path.GetExtension(vm.ImageFileName).ToLower();
                     
-                    var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
-                    if (!validExtensions.Contains(extension))
+                    var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                    if (!validExtensions.Contains(extension) || !IsValidImageFile(vm.ImageFile))
                     {
-                        return ServiceResult.Failure("El formato de la imagen no es válido. Formatos permitidos: JPG, PNG, WEBP, GIF.");
+                        return ServiceResult.Failure("El formato de la imagen no es válido o el archivo está corrupto. Formatos permitidos: JPG, PNG, WEBP.");
                     }
 
                     post.MediaUrl = await SaveImageAsync(vm.ImageFile, extension);
@@ -271,6 +283,7 @@ namespace LinkUpPro.Core.Application.Services
             post.UpdatedAt = DateTime.UtcNow;
 
             await _postRepository.UpdateAsync(post);
+            await _unitOfWork.SaveChangesAsync();
             
             _cache.Remove($"FeedPosts_{userId}_True");
             _cache.Remove($"FeedPosts_{userId}_False");
@@ -409,6 +422,32 @@ namespace LinkUpPro.Core.Application.Services
             }
 
             return videoId != null ? $"https://www.youtube.com/embed/{videoId}" : null;
+        }
+
+        private static bool IsValidImageFile(byte[] fileBytes)
+        {
+            if (fileBytes == null || fileBytes.Length < 4) return false;
+
+            var header = fileBytes.Take(4).ToArray();
+
+            // JPEG: FF D8 FF
+            if (header[0] == 0xFF && header[1] == 0xD8 && header[2] == 0xFF) return true;
+
+            // PNG: 89 50 4E 47
+            if (header[0] == 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47) return true;
+
+            // WEBP: RIFF ... WEBP
+            if (fileBytes.Length > 12)
+            {
+                var webpHeader = fileBytes.Take(12).ToArray();
+                if (webpHeader[0] == 0x52 && webpHeader[1] == 0x49 && webpHeader[2] == 0x46 && webpHeader[3] == 0x46 &&
+                    webpHeader[8] == 0x57 && webpHeader[9] == 0x45 && webpHeader[10] == 0x42 && webpHeader[11] == 0x50)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
         #endregion
 

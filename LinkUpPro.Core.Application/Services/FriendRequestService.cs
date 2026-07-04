@@ -6,15 +6,18 @@ using LinkUpPro.Core.Domain.Enum;
 using LinkUpPro.Core.Domain.Interfaces;
 using System.Transactions;
 
+using LinkUpPro.Core.Application.Interfaces.Repositories;
+
 namespace LinkUpPro.Core.Application.Services
 {
     public class FriendRequestService(IFriendRequestRepository friendRequestRepository,
-        IFriendshipRepository friendshipRepository, IUserService userService, INotificationService notificationService) : IFriendRequestService
+        IFriendshipRepository friendshipRepository, IUserService userService, INotificationService notificationService, IUnitOfWork unitOfWork) : IFriendRequestService
     {
         private readonly IFriendRequestRepository _friendRequestRepository = friendRequestRepository;
         private readonly IFriendshipRepository _friendshipRepository = friendshipRepository;
         private readonly IUserService _userService = userService;
         private readonly INotificationService _notificationService = notificationService;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<ServiceResult> AcceptAsync(int requestId, string userId)
         {
@@ -61,6 +64,7 @@ namespace LinkUpPro.Core.Application.Services
                     });
                 }
 
+                await _unitOfWork.SaveChangesAsync();
                 scope.Complete();
             }
 
@@ -80,8 +84,8 @@ namespace LinkUpPro.Core.Application.Services
             var request = await _friendRequestRepository.GetByIdAsync(requestId);
             if (request == null)
                 return ServiceResult.Failure("Solicitud de amistad no encontrada.");
-            if (request.SenderId != userId && request.ReceiverId != userId)
-                return ServiceResult.Failure("No estás autorizado para cancelar esta solicitud de amistad.");
+            if (request.SenderId != userId)
+                return ServiceResult.Failure("Solo el remitente puede cancelar esta solicitud de amistad.");
 
             if (request.Status != FriendRequestStatus.Pending)
                 return ServiceResult.Failure("Solo se pueden cancelar solicitudes pendientes.");
@@ -89,6 +93,7 @@ namespace LinkUpPro.Core.Application.Services
             request.Status = FriendRequestStatus.Canceled;
             request.RespondedAt = DateTime.UtcNow;
             await _friendRequestRepository.UpdateAsync(request);
+            await _unitOfWork.SaveChangesAsync();
 
             return ServiceResult.Success();
         }
@@ -103,6 +108,7 @@ namespace LinkUpPro.Core.Application.Services
             {
                 if (user.Id == userId) continue;
                 bool isFriend = friendIds.Contains(user.Id!);
+                if (isFriend) continue;
                 var hasPending = await _friendRequestRepository.HasPendingRequestAsync(userId, user.Id!);
                 if (hasPending) continue;
                 if (!string.IsNullOrWhiteSpace(search))
@@ -207,6 +213,7 @@ namespace LinkUpPro.Core.Application.Services
             request.RespondedAt = DateTime.UtcNow;
 
             await _friendRequestRepository.UpdateAsync(request);
+            await _unitOfWork.SaveChangesAsync();
             return ServiceResult.Success();
         }
 
@@ -220,6 +227,7 @@ namespace LinkUpPro.Core.Application.Services
 
             request.SenderIsVisible = false;
             await _friendRequestRepository.UpdateAsync(request);
+            await _unitOfWork.SaveChangesAsync();
 
             return ServiceResult.Success();
         }
@@ -229,6 +237,10 @@ namespace LinkUpPro.Core.Application.Services
             var hasPending = await _friendRequestRepository.HasPendingRequestAsync(senderId, receiverId);
             if (hasPending)
                 return ServiceResult.Failure("Ya existe una solicitud de amistad pendiente entre estos usuarios.");
+
+            var receiverInfo = await _userService.GetUserBasicInfoAsync(receiverId);
+            if (receiverInfo == null || !receiverInfo.IsActive)
+                return ServiceResult.Failure("El usuario al que intentas enviar la solicitud no existe o está inactivo.");
 
             var areFriends = await _friendshipRepository.AreFriendsAsync(senderId, receiverId);
             if (areFriends)
@@ -250,6 +262,9 @@ namespace LinkUpPro.Core.Application.Services
                 "/FriendRequest/Index",
                 NotificationType.FriendRequestReceived
             );
+
+            // Save after adding notification and friend request (CreateNotification saves internally but it's okay)
+            await _unitOfWork.SaveChangesAsync();
 
             return ServiceResult.Success();
         }
